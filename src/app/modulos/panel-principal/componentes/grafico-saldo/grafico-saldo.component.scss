@@ -1,0 +1,93 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.tarjeta-grafico {
+  height: 100%;
+
+  padding: 1.2rem;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 4px 12px rgba(15, 23, 42, 0.025),
+    0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+.grafico-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin-bottom: 1rem;
+}
+
+.grafico-header h3 {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.grafico-header p {
+  margin: 0.25rem 0 0;
+
+  color: #94a3b8;
+
+  font-size: 0.73rem;
+}
+
+.grafico-resumen {
+  display: flex;
+  flex-direction: column;
+
+  align-items: flex-end;
+}
+
+.grafico-resumen strong {
+  color: #0f172a;
+
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+.grafico-resumen span {
+  margin-top: 0.2rem;
+
+  color: #16a34a;
+
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.grafico-contenedor {
+  position: relative;
+
+  height: 260px;
+}
+
+.grafico-contenedor canvas {
+  width: 100% !important;
+  height: 100% !important;
+}
+
+.grafico-vacio {
+  height: 100%;
+
+  display: grid;
+  place-items: center;
+
+  color: #94a3b8;
+
+  font-size: 0.75rem;
+
+  text-align: center;
+}

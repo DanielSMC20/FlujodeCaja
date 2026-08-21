@@ -1,0 +1,407 @@
+:host {
+  display: block;
+}
+
+/* =========================================================
+   MENÚ PRINCIPAL
+   ========================================================= */
+
+.menu-lateral {
+  position: sticky;
+  top: 0;
+
+  z-index: 40;
+
+  flex: 0 0 230px;
+
+  width: 230px;
+  height: 100vh;
+
+  display: flex;
+  flex-direction: column;
+
+  overflow: hidden;
+
+  border-right: 1px solid rgba(51, 65, 85, 0.45);
+
+  background:
+    linear-gradient(
+      180deg,
+      #0b1f3a 0%,
+      #091a31 100%
+    );
+
+  color: #cbd5e1;
+}
+
+/* =========================================================
+   CABECERA / MARCA
+   ========================================================= */
+
+.menu-header {
+  flex: 0 0 auto;
+
+  height: 72px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.8rem;
+
+  padding: 0 1.35rem;
+
+  border-bottom:
+    1px solid rgba(51, 65, 85, 0.55);
+}
+
+/* =========================================================
+   LOGO
+   ========================================================= */
+
+.logo {
+  flex: 0 0 auto;
+
+  width: 40px;
+  height: 40px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 12px;
+
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb 0%,
+      #3b82f6 100%
+    );
+
+  color: #ffffff;
+
+  font-size: 0.85rem;
+  font-weight: 800;
+
+  box-shadow:
+    0 8px 20px rgba(37, 99, 235, 0.28);
+}
+
+/* =========================================================
+   MARCA
+   ========================================================= */
+
+.marca {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+}
+
+.marca strong {
+  overflow: hidden;
+
+  color: #ffffff;
+
+  font-size: 0.9rem;
+  font-weight: 700;
+
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.marca span {
+  margin-top: 0.16rem;
+
+  color: #64748b;
+
+  font-size: 0.67rem;
+  font-weight: 600;
+
+  letter-spacing: 0.08em;
+
+  text-transform: uppercase;
+}
+
+/* =========================================================
+   CONTENIDO
+   ========================================================= */
+
+.menu-contenido {
+  flex: 1;
+
+  min-height: 0;
+
+  overflow-y: auto;
+
+  padding: 1.25rem 0.85rem;
+}
+
+/* Scroll discreto */
+
+.menu-contenido::-webkit-scrollbar {
+  width: 4px;
+}
+
+.menu-contenido::-webkit-scrollbar-thumb {
+  border-radius: 10px;
+  background: #334155;
+}
+
+/* =========================================================
+   SECCIONES
+   ========================================================= */
+
+.menu-seccion + .menu-seccion {
+  margin-top: 1.75rem;
+}
+
+.menu-seccion-titulo {
+  margin: 0 0 0.55rem;
+
+  padding: 0 0.75rem;
+
+  color: #64748b;
+
+  font-size: 0.63rem;
+  font-weight: 700;
+
+  letter-spacing: 0.18em;
+
+  text-transform: uppercase;
+}
+
+.menu-opciones {
+  display: grid;
+  gap: 0.3rem;
+}
+
+/* =========================================================
+   OPCIÓN
+   ========================================================= */
+
+.menu-opcion {
+  position: relative;
+
+  min-height: 44px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.8rem;
+
+  padding: 0.65rem 0.8rem;
+
+  border-radius: 11px;
+
+  color: #94a3b8;
+
+  font-size: 0.83rem;
+  font-weight: 500;
+
+  text-decoration: none;
+
+  transition:
+    color 0.16s ease,
+    background 0.16s ease,
+    transform 0.16s ease;
+}
+
+.menu-opcion:hover {
+  background: rgba(30, 41, 59, 0.65);
+
+  color: #e2e8f0;
+}
+
+/* =========================================================
+   ICONO
+   ========================================================= */
+
+.menu-icono {
+  flex: 0 0 auto;
+
+  width: 26px;
+  height: 26px;
+
+  display: grid;
+  place-items: center;
+
+  color: #64748b;
+
+  transition:
+    color 0.16s ease;
+}
+
+.menu-opcion:hover .menu-icono {
+  color: #94a3b8;
+}
+
+/* =========================================================
+   ACTIVO
+   ========================================================= */
+
+.menu-opcion.opcion-activa {
+  background:
+    linear-gradient(
+      135deg,
+      #2563eb 0%,
+      #2f6ce5 100%
+    );
+
+  color: #ffffff;
+
+  font-weight: 600;
+
+  box-shadow:
+    0 8px 20px rgba(37, 99, 235, 0.22);
+}
+
+.menu-opcion.opcion-activa .menu-icono {
+  color: #ffffff;
+}
+
+/*
+  Pequeño indicador izquierdo.
+*/
+
+.menu-opcion.opcion-activa::before {
+  content: '';
+
+  position: absolute;
+
+  left: 0;
+
+  width: 3px;
+  height: 20px;
+
+  border-radius: 0 4px 4px 0;
+
+  background: #bfdbfe;
+}
+
+/* =========================================================
+   LABEL
+   ========================================================= */
+
+.menu-label {
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+
+  white-space: nowrap;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.menu-footer {
+  flex: 0 0 auto;
+
+  padding: 0.85rem;
+
+  border-top:
+    1px solid rgba(51, 65, 85, 0.5);
+}
+
+/* =========================================================
+   CERRAR SESIÓN
+   ========================================================= */
+
+.cerrar-sesion {
+  width: 100%;
+
+  min-height: 44px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.8rem;
+
+  padding: 0.65rem 0.8rem;
+
+  border: 0;
+
+  border-radius: 11px;
+
+  background: transparent;
+
+  color: #94a3b8;
+
+  font-family: inherit;
+
+  font-size: 0.83rem;
+  font-weight: 500;
+
+  text-align: left;
+
+  cursor: pointer;
+
+  transition:
+    color 0.16s ease,
+    background 0.16s ease;
+}
+
+.cerrar-sesion:hover {
+  background: rgba(239, 68, 68, 0.08);
+
+  color: #f87171;
+}
+
+/* =========================================================
+   OVERLAY
+   ========================================================= */
+
+.menu-overlay {
+  display: none;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1024px) {
+
+  .menu-lateral {
+    position: fixed;
+
+    top: 0;
+    left: 0;
+
+  width: 230px;
+
+    transform: translateX(-100%);
+
+    transition:
+      transform 0.25s ease;
+  }
+
+  .menu-lateral.menu-abierto {
+    transform: translateX(0);
+  }
+
+  .menu-overlay {
+    position: fixed;
+
+    inset: 0;
+
+    z-index: 35;
+
+    display: block;
+
+    background: rgba(2, 6, 23, 0.55);
+
+    opacity: 0;
+
+    visibility: hidden;
+
+    transition:
+      opacity 0.2s ease,
+      visibility 0.2s ease;
+  }
+
+  .menu-overlay.overlay-visible {
+    opacity: 1;
+
+    visibility: visible;
+  }
+
+}

@@ -1,0 +1,209 @@
+<section class="pagina-reportes">
+  <header class="pagina-header">
+    <div>
+      <span class="pagina-etiqueta"> Reportes </span>
+
+      <h1>Reporte de movimientos</h1>
+
+      <p>
+        Consulta y analiza los ingresos y egresos registrados por tu empresa.
+      </p>
+    </div>
+  </header>
+
+  <article class="tarjeta filtros">
+    <form
+      class="filtros-grid"
+      [formGroup]="formulario"
+      (ngSubmit)="aplicarFiltros()"
+    >
+      <div class="campo">
+        <label for="fechaDesde"> Desde </label>
+
+        <input id="fechaDesde" type="date" formControlName="fechaDesde" />
+      </div>
+
+      <div class="campo">
+        <label for="fechaHasta"> Hasta </label>
+
+        <input id="fechaHasta" type="date" formControlName="fechaHasta" />
+      </div>
+
+      <div class="campo">
+        <label for="tipoMovimiento"> Tipo de movimiento </label>
+
+        <select id="tipoMovimiento" formControlName="tipoMovimiento">
+          <option [ngValue]="0">Todos</option>
+
+          <option [ngValue]="1">Ingreso</option>
+
+          <option [ngValue]="2">Egreso</option>
+        </select>
+      </div>
+
+      <div class="campo">
+        <label for="categoriaId"> Categoría </label>
+
+        <select id="categoriaId" formControlName="categoriaId">
+          <option [ngValue]="0">Todas</option>
+
+          @for (categoria of categorias$ | async; track categoria.id) {
+            <option [ngValue]="categoria.id">
+              {{ categoria.nombre }}
+            </option>
+          }
+        </select>
+      </div>
+
+      <div class="acciones-filtros">
+        <button
+          type="button"
+          class="boton-secundario"
+          (click)="limpiarFiltros()"
+        >
+          Limpiar
+        </button>
+
+        <button type="submit" class="boton-principal">Generar reporte</button>
+      </div>
+    </form>
+  </article>
+
+  @if (reporte$ | async; as reporte) {
+    <div class="resumen-grid">
+      <article class="indicador">
+        <span> Ingresos </span>
+
+        <strong class="ingreso">
+          {{ reporte.resumen.totalIngresos | monedaSol }}
+        </strong>
+      </article>
+
+      <article class="indicador">
+        <span> Egresos </span>
+
+        <strong class="egreso">
+          {{ reporte.resumen.totalEgresos | monedaSol }}
+        </strong>
+      </article>
+
+      <article class="indicador">
+        <span> Resultado neto </span>
+
+        <strong
+          [class.ingreso]="reporte.resumen.neto >= 0"
+          [class.egreso]="reporte.resumen.neto < 0"
+        >
+          {{ reporte.resumen.neto | monedaSol }}
+        </strong>
+      </article>
+
+      <article class="indicador">
+        <span> Movimientos </span>
+
+        <strong class="movimientos">
+          {{ reporte.resumen.cantidadMovimientos }}
+        </strong>
+      </article>
+    </div>
+
+    <article class="tarjeta reporte-tabla">
+      <header class="tabla-header">
+        <div>
+          <h2>Detalle de movimientos</h2>
+
+          <p>
+            {{ reporte.resumen.cantidadMovimientos }}
+            movimientos encontrados.
+          </p>
+        </div>
+
+        <div class="exportaciones">
+          <button type="button" disabled title="Disponible próximamente">
+            Exportar Excel
+          </button>
+
+          <button type="button" disabled title="Disponible próximamente">
+            Exportar PDF
+          </button>
+        </div>
+      </header>
+
+      @if (reporte.movimientos.length > 0) {
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+
+                <th>Tipo</th>
+
+                <th>Categoría</th>
+
+                <th>Descripción</th>
+
+                <th>Medio de pago</th>
+
+                <th class="texto-derecha">Monto</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (movimiento of reporte.movimientos; track movimiento.id) {
+                <tr>
+                  <td>
+                    <strong>
+                      {{ formatearFecha(movimiento.fechaMovimiento) }}
+                    </strong>
+                  </td>
+
+                  <td>
+                    <span
+                      class="badge"
+                      [class.badge-ingreso]="movimiento.tipoMovimiento === 1"
+                      [class.badge-egreso]="movimiento.tipoMovimiento === 2"
+                    >
+                      {{ etiquetaTipoMovimiento(movimiento.tipoMovimiento) }}
+                    </span>
+                  </td>
+
+                  <td>
+                    {{ movimiento.categoria }}
+                  </td>
+
+                  <td class="descripcion">
+                    {{ movimiento.descripcion }}
+                  </td>
+
+                  <td>
+                    {{ etiquetaMedioPago(movimiento.medioPago) }}
+                  </td>
+
+                  <td
+                    class="texto-derecha monto"
+                    [class.ingreso]="movimiento.tipoMovimiento === 1"
+                    [class.egreso]="movimiento.tipoMovimiento === 2"
+                  >
+                    {{ movimiento.tipoMovimiento === 1 ? "+" : "-" }}
+
+                    {{ movimiento.monto | monedaSol }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="estado-vacio">
+          <div class="estado-vacio-icono">
+            <lucide-icon [img]="ChartNoAxesCombined" aria-hidden="true"></lucide-icon>
+          </div>
+
+          <strong> No encontramos movimientos </strong>
+
+          <p>Modifica los filtros para consultar otro periodo.</p>
+        </div>
+      }
+    </article>
+  }
+</section>

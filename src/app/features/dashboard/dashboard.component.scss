@@ -1,0 +1,77 @@
+.dashboard-shell {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  background:
+    radial-gradient(60% 50% at 15% 20%, rgba(35, 106, 248, 0.12), transparent 75%),
+    linear-gradient(180deg, #edf2f9 0%, #f6f8fb 100%);
+  padding: 1.5rem;
+}
+
+.dashboard-card {
+  width: min(40rem, 100%);
+  border-radius: 1rem;
+  border: 1px solid #dbe4f0;
+  background: #ffffff;
+  box-shadow: 0 30px 65px rgba(10, 35, 80, 0.08);
+  padding: 2rem;
+}
+
+header h1 {
+  margin: 0;
+  color: #0f2342;
+}
+
+header p {
+  margin: 0.4rem 0 0;
+  color: #5f7389;
+}
+
+.session-box {
+  margin-top: 1.35rem;
+  padding: 1rem;
+  border-radius: 0.8rem;
+  border: 1px solid #d2deee;
+  background: #f5f8fd;
+  display: grid;
+  gap: 0.4rem;
+}
+
+.session-box span {
+  color: #465b75;
+}
+
+.session-box strong {
+  font-size: 2rem;
+  color: #1a4fb7;
+}
+
+.session-box small {
+  color: #647c96;
+}
+
+.actions {
+  margin-top: 1.4rem;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.7rem;
+}
+
+button {
+  border: none;
+  border-radius: 0.7rem;
+  padding: 0.72rem 1rem;
+  color: #ffffff;
+  background: #255ff5;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+button.ghost {
+  background: #dbe6f8;
+  color: #1c3153;
+}
+
+button.danger {
+  background: #cf2f4f;
+}

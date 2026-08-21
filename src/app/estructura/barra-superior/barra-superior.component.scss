@@ -1,0 +1,139 @@
+:host {
+  display: block;
+}
+
+.barra-superior {
+  min-height: 68px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0 1.4rem;
+  border-bottom: 1px solid #dfe7f0;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 1px 4px rgba(15, 40, 72, 0.025);
+}
+
+.barra-izquierda,
+.barra-derecha,
+.empresa-actual,
+.usuario {
+  display: flex;
+  align-items: center;
+}
+
+.barra-izquierda {
+  gap: 0.85rem;
+}
+
+.barra-derecha {
+  gap: 1rem;
+}
+
+.boton-menu {
+  display: none;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  padding: 0;
+  border: 1px solid #dfe7f0;
+  border-radius: 9px;
+  background: #ffffff;
+  color: #536b88;
+  cursor: pointer;
+}
+
+.empresa-actual {
+  gap: 0.7rem;
+}
+
+.empresa-logo {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 10px;
+  background: #e7f7f2;
+  color: #138a6b;
+  font-size: 0.69rem;
+  font-weight: 800;
+}
+
+.empresa-informacion,
+.usuario-informacion {
+  display: flex;
+  flex-direction: column;
+}
+
+.empresa-informacion strong,
+.usuario-informacion strong {
+  color: #213a59;
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.empresa-informacion span,
+.usuario-informacion span {
+  margin-top: 0.12rem;
+  color: #8a9ab0;
+  font-size: 0.56rem;
+}
+
+.registrar-movimiento {
+  min-height: 38px;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.38rem;
+  padding: 0.55rem 0.9rem;
+  border-radius: 9px;
+  background: #2670e8;
+  color: #ffffff;
+  font-size: 0.67rem;
+  font-weight: 800;
+  box-shadow: 0 7px 18px rgba(38, 112, 232, 0.2);
+}
+
+.usuario {
+  gap: 0.6rem;
+}
+
+.usuario-avatar {
+  width: 34px;
+  height: 34px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #325d91;
+  color: #ffffff;
+  font-size: 0.62rem;
+  font-weight: 800;
+}
+
+.usuario-flecha {
+  color: #8da0b7;
+  transform: rotate(90deg);
+}
+
+@media (max-width: 1024px) {
+  .boton-menu {
+    display: grid;
+  }
+}
+
+@media (max-width: 760px) {
+  .barra-superior {
+    min-height: 62px;
+    padding: 0 0.85rem;
+  }
+
+  .empresa-informacion,
+  .usuario-informacion,
+  .usuario-flecha {
+    display: none;
+  }
+
+  .registrar-movimiento {
+    padding: 0.55rem;
+    font-size: 0;
+  }
+}

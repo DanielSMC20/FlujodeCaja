@@ -1,0 +1,26 @@
+<main class="dashboard-shell">
+  <section class="dashboard-card">
+    <header>
+      <h1>Panel principal</h1>
+      <p>Sesion activa para {{ userEmail || 'usuario' }}</p>
+    </header>
+
+    <div class="session-box">
+      <span>Expira por inactividad en:</span>
+      <strong>{{ formatRemaining((remainingMs$ | async) ?? 0) }}</strong>
+      <small>Si no hay llamadas al backend, se cerrara la sesion automaticamente.</small>
+    </div>
+
+    <div class="actions">
+      <button type="button" (click)="simulateBackendHit()">
+        Simular llamada al backend
+      </button>
+      <button type="button" class="ghost" (click)="goToLogin()">
+        Ir a login
+      </button>
+      <button type="button" class="danger" (click)="logout()">
+        Cerrar sesion
+      </button>
+    </div>
+  </section>
+</main>

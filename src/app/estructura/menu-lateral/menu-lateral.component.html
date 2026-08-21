@@ -1,0 +1,172 @@
+<aside
+  class="menu-lateral"
+  [class.menu-abierto]="menuAbierto"
+>
+
+  <!-- ================================================== -->
+  <!-- MARCA -->
+  <!-- ================================================== -->
+
+  <header class="menu-header">
+
+    <div class="logo">
+      FC
+    </div>
+
+    <div class="marca">
+
+      <strong>
+        {{ nombreProducto }}
+      </strong>
+
+      <span>
+        {{ descripcionProducto }}
+      </span>
+
+    </div>
+
+  </header>
+
+
+  <!-- ================================================== -->
+  <!-- NAVEGACIÓN -->
+  <!-- ================================================== -->
+
+  <nav class="menu-contenido">
+
+    <section class="menu-seccion">
+
+      <p class="menu-seccion-titulo">
+        Navegación
+      </p>
+
+      <div class="menu-opciones">
+
+        @for (
+          opcion of opcionesNavegacion;
+          track opcion.path
+        ) {
+
+          <a
+            class="menu-opcion"
+            [routerLink]="opcion.path"
+            routerLinkActive="opcion-activa"
+            [routerLinkActiveOptions]="{
+              exact: opcion.exact ?? false
+            }"
+            (click)="seleccionar()"
+          >
+
+            <span class="menu-icono">
+
+              <lucide-icon
+                [img]="opcion.icon"
+                [size]="19"
+                [strokeWidth]="1.9"
+              />
+
+            </span>
+
+            <span class="menu-label">
+              {{ opcion.label }}
+            </span>
+
+          </a>
+
+        }
+
+      </div>
+
+    </section>
+
+
+    <!-- ================================================== -->
+    <!-- GESTIÓN -->
+    <!-- ================================================== -->
+
+    <section class="menu-seccion">
+
+      <p class="menu-seccion-titulo">
+        Gestión
+      </p>
+
+      <div class="menu-opciones">
+
+        @for (
+          opcion of opcionesGestion;
+          track opcion.path
+        ) {
+
+          <a
+            class="menu-opcion"
+            [routerLink]="opcion.path"
+            routerLinkActive="opcion-activa"
+            [routerLinkActiveOptions]="{
+              exact: false
+            }"
+            (click)="seleccionar()"
+          >
+
+            <span class="menu-icono">
+
+              <lucide-icon
+                [img]="opcion.icon"
+                [size]="19"
+                [strokeWidth]="1.9"
+              />
+
+            </span>
+
+            <span class="menu-label">
+              {{ opcion.label }}
+            </span>
+
+          </a>
+
+        }
+
+      </div>
+
+    </section>
+
+  </nav>
+
+
+  <!-- ================================================== -->
+  <!-- CERRAR SESIÓN -->
+  <!-- ================================================== -->
+
+  <footer class="menu-footer">
+
+    <button
+      type="button"
+      class="cerrar-sesion"
+      (click)="cerrarSesion()"
+    >
+
+      <lucide-icon
+        [img]="iconoCerrarSesion"
+        [size]="19"
+        [strokeWidth]="1.9"
+      />
+
+      <span>
+        Cerrar sesión
+      </span>
+
+    </button>
+
+  </footer>
+
+</aside>
+
+
+<!-- ====================================================== -->
+<!-- OVERLAY MÓVIL -->
+<!-- ====================================================== -->
+
+<div
+  class="menu-overlay"
+  [class.overlay-visible]="menuAbierto"
+  (click)="seleccionar()"
+></div>

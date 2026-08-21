@@ -1,0 +1,363 @@
+<section class="flex w-full min-w-0 flex-col gap-5">
+  <header class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+    <div class="flex min-w-0 items-start gap-3">
+      <button
+        type="button"
+        class="mt-1 inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-600 transition hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900"
+        aria-label="Volver a movimientos"
+        (click)="cerrar()"
+      >
+        <lucide-icon [img]="iconos.volver" [size]="19" [strokeWidth]="2" />
+      </button>
+
+      <div class="min-w-0">
+        <p class="mb-1 text-xs font-medium text-slate-400">
+          Movimientos / Egresos masivos
+        </p>
+        <h1 class="text-2xl font-semibold tracking-tight text-slate-900">
+          Carga masiva de egresos
+        </h1>
+        <p class="mt-1 max-w-3xl text-sm text-slate-500">
+          Carga el Excel, revisa los registros y confirma cuando todo esté correcto.
+        </p>
+      </div>
+    </div>
+
+    <a
+      [href]="'/' + rutaPlantilla"
+      [download]="nombrePlantilla"
+      class="inline-flex h-10 shrink-0 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+    >
+      <lucide-icon [img]="iconos.descargar" [size]="17" [strokeWidth]="2" />
+      Descargar plantilla
+    </a>
+  </header>
+
+  <section class="rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+    <div class="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex items-start gap-3">
+        <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-emerald-50 text-emerald-700">
+          <lucide-icon [img]="iconos.archivo" [size]="20" [strokeWidth]="1.9" />
+        </span>
+        <div>
+          <h2 class="text-base font-semibold text-slate-900">Selecciona el Excel</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Solo requiere fecha, descripción, monto, categoría y si ya se pagó.
+          </p>
+        </div>
+      </div>
+
+      <label
+        for="archivoCargaMasiva"
+        class="inline-flex h-10 cursor-pointer items-center justify-center gap-2 rounded-xl bg-blue-600 px-4 text-sm font-semibold text-white transition hover:bg-blue-700"
+        [class.pointer-events-none]="procesandoArchivo || guardandoCarga"
+        [class.opacity-60]="procesandoArchivo || guardandoCarga"
+      >
+        <lucide-icon
+          [img]="procesandoArchivo ? iconos.cargando : iconos.subir"
+          [size]="17"
+          [strokeWidth]="2"
+          [class.animate-spin]="procesandoArchivo"
+        />
+        {{ procesandoArchivo ? "Procesando..." : "Seleccionar Excel" }}
+      </label>
+
+      <input
+        id="archivoCargaMasiva"
+        type="file"
+        accept=".xlsx"
+        class="hidden"
+        [disabled]="procesandoArchivo || guardandoCarga"
+        (change)="seleccionarArchivo($event)"
+      />
+    </div>
+
+    @if (archivoSeleccionado) {
+      <div class="mt-5 flex flex-col gap-3 rounded-xl border border-slate-200 bg-slate-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+        <div class="flex min-w-0 items-center gap-3">
+          <span class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white text-emerald-600 shadow-sm">
+            <lucide-icon [img]="iconos.archivo" [size]="20" [strokeWidth]="1.9" />
+          </span>
+          <div class="min-w-0">
+            <p class="truncate text-sm font-semibold text-slate-800">
+              {{ archivoSeleccionado.name }}
+            </p>
+            <p class="mt-0.5 text-xs text-slate-500">
+              {{ procesandoArchivo ? "Validando registros..." : "Archivo procesado" }}
+            </p>
+          </div>
+        </div>
+
+        @if (!procesandoArchivo && !cargaCompletada) {
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 text-sm font-semibold text-slate-500 transition hover:text-red-600"
+            [disabled]="guardandoCarga"
+            (click)="limpiarArchivo()"
+          >
+            <lucide-icon [img]="iconos.quitar" [size]="16" [strokeWidth]="2" />
+            Quitar archivo
+          </button>
+        }
+      </div>
+    }
+
+    @if (procesandoArchivo) {
+      <div class="mt-4 h-1.5 w-full overflow-hidden rounded-full bg-slate-100">
+        <div class="h-full w-2/3 animate-pulse rounded-full bg-blue-500"></div>
+      </div>
+    }
+
+    @if (errorArchivo) {
+      <div class="mt-4 flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+        <lucide-icon class="mt-0.5 shrink-0" [img]="iconos.advertencia" [size]="19" [strokeWidth]="2" />
+        <div>
+          <strong class="font-semibold">No se pudo leer el Excel</strong>
+          <p class="mt-1">{{ errorArchivo }}</p>
+        </div>
+      </div>
+    }
+  </section>
+
+  @if (resultado) {
+    <section class="flex min-h-0 flex-col gap-5 rounded-2xl border border-slate-200 bg-white p-5 shadow-sm">
+      <div class="flex flex-col gap-3 md:flex-row md:items-center md:justify-between">
+        <div>
+          <h2 class="text-base font-semibold text-slate-900">Vista previa</h2>
+          <p class="mt-1 text-sm text-slate-500">
+            Filtra, revisa y cambia el estado antes de registrar.
+          </p>
+        </div>
+
+        <span class="inline-flex items-center gap-2 self-start rounded-full bg-slate-100 px-3 py-1.5 text-xs font-semibold text-slate-600 md:self-auto">
+          <lucide-icon [img]="iconos.correcto" [size]="15" [strokeWidth]="2" />
+          {{ porcentajeCorrectos }}% válido
+        </span>
+      </div>
+
+      <div class="grid grid-cols-2 gap-3 xl:grid-cols-4">
+        <article class="rounded-xl border border-slate-200 bg-slate-50 p-4">
+          <p class="text-xs font-medium text-slate-500">Registros</p>
+          <strong class="mt-1 block text-xl font-semibold text-slate-900">
+            {{ resultado.totalFilas }}
+          </strong>
+        </article>
+        <article class="rounded-xl border border-emerald-200 bg-emerald-50 p-4">
+          <p class="text-xs font-medium text-emerald-700">Válidos</p>
+          <strong class="mt-1 block text-xl font-semibold text-emerald-800">
+            {{ resultado.filasValidas }}
+          </strong>
+        </article>
+        <article
+          class="rounded-xl border p-4"
+          [class.border-red-200]="resultado.filasConError > 0"
+          [class.bg-red-50]="resultado.filasConError > 0"
+          [class.border-slate-200]="resultado.filasConError === 0"
+          [class.bg-slate-50]="resultado.filasConError === 0"
+        >
+          <p class="text-xs font-medium text-slate-500" [class.text-red-700]="resultado.filasConError > 0">Con error</p>
+          <strong class="mt-1 block text-xl font-semibold text-slate-900" [class.text-red-800]="resultado.filasConError > 0">
+            {{ resultado.filasConError }}
+          </strong>
+        </article>
+        <article class="rounded-xl border border-blue-200 bg-blue-50 p-4">
+          <p class="text-xs font-medium text-blue-700">Monto total</p>
+          <strong class="mt-1 block text-xl font-semibold text-blue-900">
+            S/ {{ montoTotal | number: "1.2-2" }}
+          </strong>
+        </article>
+      </div>
+
+      <div class="grid grid-cols-1 gap-3 md:grid-cols-2">
+        <div class="flex items-center justify-between gap-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-3">
+          <div>
+            <p class="text-xs font-medium text-amber-700">Proyectados</p>
+            <strong class="text-sm font-semibold text-amber-900">
+              {{ resultado.totalProyectados }} registros
+            </strong>
+          </div>
+          <strong class="text-sm font-semibold text-amber-900">
+            S/ {{ resultado.montoProyectado | number: "1.2-2" }}
+          </strong>
+        </div>
+
+        <div class="flex items-center justify-between gap-4 rounded-xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+          <div>
+            <p class="text-xs font-medium text-emerald-700">Pagados</p>
+            <strong class="text-sm font-semibold text-emerald-900">
+              {{ resultado.totalPagados }} registros
+            </strong>
+          </div>
+          <strong class="text-sm font-semibold text-emerald-900">
+            S/ {{ resultado.montoPagado | number: "1.2-2" }}
+          </strong>
+        </div>
+      </div>
+
+      <div class="flex flex-col gap-3 border-t border-slate-100 pt-5 xl:flex-row xl:items-end xl:justify-between">
+        <div class="w-full max-w-xl">
+          <label for="buscadorCarga" class="mb-1.5 block text-xs font-semibold text-slate-600">Buscar en todos los registros</label>
+          <div class="relative">
+            <lucide-icon class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" [img]="iconos.buscar" [size]="16" [strokeWidth]="2" />
+            <input
+              #buscadorGrid
+              id="buscadorCarga"
+              type="search"
+              class="h-10 w-full rounded-xl border border-slate-300 bg-white pl-9 pr-3 text-sm text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-100"
+              placeholder="Descripción, categoría, estado..."
+              (input)="buscarEnGrid($event)"
+            />
+          </div>
+        </div>
+
+        <div class="flex flex-wrap items-center gap-2">
+          @if (filasSeleccionadas > 0) {
+            <span class="mr-1 text-xs font-semibold text-slate-500">
+              {{ filasSeleccionadas }} seleccionadas
+            </span>
+            <button
+              type="button"
+              class="inline-flex h-10 items-center gap-2 rounded-xl border border-amber-200 bg-amber-50 px-3 text-sm font-semibold text-amber-800 transition hover:bg-amber-100"
+              (click)="aplicarEstadoSeleccionados('Proyectado')"
+            >
+              <lucide-icon [img]="iconos.aplicar" [size]="16" [strokeWidth]="2" />
+              Proyectado
+            </button>
+            <button
+              type="button"
+              class="inline-flex h-10 items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 text-sm font-semibold text-emerald-800 transition hover:bg-emerald-100"
+              (click)="aplicarEstadoSeleccionados('Pagado')"
+            >
+              <lucide-icon [img]="iconos.aplicar" [size]="16" [strokeWidth]="2" />
+              Pagado
+            </button>
+          }
+
+          <button
+            type="button"
+            class="inline-flex h-10 items-center gap-2 rounded-xl border border-slate-300 bg-white px-3 text-sm font-semibold text-slate-600 transition hover:bg-slate-50"
+            (click)="buscadorGrid.value = ''; limpiarFiltrosGrid()"
+          >
+            <lucide-icon [img]="iconos.limpiar" [size]="16" [strokeWidth]="2" />
+            Limpiar filtros
+          </button>
+        </div>
+      </div>
+
+      <div class="flex items-start gap-2 rounded-xl bg-blue-50 px-3 py-2.5 text-xs text-blue-700">
+        <lucide-icon class="mt-0.5 shrink-0" [img]="iconos.informacion" [size]="16" [strokeWidth]="2" />
+        <p>
+          Usa los filtros bajo cada encabezado. Haz clic en una celda de Estado para cambiarla, o selecciona varias filas para hacerlo en bloque.
+        </p>
+      </div>
+
+      <div class="h-[560px] min-h-[420px] w-full overflow-hidden rounded-xl border border-slate-200">
+        <ag-grid-angular
+          class="h-full w-full"
+          [theme]="temaGrid"
+          [modules]="modulosGrid"
+          [rowData]="filasGrid"
+          [columnDefs]="columnDefs"
+          [defaultColDef]="defaultColDef"
+          [rowSelection]="seleccionFilas"
+          [selectionColumnDef]="columnaSeleccion"
+          [enableFilterHandlers]="true"
+          [pagination]="true"
+          [paginationPageSize]="tamanioPagina"
+          [paginationPageSizeSelector]="opcionesTamanioPagina"
+          [animateRows]="true"
+          [tooltipShowDelay]="200"
+          (gridReady)="onGridReady($event)"
+          (selectionChanged)="onSeleccionCambiada($event)"
+          (cellValueChanged)="onValorCeldaCambiado($event)"
+        />
+      </div>
+
+      @if (resultado.filasConError > 0) {
+        <div class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4">
+          <lucide-icon class="mt-0.5 shrink-0 text-red-600" [img]="iconos.advertencia" [size]="19" [strokeWidth]="2" />
+          <div>
+            <strong class="text-sm font-semibold text-red-800">Hay registros que requieren corrección</strong>
+            <p class="mt-1 text-sm text-red-700">
+              Revisa la columna “Detalle de validación”, corrige el Excel y vuelve a cargarlo.
+            </p>
+          </div>
+        </div>
+      }
+
+      @if (errorRegistro) {
+        <div class="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+          <lucide-icon class="mt-0.5 shrink-0" [img]="iconos.advertencia" [size]="19" [strokeWidth]="2" />
+          <div>
+            <strong class="font-semibold">No se completó el registro</strong>
+            <p class="mt-1">{{ errorRegistro }}</p>
+          </div>
+        </div>
+      }
+
+      @if (cargaCompletada) {
+        <div class="flex flex-col gap-3 rounded-xl border border-emerald-200 bg-emerald-50 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <div class="flex items-start gap-3 text-emerald-800">
+            <lucide-icon class="mt-0.5 shrink-0" [img]="iconos.completado" [size]="20" [strokeWidth]="2" />
+            <div>
+              <strong class="text-sm font-semibold">Carga registrada correctamente</strong>
+              <p class="mt-1 text-sm">Se agregaron {{ movimientosRegistrados }} egresos.</p>
+            </div>
+          </div>
+          <button type="button" class="h-10 rounded-xl bg-emerald-700 px-4 text-sm font-semibold text-white transition hover:bg-emerald-800" (click)="cerrar()">
+            Ver movimientos
+          </button>
+        </div>
+      }
+
+      <footer class="flex flex-col-reverse gap-3 border-t border-slate-100 pt-5 sm:flex-row sm:items-center sm:justify-between">
+        <p class="text-xs text-slate-500">
+          @if (resultado.filasConError === 0) {
+            Los registros están listos. Aún puedes revisar o cambiar su estado.
+          } @else {
+            El registro se habilitará cuando no existan errores.
+          }
+        </p>
+
+        <div class="flex flex-col gap-2 sm:flex-row">
+          <button
+            type="button"
+            class="h-10 rounded-xl border border-slate-300 bg-white px-5 text-sm font-semibold text-slate-700 transition hover:bg-slate-50"
+            [disabled]="guardandoCarga"
+            (click)="cerrar()"
+          >
+            {{ cargaCompletada ? "Volver" : "Cancelar" }}
+          </button>
+          <button
+            type="button"
+            class="inline-flex h-10 items-center justify-center gap-2 rounded-xl bg-blue-600 px-5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:cursor-not-allowed disabled:bg-slate-300 disabled:text-slate-500"
+            [disabled]="!puedeConfirmarCarga"
+            (click)="confirmarCarga()"
+          >
+            @if (guardandoCarga) {
+              <lucide-icon class="animate-spin" [img]="iconos.cargando" [size]="17" [strokeWidth]="2" />
+              Registrando...
+            } @else if (cargaCompletada) {
+              <lucide-icon [img]="iconos.correcto" [size]="17" [strokeWidth]="2" />
+              Carga registrada
+            } @else {
+              Registrar {{ resultado.filasValidas }} egresos
+            }
+          </button>
+        </div>
+      </footer>
+    </section>
+  }
+
+  @if (!resultado && !procesandoArchivo && !archivoSeleccionado && !errorArchivo) {
+    <section class="flex min-h-56 flex-col items-center justify-center rounded-2xl border border-dashed border-slate-300 bg-white p-8 text-center">
+      <span class="inline-flex h-12 w-12 items-center justify-center rounded-xl bg-slate-100 text-slate-500">
+        <lucide-icon [img]="iconos.archivo" [size]="23" [strokeWidth]="1.9" />
+      </span>
+      <h2 class="mt-4 text-base font-semibold text-slate-800">Aún no hay registros cargados</h2>
+      <p class="mt-1 max-w-md text-sm text-slate-500">
+        Descarga la plantilla, complétala y selecciona el archivo para comenzar.
+      </p>
+    </section>
+  }
+</section>

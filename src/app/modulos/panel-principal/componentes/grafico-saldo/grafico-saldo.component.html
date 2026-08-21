@@ -1,0 +1,55 @@
+<article class="tarjeta-grafico">
+
+  <header class="grafico-header">
+
+    <div>
+
+      <h3>
+        {{ titulo }}
+      </h3>
+
+      <p>
+        {{ subtitulo }}
+      </p>
+
+    </div>
+
+
+    <div class="grafico-resumen">
+
+      <strong>
+        {{ saldoActual | monedaSol }}
+      </strong>
+
+      @if (variacionTexto) {
+
+        <span>
+          {{ variacionTexto }}
+        </span>
+
+      }
+
+    </div>
+
+  </header>
+
+
+  <div class="grafico-contenedor">
+
+    @if (
+      data.valores.length > 0
+    ) {
+
+      <canvas #canvas></canvas>
+
+    } @else {
+
+      <div class="grafico-vacio">
+        No existen datos para el periodo seleccionado.
+      </div>
+
+    }
+
+  </div>
+
+</article>

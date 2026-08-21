@@ -1,0 +1,86 @@
+<article class="tarjeta-movimientos">
+  <header class="tarjeta-header">
+    <div>
+      <h2>Últimos movimientos</h2>
+      <p>Actividad reciente de Boulevard</p>
+    </div>
+
+    <a routerLink="/movimientos" class="ver-todos">
+      Ver movimientos
+      <lucide-icon [img]="iconos.verTodos" [size]="14" />
+    </a>
+  </header>
+
+  @if (data.length > 0) {
+    <div class="tabla-contenedor">
+      <table>
+        <thead>
+          <tr>
+            <th>Fecha</th>
+            <th>Movimiento</th>
+            <th>Categoría</th>
+            <th>Estado</th>
+            <th>Origen</th>
+            <th class="monto-columna">Monto</th>
+            <th aria-label="Acciones"></th>
+          </tr>
+        </thead>
+
+        <tbody>
+          @for (movimiento of data; track movimiento.id) {
+            <tr [routerLink]="['/movimientos', movimiento.id]">
+              <td class="fecha">
+                <strong>{{ formatearFecha(movimiento.fecha) }}</strong>
+                <small>{{ obtenerAnio(movimiento.fecha) }}</small>
+              </td>
+              <td>
+                <div class="movimiento-principal">
+                  <span
+                    class="movimiento-icono"
+                    [class.icono-ingreso]="esIngreso(movimiento.tipoMovimiento)"
+                    [class.icono-egreso]="!esIngreso(movimiento.tipoMovimiento)"
+                  >
+                    <lucide-icon
+                      [img]="esIngreso(movimiento.tipoMovimiento) ? iconos.ingreso : iconos.egreso"
+                      [size]="15"
+                    />
+                  </span>
+                  <span class="movimiento-info">
+                    <strong>{{ movimiento.descripcion }}</strong>
+                    <small>{{ movimiento.medioPago }}</small>
+                  </span>
+                </div>
+              </td>
+              <td class="categoria">{{ movimiento.categoria }}</td>
+              <td>
+                <span
+                  class="estado"
+                  [class.estado-proyectado]="movimiento.estado === 'Proyectado'"
+                >
+                  {{ movimiento.estado }}
+                </span>
+              </td>
+              <td><span class="origen">{{ movimiento.origen }}</span></td>
+              <td
+                class="monto"
+                [class.monto-ingreso]="esIngreso(movimiento.tipoMovimiento)"
+                [class.monto-egreso]="!esIngreso(movimiento.tipoMovimiento)"
+              >
+                {{ esIngreso(movimiento.tipoMovimiento) ? '+' : '-' }}{{ movimiento.monto | monedaSol }}
+              </td>
+              <td class="acciones">
+                <lucide-icon [img]="iconos.mas" [size]="17" />
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  } @else {
+    <div class="estado-vacio">
+      <lucide-icon [img]="iconos.vacio" [size]="22" />
+      <strong>Sin movimientos recientes</strong>
+      <span>Los nuevos ingresos y egresos aparecerán aquí.</span>
+    </div>
+  }
+</article>

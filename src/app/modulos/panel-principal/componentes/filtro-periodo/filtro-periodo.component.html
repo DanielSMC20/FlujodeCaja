@@ -1,0 +1,14 @@
+<div class="rounded-3xl border border-slate-200 bg-white p-2 shadow-soft">
+  <div class="flex flex-wrap gap-2">
+    @for (opcion of opciones; track opcion.value) {
+      <button
+        type="button"
+        class="rounded-2xl px-4 py-2 text-sm font-medium transition"
+        [ngClass]="value === opcion.value ? 'bg-blue-600 text-white shadow-md shadow-blue-600/20' : 'text-slate-600 hover:bg-slate-100'"
+        (click)="seleccionar(opcion.value)"
+      >
+        {{ opcion.label }}
+      </button>
+    }
+  </div>
+</div>

@@ -1,0 +1,18 @@
+<article class="tarjeta-indicador" [ngClass]="'tarjeta--' + tono">
+  <header class="tarjeta-cabecera">
+    <div class="tarjeta-icono">
+      <lucide-icon [img]="iconoActual" [size]="18" [strokeWidth]="1.9" />
+    </div>
+
+    @if (variacion) {
+      <span class="variacion">{{ variacion }}</span>
+    }
+  </header>
+
+  <p class="tarjeta-titulo">{{ titulo }}</p>
+  <strong class="tarjeta-valor">{{ valor }}</strong>
+
+  @if (textoSecundario) {
+    <p class="tarjeta-secundario">{{ textoSecundario }}</p>
+  }
+</article>

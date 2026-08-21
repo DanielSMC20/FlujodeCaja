@@ -1,0 +1,286 @@
+<section class="pagina-movimientos">
+  <!-- ================================================== -->
+  <!-- ENCABEZADO -->
+  <!-- ================================================== -->
+
+  <header class="pagina-header">
+    <div class="pagina-titulo">
+      <h1>Movimientos</h1>
+
+      <p>Administra los ingresos y egresos de tu empresa.</p>
+    </div>
+
+    <!-- ========================================== -->
+    <!-- ACCIONES DE CABECERA -->
+    <!-- ========================================== -->
+
+    <div class="flex items-center gap-3">
+      <!-- IMPORTAR EGRESOS -->
+
+      <a
+        routerLink="/movimientos/egresos-masivos"
+        class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+      >
+        <lucide-icon [img]="iconos.importar" [size]="16" [strokeWidth]="2" />
+
+        Importar egresos
+      </a>
+
+      <!-- NUEVO MOVIMIENTO -->
+
+      <a routerLink="/movimientos/nuevo" class="boton-nuevo">
+        <lucide-icon [img]="iconos.nuevo" [size]="17" [strokeWidth]="2" />
+
+        Nuevo movimiento
+      </a>
+    </div>
+  </header>
+
+  <!-- ================================================== -->
+  <!-- TIPO DE MOVIMIENTO -->
+  <!-- ================================================== -->
+
+  <div class="filtros-tipo">
+    @for (filtro of filtrosTipo; track filtro.label) {
+      <button
+        type="button"
+        class="filtro-tipo"
+        [class.filtro-activo]="tipoSeleccionado === filtro.value"
+        (click)="seleccionarTipo(filtro.value)"
+      >
+        {{ filtro.label }}
+      </button>
+    }
+  </div>
+
+  <!-- ================================================== -->
+  <!-- FILTROS -->
+  <!-- ================================================== -->
+
+  <form class="panel-filtros" [formGroup]="filtroForm">
+    <!-- Fecha desde -->
+
+    <div class="campo-filtro">
+      <label for="fechaDesde"> Desde </label>
+
+      <input id="fechaDesde" type="date" formControlName="fechaDesde" />
+    </div>
+
+    <!-- Fecha hasta -->
+
+    <div class="campo-filtro">
+      <label for="fechaHasta"> Hasta </label>
+
+      <input id="fechaHasta" type="date" formControlName="fechaHasta" />
+    </div>
+
+    <!-- Buscar -->
+
+    <div class="campo-filtro campo-busqueda">
+      <label for="busqueda"> Buscar </label>
+
+      <div class="input-busqueda">
+        <lucide-icon [img]="iconos.buscar" [size]="16" [strokeWidth]="2" />
+
+        <input
+          id="busqueda"
+          type="text"
+          formControlName="busqueda"
+          placeholder="Descripción o categoría"
+        />
+      </div>
+    </div>
+
+    <!-- Medio de pago -->
+
+    <div class="campo-filtro">
+      <label for="medioPago"> Medio de pago </label>
+
+      <select id="medioPago" formControlName="medioPago">
+        <option [ngValue]="0">Todos</option>
+
+        <option [ngValue]="1">Efectivo</option>
+
+        <option [ngValue]="2">Tarjeta / POS</option>
+      </select>
+    </div>
+
+    <!-- Limpiar -->
+
+    <div class="campo-limpiar">
+      <button type="button" class="boton-limpiar" (click)="limpiarFiltros()">
+        <lucide-icon [img]="iconos.limpiar" [size]="15" [strokeWidth]="2" />
+
+        Limpiar
+      </button>
+    </div>
+  </form>
+
+  <!-- ================================================== -->
+  <!-- RESULTADOS -->
+  <!-- ================================================== -->
+
+  @if (movimientos$ | async; as movimientos) {
+    <article class="tarjeta-listado">
+      <!-- Cabecera del listado -->
+
+      <header class="listado-header">
+        <div>
+          <h2>Movimientos registrados</h2>
+
+          <p>
+            {{ movimientos.length }}
+            {{ movimientos.length === 1 ? "resultado" : "resultados" }}
+          </p>
+        </div>
+      </header>
+
+      @if (movimientos.length > 0) {
+        <!-- ========================================== -->
+        <!-- TABLA -->
+        <!-- ========================================== -->
+
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+
+                <th>Movimiento</th>
+
+                <th>Tipo</th>
+
+                <th>Estado</th>
+
+                <th>Medio de pago</th>
+
+                <th class="texto-derecha">Monto</th>
+
+                <th class="texto-derecha">Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (movimiento of movimientos; track movimiento.id) {
+                <tr>
+                  <!-- Fecha -->
+
+                  <td class="columna-fecha">
+                    {{ formatearFecha(movimiento.fechaMovimiento) }}
+                  </td>
+
+                  <!-- Movimiento -->
+
+                  <td>
+                    <div class="movimiento-info">
+                      <strong>
+                        {{ movimiento.descripcion }}
+                      </strong>
+
+                      <span>
+                        {{ movimiento.categoria }}
+                      </span>
+                    </div>
+                  </td>
+
+                  <!-- Tipo -->
+
+                  <td>
+                    <span
+                      class="badge-tipo"
+                      [class.badge-ingreso]="movimiento.tipoMovimiento === 1"
+                      [class.badge-egreso]="movimiento.tipoMovimiento === 2"
+                    >
+                      {{ etiquetaMovimiento(movimiento.tipoMovimiento) }}
+                    </span>
+                  </td>
+
+                  <!-- Estado -->
+
+                  <td>
+                    <span
+                      class="badge-estado"
+                      [class.estado-proyectado]="
+                        movimiento.tipoMovimiento === 2 &&
+                        movimiento.bCancelado === 0
+                      "
+                      [class.estado-pagado]="
+                        movimiento.tipoMovimiento === 2 &&
+                        movimiento.bCancelado !== 0
+                      "
+                      [class.estado-confirmado]="movimiento.tipoMovimiento === 1"
+                    >
+                      {{ etiquetaEstado(movimiento) }}
+                    </span>
+                  </td>
+
+                  <!-- Medio pago -->
+
+                  <td class="medio-pago">
+                    {{ etiquetaMedioPago(movimiento.medioPago) }}
+                  </td>
+
+                  <!-- Monto -->
+
+                  <td
+                    class="monto texto-derecha"
+                    [class.monto-ingreso]="movimiento.tipoMovimiento === 1"
+                    [class.monto-egreso]="movimiento.tipoMovimiento === 2"
+                  >
+                    {{ movimiento.tipoMovimiento === 1 ? "+" : "-" }}
+
+                    {{ movimiento.monto | monedaSol }}
+                  </td>
+
+                  <!-- Acciones -->
+
+                  <td class="texto-derecha">
+                    <div class="acciones">
+                      <!-- Ver -->
+
+                      <a
+                        class="boton-accion"
+                        [routerLink]="['/movimientos', movimiento.id]"
+                        title="Ver movimiento"
+                      >
+                        <lucide-icon [img]="iconos.ver" [size]="15" [strokeWidth]="1.9" />
+                      </a>
+
+                      <!-- Editar -->
+
+                      <a
+                        class="boton-accion"
+                        [routerLink]="['/movimientos', movimiento.id, 'editar']"
+                        title="Editar movimiento"
+                      >
+                        <lucide-icon [img]="iconos.editar" [size]="15" [strokeWidth]="1.9" />
+                      </a>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <!-- ========================================== -->
+        <!-- SIN RESULTADOS -->
+        <!-- ========================================== -->
+
+        <div class="estado-vacio">
+          <div class="estado-vacio-icono">
+            <lucide-icon [img]="iconos.vacio" [size]="24" [strokeWidth]="1.8" />
+          </div>
+
+          <h3>No encontramos movimientos</h3>
+
+          <p>Cambia los filtros o registra un nuevo movimiento.</p>
+
+          <button type="button" (click)="limpiarFiltros()">
+            Limpiar filtros
+          </button>
+        </div>
+      }
+    </article>
+  }
+</section>

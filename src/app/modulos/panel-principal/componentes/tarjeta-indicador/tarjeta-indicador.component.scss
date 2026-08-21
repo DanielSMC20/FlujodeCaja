@@ -1,0 +1,89 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.tarjeta-indicador {
+  --color-acento: #2d6cdf;
+  --color-suave: #eaf1ff;
+
+  min-height: 148px;
+  height: 100%;
+  padding: 1rem 1.15rem;
+  border: 1px solid #dce5f0;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(15, 40, 72, 0.035);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.tarjeta-indicador:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 12px 30px rgba(15, 40, 72, 0.08);
+}
+
+.tarjeta--success {
+  --color-acento: #12956f;
+  --color-suave: #ddf7ee;
+}
+
+.tarjeta--danger {
+  --color-acento: #e64e5b;
+  --color-suave: #ffe9ec;
+}
+
+.tarjeta--info {
+  --color-acento: #245fd5;
+  --color-suave: #e6edff;
+}
+
+.tarjeta--accent {
+  --color-acento: #b56b00;
+  --color-suave: #fff2d2;
+}
+
+.tarjeta-cabecera {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.tarjeta-icono {
+  width: 31px;
+  height: 31px;
+  display: grid;
+  place-items: center;
+  border-radius: 9px;
+  background: var(--color-suave);
+  color: var(--color-acento);
+}
+
+.variacion {
+  color: #8090a8;
+  font-size: 0.61rem;
+  font-weight: 500;
+}
+
+.tarjeta-titulo {
+  margin: 0.75rem 0 0;
+  color: #526985;
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.tarjeta-valor {
+  display: block;
+  margin-top: 0.42rem;
+  color: #102b4e;
+  font-size: 1.32rem;
+  font-weight: 800;
+  line-height: 1.1;
+  letter-spacing: -0.035em;
+}
+
+.tarjeta-secundario {
+  margin: 0.6rem 0 0;
+  color: #8494ab;
+  font-size: 0.62rem;
+}

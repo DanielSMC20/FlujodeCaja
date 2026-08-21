@@ -1,0 +1,84 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+.grafico-card {
+  min-height: 330px;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  border: 1px solid #dce5f0;
+  border-radius: 16px;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(15, 40, 72, 0.035);
+}
+
+.grafico-header {
+  min-height: 82px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 1.25rem 1.35rem;
+  border-bottom: 1px solid #edf2f7;
+}
+
+.grafico-header h2 {
+  margin: 0;
+  color: #142b4a;
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.grafico-header p {
+  margin: 0.3rem 0 0;
+  color: #7c8faa;
+  font-size: 0.72rem;
+}
+
+.periodo {
+  padding: 0.45rem 0.65rem;
+  border-radius: 999px;
+  background: #f1f5fa;
+  color: #617794;
+  font-size: 0.61rem;
+  font-weight: 700;
+}
+
+.canvas-container {
+  position: relative;
+  flex: 1;
+  min-height: 210px;
+  padding: 0.7rem 1.2rem 0;
+}
+
+.leyenda {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.2rem 1.35rem 1rem;
+  color: #627792;
+  font-size: 0.6rem;
+}
+
+.leyenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.leyenda i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+}
+
+.leyenda .ingreso {
+  background: #2cad88;
+}
+
+.leyenda .egreso {
+  background: #ee6b77;
+}

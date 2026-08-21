@@ -1,0 +1,11 @@
+<div class="flex min-h-screen bg-slate-50 text-slate-800">
+  <app-menu-lateral [menuAbierto]="menuAbierto" (cerrarMenu)="cerrarMenu()" />
+
+  <div class="flex min-h-screen flex-1 flex-col overflow-hidden">
+    <app-barra-superior (toggleMenu)="alternarMenu()" />
+
+    <main class="flex-1 overflow-y-auto px-4 py-5 sm:px-6 lg:px-8 xl:px-10">
+      <router-outlet />
+    </main>
+  </div>
+</div>

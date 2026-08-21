@@ -1,0 +1,314 @@
+<section class="pagina-detalle">
+  @if (movimiento$ | async; as movimiento) {
+    <header class="pagina-header">
+      <div class="header-principal">
+        <a
+          routerLink="/movimientos"
+          class="boton-volver"
+          aria-label="Volver a movimientos"
+        >
+          <lucide-icon [img]="iconos.volver" [size]="17" [strokeWidth]="1.9" />
+        </a>
+
+        <div>
+          <h1>Detalle del movimiento</h1>
+
+          <p>Consulta toda la información registrada.</p>
+        </div>
+      </div>
+
+      <a
+        class="boton-editar"
+        [routerLink]="['/movimientos', movimiento.id, 'editar']"
+      >
+        <lucide-icon [img]="iconos.editar" [size]="16" [strokeWidth]="1.9" />
+
+        Editar movimiento
+      </a>
+    </header>
+
+    <article class="resumen-movimiento">
+      <div
+        class="resumen-icono"
+        [class.icono-ingreso]="esIngreso(movimiento)"
+        [class.icono-egreso]="!esIngreso(movimiento)"
+      >
+        @if (esIngreso(movimiento)) {
+          <lucide-icon [img]="iconos.ingreso" [size]="20" [strokeWidth]="1.9" />
+        } @else {
+          <lucide-icon [img]="iconos.egreso" [size]="20" [strokeWidth]="1.9" />
+        }
+      </div>
+
+      <div class="resumen-informacion">
+        <div class="resumen-etiquetas">
+          <span
+            class="badge-tipo"
+            [class.badge-ingreso]="esIngreso(movimiento)"
+            [class.badge-egreso]="!esIngreso(movimiento)"
+          >
+            {{ etiquetaTipoMovimiento(movimiento.tipoMovimiento) }}
+          </span>
+
+          @if (fueRegistradoConXml(movimiento)) {
+            <span class="badge-xml">
+              <lucide-icon [img]="iconos.xml" [size]="13" [strokeWidth]="1.9" />
+
+              XML
+            </span>
+          }
+        </div>
+
+        <h2>
+          {{ movimiento.descripcion }}
+        </h2>
+
+        <div class="resumen-meta">
+          <span>
+            {{ movimiento.categoria }}
+          </span>
+
+          <span class="separador"> • </span>
+
+          <span>
+            {{ formatearFecha(movimiento.fechaMovimiento) }}
+          </span>
+        </div>
+      </div>
+
+      <div
+        class="resumen-monto"
+        [class.monto-ingreso]="esIngreso(movimiento)"
+        [class.monto-egreso]="!esIngreso(movimiento)"
+      >
+        {{ esIngreso(movimiento) ? "+" : "-" }}
+
+        {{ movimiento.monto | monedaSol }}
+      </div>
+    </article>
+
+    <article class="tarjeta-detalle">
+      <header class="tarjeta-header">
+        <h2>Información del movimiento</h2>
+
+        <p>Datos utilizados para el flujo de caja.</p>
+      </header>
+
+      <div class="detalle-grid">
+        <div class="detalle-item">
+          <span class="detalle-label"> Fecha del movimiento </span>
+
+          <strong>
+            {{ formatearFecha(movimiento.fechaMovimiento) }}
+          </strong>
+        </div>
+
+        <div class="detalle-item">
+          <span class="detalle-label"> Categoría </span>
+
+          <strong>
+            {{ movimiento.categoria }}
+          </strong>
+        </div>
+
+        <div class="detalle-item">
+          <span class="detalle-label"> Medio de pago </span>
+
+          <strong>
+            {{ etiquetaMedioPago(movimiento.medioPago) }}
+          </strong>
+        </div>
+
+        <div class="detalle-item">
+          <span class="detalle-label"> Moneda </span>
+
+          <strong>
+            {{ etiquetaMoneda(movimiento.moneda) }}
+          </strong>
+        </div>
+      </div>
+    </article>
+
+    <article class="tarjeta-detalle">
+      <header class="tarjeta-header">
+        <h2>Comprobante</h2>
+
+        <p>Información asociada al documento de sustento.</p>
+      </header>
+
+      @if (tieneComprobante(movimiento)) {
+        <div class="detalle-grid">
+          <div class="detalle-item">
+            <span class="detalle-label"> Tipo de comprobante </span>
+
+            <strong>
+              {{ etiquetaComprobante(movimiento.tipoComprobante) }}
+            </strong>
+          </div>
+
+          <div class="detalle-item">
+            <span class="detalle-label"> Fecha del comprobante </span>
+
+            <strong>
+              {{ formatearFecha(movimiento.fechaComprobante) }}
+            </strong>
+          </div>
+
+          <div class="detalle-item">
+            <span class="detalle-label"> Serie y número </span>
+
+            <strong>
+              {{ obtenerNumeroComprobante(movimiento) }}
+            </strong>
+          </div>
+
+          @if (movimiento.tipoMovimiento === 2) {
+            <div class="detalle-item">
+              <span class="detalle-label"> RUC / Documento del emisor </span>
+
+              <strong>
+                {{ movimiento.documentoEmisor || "No registrado" }}
+              </strong>
+            </div>
+
+            <div class="detalle-item detalle-item-ancho">
+              <span class="detalle-label"> Proveedor / Emisor </span>
+
+              <strong>
+                {{ movimiento.razonSocialEmisor || "No registrado" }}
+              </strong>
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="sin-comprobante">
+          <div class="sin-comprobante-icono">
+            <lucide-icon [img]="iconos.sinComprobante" [size]="20" [strokeWidth]="1.8" />
+          </div>
+
+          <div>
+            <strong> Sin comprobante </strong>
+
+            <span>
+              Este movimiento fue registrado sin un documento asociado.
+            </span>
+          </div>
+        </div>
+      }
+    </article>
+
+    @if (fueRegistradoConXml(movimiento)) {
+      <article class="tarjeta-detalle tarjeta-xml">
+        <header class="tarjeta-header">
+          <div>
+            <h2>Registro asistido por XML</h2>
+
+            <p>
+              Parte de la información fue obtenida automáticamente del
+              comprobante.
+            </p>
+          </div>
+
+          <span class="xml-estado"> Procesado </span>
+        </header>
+
+        <div class="archivo-xml">
+          <div class="archivo-icono">
+            <lucide-icon [img]="iconos.xml" [size]="20" [strokeWidth]="1.8" />
+          </div>
+
+          <div>
+            <span> Archivo utilizado </span>
+
+            <strong>
+              {{ movimiento.archivoXmlNombre || "XML procesado" }}
+            </strong>
+          </div>
+        </div>
+      </article>
+    }
+
+    <article class="tarjeta-detalle">
+      <header class="tarjeta-header">
+        <h2>Detalle adicional</h2>
+      </header>
+
+      <div class="detalle-texto">
+        <div>
+          <span class="detalle-label"> Descripción </span>
+
+          <p>
+            {{ movimiento.descripcion }}
+          </p>
+        </div>
+
+        <div>
+          <span class="detalle-label"> Observación </span>
+
+          <p>
+            {{ movimiento.observacion || "Sin observaciones." }}
+          </p>
+        </div>
+      </div>
+    </article>
+
+    <article class="tarjeta-detalle">
+      <header class="tarjeta-header">
+        <h2>Información de registro</h2>
+
+        <p>Datos de control y auditoría.</p>
+      </header>
+
+      <div class="detalle-grid">
+        <div class="detalle-item">
+          <span class="detalle-label"> Registrado por </span>
+
+          <strong>
+            {{ movimiento.usuarioRegistro }}
+          </strong>
+        </div>
+
+        <div class="detalle-item">
+          <span class="detalle-label"> Fecha de registro </span>
+
+          <strong>
+            {{ formatearFechaHora(movimiento.fechaRegistro) }}
+          </strong>
+        </div>
+
+        <div class="detalle-item">
+          <span class="detalle-label"> Origen del registro </span>
+
+          <strong>
+            {{ etiquetaOrigen(movimiento.origenRegistro) }}
+          </strong>
+        </div>
+      </div>
+    </article>
+
+    <footer class="pagina-footer">
+      <a routerLink="/movimientos" class="boton-secundario">
+        Volver a movimientos
+      </a>
+
+      <a
+        [routerLink]="['/movimientos', movimiento.id, 'editar']"
+        class="boton-principal"
+      >
+        Editar movimiento
+      </a>
+    </footer>
+  } @else {
+    <div class="movimiento-no-encontrado">
+      <div class="no-encontrado-icono">
+        <lucide-icon [img]="iconos.noEncontrado" [size]="22" [strokeWidth]="1.8" />
+      </div>
+
+      <h2>Movimiento no encontrado</h2>
+
+      <p>El movimiento solicitado no existe.</p>
+
+      <a routerLink="/movimientos"> Volver a movimientos </a>
+    </div>
+  }
+</section>

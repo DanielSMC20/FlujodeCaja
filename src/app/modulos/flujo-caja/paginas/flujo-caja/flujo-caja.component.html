@@ -1,0 +1,379 @@
+<section class="pagina-flujo">
+
+  <header class="pagina-header">
+
+    <div>
+
+      <span class="pagina-etiqueta">
+        Flujo de caja
+      </span>
+
+      <h1>
+        Control diario de ingresos y egresos
+      </h1>
+
+      <p>
+        Analiza cuánto dinero ingresó y cuánto salió de tu empresa durante el periodo seleccionado.
+      </p>
+
+    </div>
+
+  </header>
+
+
+  <article class="tarjeta filtros">
+
+    <form
+      class="filtros-formulario"
+      [formGroup]="formulario"
+      (ngSubmit)="aplicarFiltros()"
+    >
+
+      <div class="campo">
+
+        <label for="fechaDesde">
+          Desde
+        </label>
+
+        <input
+          id="fechaDesde"
+          type="date"
+          formControlName="fechaDesde"
+        />
+
+      </div>
+
+
+      <div class="campo">
+
+        <label for="fechaHasta">
+          Hasta
+        </label>
+
+        <input
+          id="fechaHasta"
+          type="date"
+          formControlName="fechaHasta"
+        />
+
+      </div>
+
+
+      <div class="acciones-filtro">
+
+        <button
+          type="button"
+          class="boton-secundario"
+          (click)="limpiarFiltros()"
+        >
+          Limpiar
+        </button>
+
+
+        <button
+          type="submit"
+          class="boton-principal"
+        >
+          Aplicar filtros
+        </button>
+
+      </div>
+
+    </form>
+
+  </article>
+
+
+  @if (
+    flujoCaja$ | async;
+    as flujoCaja
+  ) {
+
+    <div class="resumen-grid">
+
+      <article class="indicador">
+
+        <span class="indicador-label">
+          Ingresos
+        </span>
+
+        <strong class="valor-ingreso">
+          {{
+            flujoCaja.resumen.totalIngresos
+              | monedaSol
+          }}
+        </strong>
+
+        <small>
+          En el periodo seleccionado
+        </small>
+
+      </article>
+
+
+      <article class="indicador">
+
+        <span class="indicador-label">
+          Egresos
+        </span>
+
+        <strong class="valor-egreso">
+          {{
+            flujoCaja.resumen.totalEgresos
+              | monedaSol
+          }}
+        </strong>
+
+        <small>
+          En el periodo seleccionado
+        </small>
+
+      </article>
+
+
+      <article class="indicador">
+
+        <span class="indicador-label">
+          Neto del periodo
+        </span>
+
+        <strong
+          [class.valor-ingreso]="
+            flujoCaja.resumen.neto >= 0
+          "
+          [class.valor-egreso]="
+            flujoCaja.resumen.neto < 0
+          "
+        >
+
+          {{
+            flujoCaja.resumen.neto
+              | monedaSol
+          }}
+
+        </strong>
+
+        <small>
+          Ingresos menos egresos
+        </small>
+
+      </article>
+
+
+      <article class="indicador">
+
+        <span class="indicador-label">
+          Movimientos
+        </span>
+
+        <strong class="valor-neutro">
+          {{
+            flujoCaja.resumen
+              .cantidadMovimientos
+          }}
+        </strong>
+
+        <small>
+          {{
+            flujoCaja.resumen
+              .diasConMovimiento
+          }}
+          días con movimientos
+        </small>
+
+      </article>
+
+    </div>
+
+
+    <article class="tarjeta">
+
+      <header class="tabla-header">
+
+        <div>
+
+          <h2>
+            Resumen diario
+          </h2>
+
+          <p>
+            Ingresos y egresos agrupados por fecha.
+          </p>
+
+        </div>
+
+      </header>
+
+
+      @if (
+        flujoCaja.filas.length > 0
+      ) {
+
+        <div class="tabla-contenedor">
+
+          <table>
+
+            <thead>
+
+              <tr>
+
+                <th>
+                  Fecha
+                </th>
+
+                <th>
+                  Movimientos
+                </th>
+
+                <th class="texto-derecha">
+                  Ingresos
+                </th>
+
+                <th class="texto-derecha">
+                  Egresos
+                </th>
+
+                <th class="texto-derecha">
+                  Neto del día
+                </th>
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              @for (
+                fila of flujoCaja.filas;
+                track fila.fecha
+              ) {
+
+                <tr>
+
+                  <td>
+
+                    <strong class="fecha">
+                      {{
+                        formatearFecha(
+                          fila.fecha
+                        )
+                      }}
+                    </strong>
+
+                  </td>
+
+
+                  <td>
+
+                    <span class="cantidad">
+                      {{
+                        fila.cantidadMovimientos
+                      }}
+                    </span>
+
+                  </td>
+
+
+                  <td class="texto-derecha ingreso">
+
+                    @if (
+                      fila.ingresos > 0
+                    ) {
+
+                      + {{
+                        fila.ingresos
+                          | monedaSol
+                      }}
+
+                    } @else {
+
+                      <span class="sin-monto">
+                        —
+                      </span>
+
+                    }
+
+                  </td>
+
+
+                  <td class="texto-derecha egreso">
+
+                    @if (
+                      fila.egresos > 0
+                    ) {
+
+                      - {{
+                        fila.egresos
+                          | monedaSol
+                      }}
+
+                    } @else {
+
+                      <span class="sin-monto">
+                        —
+                      </span>
+
+                    }
+
+                  </td>
+
+
+                  <td
+                    class="texto-derecha neto"
+                    [class.neto-positivo]="
+                      fila.neto > 0
+                    "
+                    [class.neto-negativo]="
+                      fila.neto < 0
+                    "
+                    [class.neto-cero]="
+                      fila.neto === 0
+                    "
+                  >
+
+                    {{
+                      fila.neto
+                        | monedaSol
+                    }}
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+      } @else {
+
+        <div class="estado-vacio">
+
+          <div class="estado-vacio-icono">
+
+            <lucide-icon [img]="ChartNoAxesCombined" aria-hidden="true"></lucide-icon>
+
+          </div>
+
+
+          <strong>
+            No hay movimientos
+          </strong>
+
+          <p>
+            No se encontraron ingresos o egresos para el periodo seleccionado.
+          </p>
+
+        </div>
+
+      }
+
+    </article>
+
+  }
+
+</section>

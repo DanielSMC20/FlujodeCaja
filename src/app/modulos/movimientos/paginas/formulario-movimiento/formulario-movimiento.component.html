@@ -1,0 +1,361 @@
+<section class="pagina-movimiento">
+  <header class="pagina-header">
+    <span class="miga">Boulevard / {{ tituloPagina }}</span>
+    <h1>{{ tituloPagina }}</h1>
+    <p>Completa lo esencial y revisa el comprobante antes de guardar.</p>
+  </header>
+
+  <form class="formulario-layout" [formGroup]="formulario" (ngSubmit)="guardar()">
+    <main class="formulario-principal">
+      <a routerLink="/movimientos" class="volver-link">
+        <lucide-icon [img]="iconos.volver" [size]="15" />
+        Volver a movimientos
+      </a>
+
+      <section class="selector-bloque selector-sin-tarjeta">
+        <h2>¿Qué deseas registrar?</h2>
+
+        <div class="selector-tipo">
+          <button
+            type="button"
+            class="tipo-opcion tipo-ingreso"
+            [class.tipo-seleccionado]="tipoMovimientoSeleccionado === 1"
+            (click)="seleccionarTipo(1)"
+          >
+            <span class="tipo-icono">
+              <lucide-icon [img]="iconos.ingreso" [size]="17" />
+            </span>
+            <span class="tipo-texto">
+              <strong>Ingreso</strong>
+              <small>Dinero que entra</small>
+            </span>
+          </button>
+
+          <button
+            type="button"
+            class="tipo-opcion tipo-egreso"
+            [class.tipo-seleccionado]="tipoMovimientoSeleccionado === 2"
+            (click)="seleccionarTipo(2)"
+          >
+            <span class="tipo-icono">
+              <lucide-icon [img]="iconos.egreso" [size]="17" />
+            </span>
+            <span class="tipo-texto">
+              <strong>Egreso</strong>
+              <small>Dinero que sale o saldrá</small>
+            </span>
+          </button>
+        </div>
+      </section>
+
+      @if (tipoMovimientoSeleccionado === 2) {
+        <section class="selector-bloque selector-sin-tarjeta">
+          <h2>¿Este egreso ya se pagó?</h2>
+
+          <div class="selector-estado">
+            <button
+              type="button"
+              class="estado-opcion"
+              [class.estado-seleccionado]="formulario.controls.bCancelado.value === 1"
+              (click)="seleccionarEstadoEgreso(1)"
+            >
+              <span class="radio-simulado"></span>
+              <span>
+                <strong>Pagado</strong>
+                <small>El dinero ya salió de la caja</small>
+              </span>
+            </button>
+
+            <button
+              type="button"
+              class="estado-opcion"
+              [class.estado-seleccionado]="formulario.controls.bCancelado.value === 0"
+              (click)="seleccionarEstadoEgreso(0)"
+            >
+              <span class="radio-simulado"></span>
+              <span>
+                <strong>Proyectado</strong>
+                <small>Se pagará en una fecha futura</small>
+              </span>
+            </button>
+          </div>
+        </section>
+      }
+
+      <section class="formulario-seccion">
+        <header class="seccion-header">
+          <span class="paso">1</span>
+          <div>
+            <h2>Información principal</h2>
+            <p>Estos datos identifican el movimiento en caja.</p>
+          </div>
+        </header>
+
+        <div class="campos-grid">
+          <div class="campo">
+            <label for="fechaMovimiento">
+              {{ tipoMovimientoSeleccionado === 2 && formulario.controls.bCancelado.value === 0 ? 'Fecha proyectada' : 'Fecha de pago' }}
+            </label>
+            <input
+              id="fechaMovimiento"
+              type="date"
+              formControlName="fechaMovimiento"
+              [max]="formulario.controls.bCancelado.value === 1 ? fechaActual : null"
+            />
+            @if (mostrarError('fechaMovimiento')) {
+              <small class="error">La fecha es obligatoria.</small>
+            }
+          </div>
+
+          <div class="campo">
+            <label for="categoriaId">Categoría</label>
+            <select id="categoriaId" formControlName="categoriaId">
+              <option [ngValue]="0">Selecciona una categoría</option>
+              @if (categorias$ | async; as categorias) {
+                @for (categoria of categorias; track categoria.id) {
+                  <option [ngValue]="categoria.id">{{ categoria.nombre }}</option>
+                }
+              }
+            </select>
+            @if (mostrarError('categoriaId')) {
+              <small class="error">Selecciona una categoría.</small>
+            }
+          </div>
+
+          <div class="campo campo-ancho">
+            <label for="descripcion">Descripción</label>
+            <input
+              id="descripcion"
+              type="text"
+              maxlength="150"
+              formControlName="descripcion"
+              placeholder="Ej. Servicio de seguridad"
+            />
+            @if (mostrarError('descripcion')) {
+              <small class="error">La descripción es obligatoria.</small>
+            }
+          </div>
+
+          <div class="campo">
+            <label for="monto">Monto</label>
+            <div class="input-monto">
+              <span>S/</span>
+              <input
+                id="monto"
+                type="number"
+                min="0.01"
+                step="0.01"
+                formControlName="monto"
+                placeholder="0.00"
+              />
+            </div>
+            @if (mostrarError('monto')) {
+              <small class="error">Ingresa un monto mayor a cero.</small>
+            }
+          </div>
+
+          <div class="campo">
+            <label for="moneda">Moneda</label>
+            <select id="moneda" formControlName="moneda">
+              <option [ngValue]="1">{{ etiquetaMoneda(1) }}</option>
+              <option [ngValue]="2">{{ etiquetaMoneda(2) }}</option>
+            </select>
+          </div>
+
+          <div class="campo campo-ancho">
+            <label for="medioPago">Medio de pago</label>
+            <select id="medioPago" formControlName="medioPago">
+              <option [ngValue]="1">{{ etiquetaMedioPago(1) }}</option>
+              <option [ngValue]="2">{{ etiquetaMedioPago(2) }}</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      @if (tipoMovimientoSeleccionado === 2) {
+        <section class="formulario-seccion">
+          <header class="seccion-header">
+            <span class="paso">2</span>
+            <div>
+              <h2>Comprobante XML</h2>
+              <p>Opcional. Lee el comprobante y autocompleta sus datos.</p>
+            </div>
+          </header>
+
+          @if (!xmlProcesado) {
+            <label class="xml-cargador" for="archivoXml">
+              <span class="xml-icono">
+                <lucide-icon
+                  [img]="procesandoXml ? iconos.cargando : iconos.xml"
+                  [size]="22"
+                  [class.animate-spin]="procesandoXml"
+                />
+              </span>
+              <strong>{{ procesandoXml ? 'Procesando XML...' : 'Seleccionar archivo XML' }}</strong>
+              <small>Los datos adicionales aparecerán después de leer el archivo.</small>
+            </label>
+            <input
+              id="archivoXml"
+              class="input-archivo"
+              type="file"
+              accept=".xml,text/xml,application/xml"
+              [disabled]="procesandoXml"
+              (change)="seleccionarArchivoXml($event)"
+            />
+          } @else {
+            <div class="xml-procesado">
+              <span class="xml-estado-icono">
+                <lucide-icon [img]="iconos.correcto" [size]="18" />
+              </span>
+              <span class="xml-resultado">
+                <strong>XML procesado correctamente</strong>
+                <small>{{ nombreArchivoXml }} · {{ camposCompletadosXml }} campos encontrados</small>
+              </span>
+              <button type="button" (click)="quitarXml()">Cambiar XML</button>
+            </div>
+
+            <div class="datos-xml">
+              <h3>Datos encontrados en el comprobante</h3>
+              <div class="campos-grid">
+                <div class="campo">
+                  <label for="documentoEmisor">RUC del emisor</label>
+                  <input id="documentoEmisor" type="text" formControlName="documentoEmisor" />
+                </div>
+                <div class="campo">
+                  <label for="razonSocialEmisor">Razón social</label>
+                  <input id="razonSocialEmisor" type="text" formControlName="razonSocialEmisor" />
+                </div>
+                <div class="campo">
+                  <label for="tipoComprobante">Tipo de comprobante</label>
+                  <select id="tipoComprobante" formControlName="tipoComprobante">
+                    <option [ngValue]="1">{{ etiquetaComprobante(1) }}</option>
+                    <option [ngValue]="2">{{ etiquetaComprobante(2) }}</option>
+                    <option [ngValue]="3">{{ etiquetaComprobante(3) }}</option>
+                    <option [ngValue]="4">{{ etiquetaComprobante(4) }}</option>
+                    <option [ngValue]="5">{{ etiquetaComprobante(5) }}</option>
+                  </select>
+                </div>
+                <div class="campo">
+                  <label for="fechaComprobante">Fecha de emisión</label>
+                  <input id="fechaComprobante" type="date" formControlName="fechaComprobante" />
+                </div>
+                @if (mostrarNumeroComprobante) {
+                  <div class="campo">
+                    <label for="serieComprobante">Serie</label>
+                    <input id="serieComprobante" type="text" formControlName="serieComprobante" />
+                  </div>
+                  <div class="campo">
+                    <label for="numeroComprobante">Número</label>
+                    <input id="numeroComprobante" type="text" formControlName="numeroComprobante" />
+                  </div>
+                }
+              </div>
+            </div>
+          }
+
+          @if (errorXml) {
+            <div class="xml-error">{{ errorXml }}</div>
+          }
+        </section>
+      }
+
+      <section class="formulario-seccion">
+        <header class="seccion-header">
+          <span class="paso">{{ tipoMovimientoSeleccionado === 2 ? '3' : '2' }}</span>
+          <div>
+            <h2>Observación</h2>
+            <p>Opcional. Agrega contexto útil para tu equipo.</p>
+          </div>
+        </header>
+
+        <div class="campo">
+          <label for="observacion">Observación</label>
+          <textarea
+            id="observacion"
+            rows="4"
+            maxlength="500"
+            formControlName="observacion"
+            placeholder="Agrega algún detalle adicional..."
+          ></textarea>
+        </div>
+      </section>
+
+      @if (errorGuardado) {
+        <div class="error-guardado">{{ errorGuardado }}</div>
+      }
+    </main>
+
+    <aside class="resumen-card">
+      <span class="resumen-etiqueta">Resumen</span>
+      <h2>
+        {{
+          tipoMovimientoSeleccionado === 1
+            ? 'Ingreso confirmado'
+            : formulario.controls.bCancelado.value === 1
+              ? 'Egreso pagado'
+              : 'Egreso proyectado'
+        }}
+      </h2>
+
+      <dl>
+        <div>
+          <dt>Monto</dt>
+          <dd>{{ formulario.controls.monto.value | monedaSol }}</dd>
+        </div>
+        <div>
+          <dt>Fecha</dt>
+          <dd>{{ formulario.controls.fechaMovimiento.value }}</dd>
+        </div>
+        <div>
+          <dt>Categoría</dt>
+          <dd>{{ categoriaResumen }}</dd>
+        </div>
+        <div>
+          <dt>Origen</dt>
+          <dd>{{ origenResumen }}</dd>
+        </div>
+      </dl>
+
+      <div
+        class="impacto-caja"
+        [class.impacto-proyectado]="
+          tipoMovimientoSeleccionado === 2 && formulario.controls.bCancelado.value === 0
+        "
+      >
+        <lucide-icon [img]="iconos.correcto" [size]="17" />
+        <div>
+          <strong>
+            {{
+              tipoMovimientoSeleccionado === 2 && formulario.controls.bCancelado.value === 0
+                ? 'Todavía no afectará la caja'
+                : 'Afectará la caja del periodo'
+            }}
+          </strong>
+          <p>El resumen se actualizará después de guardar.</p>
+        </div>
+      </div>
+
+      <button
+        type="submit"
+        class="boton-guardar"
+        [disabled]="guardando || procesandoXml || cargandoMovimiento"
+      >
+        @if (guardando) {
+          Guardando...
+        } @else {
+          <lucide-icon [img]="iconos.guardar" [size]="16" />
+          {{ textoBotonGuardar }}
+        }
+      </button>
+
+      <button
+        type="button"
+        class="boton-cancelar"
+        (click)="cancelar()"
+        [disabled]="guardando || procesandoXml"
+      >
+        Cancelar
+      </button>
+    </aside>
+  </form>
+</section>

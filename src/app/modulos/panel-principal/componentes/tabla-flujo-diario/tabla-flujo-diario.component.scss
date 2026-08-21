@@ -1,0 +1,294 @@
+:host {
+  display: block;
+  height: 100%;
+}
+
+/* =========================================================
+   TARJETA
+   ========================================================= */
+
+.tarjeta-flujo {
+  height: 100%;
+
+  display: flex;
+  flex-direction: column;
+
+  padding: 1.2rem;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 18px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 4px 12px rgba(15, 23, 42, 0.025),
+    0 1px 3px rgba(15, 23, 42, 0.03);
+}
+
+/* =========================================================
+   HEADER
+   ========================================================= */
+
+.tarjeta-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin-bottom: 1rem;
+}
+
+.header-titulo h3 {
+  margin: 0;
+
+  color: #0f172a;
+
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+.header-titulo p {
+  margin: 0.25rem 0 0;
+
+  color: #94a3b8;
+
+  font-size: 0.75rem;
+}
+
+/* =========================================================
+   SALDO
+   ========================================================= */
+
+.saldo-resumen {
+  flex: 0 0 auto;
+
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+
+  padding: 0.45rem 0.7rem;
+
+  border-radius: 10px;
+
+  background: #eff6ff;
+}
+
+.saldo-resumen span {
+  color: #64748b;
+
+  font-size: 0.66rem;
+  font-weight: 600;
+
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+}
+
+.saldo-resumen strong {
+  margin-top: 0.1rem;
+
+  color: #1d4ed8;
+
+  font-size: 0.86rem;
+  font-weight: 700;
+}
+
+/* =========================================================
+   TABLA
+   ========================================================= */
+
+.tabla-contenedor {
+  overflow-x: auto;
+
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+}
+
+table {
+  width: 100%;
+  min-width: 620px;
+
+  border-collapse: collapse;
+}
+
+/* =========================================================
+   CABECERA TABLA
+   ========================================================= */
+
+thead {
+  background: #f8fafc;
+}
+
+th {
+  padding: 0.7rem 0.85rem;
+
+  border-bottom: 1px solid #e2e8f0;
+
+  color: #64748b;
+
+  font-size: 0.68rem;
+  font-weight: 700;
+
+  text-align: left;
+
+  letter-spacing: 0.02em;
+}
+
+/* =========================================================
+   FILAS
+   ========================================================= */
+
+td {
+  padding: 0.72rem 0.85rem;
+
+  border-bottom: 1px solid #f1f5f9;
+
+  color: #475569;
+
+  font-size: 0.74rem;
+
+  vertical-align: middle;
+}
+
+tbody tr:last-child td {
+  border-bottom: 0;
+}
+
+tbody tr {
+  transition: background 0.15s ease;
+}
+
+tbody tr:hover {
+  background: #fafcff;
+}
+
+/* =========================================================
+   COLUMNAS
+   ========================================================= */
+
+.fecha {
+  color: #64748b;
+
+  white-space: nowrap;
+}
+
+.concepto {
+  display: block;
+
+  max-width: 220px;
+
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+
+  color: #334155;
+
+  font-weight: 500;
+}
+
+.monto {
+  white-space: nowrap;
+
+  font-variant-numeric: tabular-nums;
+}
+
+.texto-derecha {
+  text-align: right;
+}
+
+/* =========================================================
+   COLORES
+   ========================================================= */
+
+.ingreso {
+  color: #16a34a;
+
+  font-weight: 600;
+}
+
+.egreso {
+  color: #dc2626;
+
+  font-weight: 600;
+}
+
+.saldo {
+  color: #0f172a;
+
+  font-weight: 700;
+}
+
+.sin-movimiento {
+  color: #cbd5e1;
+}
+
+/* =========================================================
+   FOOTER
+   ========================================================= */
+
+.tarjeta-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin-top: auto;
+  padding-top: 0.9rem;
+}
+
+.tarjeta-footer > span {
+  color: #94a3b8;
+
+  font-size: 0.7rem;
+}
+
+/* =========================================================
+   VER COMPLETO
+   ========================================================= */
+
+.ver-completo {
+  display: inline-flex;
+  align-items: center;
+
+  gap: 0.35rem;
+
+  color: #2563eb;
+
+  font-size: 0.72rem;
+  font-weight: 700;
+
+  text-decoration: none;
+}
+
+.ver-completo:hover {
+  color: #1d4ed8;
+}
+
+.ver-completo lucide-icon {
+  width: 15px;
+  height: 15px;
+
+  stroke-width: 2;
+}
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 640px) {
+
+  .tarjeta-header {
+    flex-direction: column;
+  }
+
+  .saldo-resumen {
+    align-items: flex-start;
+  }
+
+  .tarjeta-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+}

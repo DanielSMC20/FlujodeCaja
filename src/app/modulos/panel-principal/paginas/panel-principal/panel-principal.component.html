@@ -1,0 +1,135 @@
+<section class="dashboard">
+  <header class="dashboard-topbar">
+    <p>Lo importante de tu caja, sin cálculos manuales.</p>
+
+    <app-filtro-periodo
+      [value]="periodoSeleccionado"
+      (valueChange)="cambiarPeriodo($event)"
+    />
+  </header>
+
+  @if (resumen$ | async; as resumen) {
+    <section class="hero-caja">
+      <div class="hero-contenido">
+        <span class="hero-fecha">{{ fechaActualTexto }}</span>
+        <h1>
+          {{
+            calcularNeto(resumen.ingresosMes, resumen.egresosMes) >= 0
+              ? 'Tu caja se mantiene positiva'
+              : 'Tu caja necesita atención'
+          }}
+        </h1>
+        <p>
+          Los ingresos
+          {{
+            calcularNeto(resumen.ingresosMes, resumen.egresosMes) >= 0
+              ? 'superan'
+              : 'no cubren'
+          }}
+          los egresos pagados en
+          <strong>
+            {{
+              calcularNeto(resumen.ingresosMes, resumen.egresosMes)
+                | monedaSol
+            }}
+          </strong>
+          durante el periodo.
+        </p>
+      </div>
+
+      <a routerLink="/movimientos/nuevo" class="hero-accion">
+        <lucide-icon [img]="iconos.registrar" [size]="17" [strokeWidth]="2" />
+        Registrar ahora
+      </a>
+    </section>
+
+    @if (proximosPagos$ | async; as proximosPagos) {
+      <div class="kpi-grid">
+        <app-tarjeta-indicador
+          titulo="Ingresos del periodo"
+          [valor]="resumen.ingresosMes | monedaSol"
+          [textoSecundario]="resumen.movimientosMes + ' movimientos registrados'"
+          variacion="Actualizado"
+          tono="success"
+          icono="ingresos"
+        />
+        <app-tarjeta-indicador
+          titulo="Egresos pagados"
+          [valor]="resumen.egresosMes | monedaSol"
+          textoSecundario="Afectan a la caja real"
+          variacion="Actualizado"
+          tono="danger"
+          icono="egresos"
+        />
+        <app-tarjeta-indicador
+          titulo="Neto del periodo"
+          [valor]="calcularNeto(resumen.ingresosMes, resumen.egresosMes) | monedaSol"
+          textoSecundario="Ingresos menos egresos pagados"
+          variacion="Actualizado"
+          tono="info"
+          icono="saldo"
+        />
+        <app-tarjeta-indicador
+          titulo="Próximos pagos"
+          [valor]="sumarPagosProximos(proximosPagos) | monedaSol"
+          textoSecundario="Todavía no afectan la caja"
+          variacion="Pendiente"
+          tono="accent"
+          icono="movimientos"
+        />
+      </div>
+
+      <div class="paneles-principales">
+        @if (comparacionSemanal$ | async; as comparacionSemanal) {
+          <app-grafico-ingresos-egresos [data]="comparacionSemanal" />
+        }
+
+        <article class="pagos-card">
+          <header class="pagos-header">
+            <div>
+              <h2>Pagos próximos</h2>
+              <p>Egresos proyectados</p>
+            </div>
+            <a routerLink="/movimientos">Ver todos</a>
+          </header>
+
+          <div class="pagos-lista">
+            @for (pago of proximosPagos; track pago.id) {
+              <a class="pago-item" [routerLink]="['/movimientos', pago.id]">
+                <span class="pago-fecha">
+                  <strong>{{ obtenerDia(pago.fecha) }}</strong>
+                  <small>{{ obtenerMes(pago.fecha) }}</small>
+                </span>
+                <span class="pago-info">
+                  <strong>{{ pago.descripcion }}</strong>
+                  <small>{{ pago.categoria }} · {{ pago.proveedor }}</small>
+                </span>
+                <strong class="pago-monto">{{ pago.monto | monedaSol }}</strong>
+              </a>
+            } @empty {
+              <div class="pagos-vacio">
+                <lucide-icon [img]="iconos.calendario" [size]="21" />
+                <span>No tienes pagos proyectados.</span>
+              </div>
+            }
+          </div>
+
+          <div class="consejo-caja">
+            <lucide-icon [img]="iconos.consejo" [size]="18" />
+            <div>
+              <strong>Consejo de caja</strong>
+              <p>
+                Reserva fondos para los próximos pagos antes de asumir nuevos
+                gastos.
+              </p>
+            </div>
+          </div>
+        </article>
+      </div>
+    }
+  }
+
+  @if (ultimosMovimientos$ | async; as ultimosMovimientos) {
+    <app-ultimos-movimientos [data]="ultimosMovimientos" />
+  }
+</section>

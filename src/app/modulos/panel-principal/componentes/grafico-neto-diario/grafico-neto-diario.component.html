@@ -1,0 +1,35 @@
+<article class="grafico-card">
+  <header class="grafico-header">
+    <div>
+      <h3>Neto diario</h3>
+
+      <p>Ingresos menos egresos por día</p>
+    </div>
+
+    <div class="neto-periodo" [class.negativo]="totalNeto < 0">
+      <span> Neto del periodo </span>
+
+      <strong>
+        {{ totalNeto >= 0 ? "+ " : "" }}
+
+        {{ formatearMoneda(totalNeto) }}
+      </strong>
+    </div>
+  </header>
+
+  <div class="estado-leyenda">
+    <span>
+      <i class="positivo"></i>
+      Positivo
+    </span>
+
+    <span>
+      <i class="negativo"></i>
+      Negativo
+    </span>
+  </div>
+
+  <div class="canvas-container">
+    <canvas #canvas></canvas>
+  </div>
+</article>

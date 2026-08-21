@@ -1,0 +1,227 @@
+<section class="pagina-categorias">
+  <header class="pagina-header">
+    <div>
+      <span class="pagina-etiqueta"> Gestión </span>
+
+      <h1>Categorías</h1>
+
+      <p>
+        Organiza los ingresos y egresos de tu empresa mediante categorías
+        personalizadas.
+      </p>
+    </div>
+
+    <button type="button" class="boton-principal" (click)="nuevaCategoria()">
+      <lucide-icon [img]="Plus" aria-hidden="true"></lucide-icon>
+
+      Nueva categoría
+    </button>
+  </header>
+
+  @if (mostrarFormulario) {
+    <article class="tarjeta formulario-tarjeta">
+      <header class="formulario-header">
+        <div>
+          <h2>
+            {{ tituloFormulario }}
+          </h2>
+
+          <p>
+            {{
+              modoEdicion
+                ? "Actualiza la información de la categoría."
+                : "Crea una categoría para clasificar tus movimientos."
+            }}
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="cerrar-formulario"
+          (click)="cancelarFormulario()"
+          aria-label="Cerrar"
+        >
+          ×
+        </button>
+      </header>
+
+      <form
+        class="formulario"
+        [formGroup]="formulario"
+        (ngSubmit)="guardarCategoria()"
+      >
+        <div class="campo">
+          <label for="nombre">
+            Nombre
+            <span>*</span>
+          </label>
+
+          <input
+            id="nombre"
+            type="text"
+            formControlName="nombre"
+            maxlength="80"
+            placeholder="Ej. Venta en tienda"
+          />
+
+          @if (
+            formulario.controls.nombre.touched &&
+            formulario.controls.nombre.invalid
+          ) {
+            <small class="error"> Ingresa un nombre válido. </small>
+          }
+        </div>
+
+        <div class="campo">
+          <label for="tipoMovimiento">
+            Tipo de movimiento
+            <span>*</span>
+          </label>
+
+          <select id="tipoMovimiento" formControlName="tipoMovimiento">
+            <option [ngValue]="1">Ingreso</option>
+
+            <option [ngValue]="2">Egreso</option>
+          </select>
+
+          @if (modoEdicion) {
+            <small class="ayuda">
+              El tipo no puede modificarse después de crear la categoría.
+            </small>
+          }
+        </div>
+
+        <div class="campo campo-descripcion">
+          <label for="descripcion"> Descripción </label>
+
+          <input
+            id="descripcion"
+            type="text"
+            formControlName="descripcion"
+            maxlength="200"
+            placeholder="Describe brevemente para qué se utilizará"
+          />
+        </div>
+
+        <div class="acciones-formulario">
+          <button
+            type="button"
+            class="boton-secundario"
+            (click)="cancelarFormulario()"
+          >
+            Cancelar
+          </button>
+
+          <button type="submit" class="boton-principal" [disabled]="guardando">
+            {{
+              guardando
+                ? "Guardando..."
+                : modoEdicion
+                  ? "Guardar cambios"
+                  : "Crear categoría"
+            }}
+          </button>
+        </div>
+      </form>
+
+      @if (errorGuardado) {
+        <div class="mensaje-error">
+          {{ errorGuardado }}
+        </div>
+      }
+    </article>
+  }
+
+  @if (categorias$ | async; as categorias) {
+    <article class="tarjeta">
+      <header class="tabla-header">
+        <div>
+          <h2>Categorías registradas</h2>
+
+          <p>
+            {{ categorias.length }}
+            categorías disponibles.
+          </p>
+        </div>
+      </header>
+
+      @if (categorias.length > 0) {
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr>
+                <th>Nombre</th>
+
+                <th>Tipo</th>
+
+                <th>Descripción</th>
+
+                <th>Estado</th>
+
+                <th class="acciones-columna">Acciones</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (categoria of categorias; track categoria.id) {
+                <tr [class.categoria-inactiva]="!categoria.estado">
+                  <td>
+                    <strong class="categoria-nombre">
+                      {{ categoria.nombre }}
+                    </strong>
+                  </td>
+
+                  <td>
+                    <span
+                      class="badge"
+                      [class.badge-ingreso]="categoria.tipoMovimiento === 1"
+                      [class.badge-egreso]="categoria.tipoMovimiento === 2"
+                    >
+                      {{ etiquetaTipo(categoria.tipoMovimiento) }}
+                    </span>
+                  </td>
+
+                  <td class="descripcion">
+                    {{ categoria.descripcion || "Sin descripción" }}
+                  </td>
+
+                  <td>
+                    <span
+                      class="estado"
+                      [class.estado-activo]="categoria.estado"
+                      [class.estado-inactivo]="!categoria.estado"
+                    >
+                      {{ categoria.estado ? "Activo" : "Inactivo" }}
+                    </span>
+                  </td>
+
+                  <td>
+                    <div class="acciones">
+                      <button
+                        type="button"
+                        class="accion"
+                        (click)="editarCategoria(categoria)"
+                      >
+                        Editar
+                      </button>
+
+                      <button
+                        type="button"
+                        class="accion"
+                        [class.accion-activar]="!categoria.estado"
+                        [class.accion-desactivar]="categoria.estado"
+                        (click)="cambiarEstado(categoria)"
+                      >
+                        {{ categoria.estado ? "Desactivar" : "Activar" }}
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </article>
+  }
+</section>

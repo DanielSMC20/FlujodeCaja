@@ -1,0 +1,87 @@
+<article class="grafico-card">
+
+  <header class="grafico-header">
+
+    <div>
+
+      <h3>
+        Egresos por categoría
+      </h3>
+
+      <p>
+        Distribución del periodo
+      </p>
+
+    </div>
+
+
+    <div class="total-header">
+
+      <span>
+        Total
+      </span>
+
+      <strong>
+        {{ formatearMoneda(totalEgresos) }}
+      </strong>
+
+    </div>
+
+  </header>
+
+
+  <div class="dona-container">
+
+    <canvas #canvas></canvas>
+
+  </div>
+
+
+  <div class="categorias-lista">
+
+    @for (
+      categoria of categoriasOrdenadas;
+      track categoria.categoria;
+      let indice = $index
+    ) {
+
+      <div class="categoria-item">
+
+        <span
+          class="categoria-color"
+          [style.background]="
+            obtenerColor(indice)
+          "
+        ></span>
+
+
+        <div class="categoria-info">
+
+          <span class="categoria-nombre">
+            {{ categoria.categoria }}
+          </span>
+
+          <strong>
+            {{ formatearMoneda(categoria.monto) }}
+          </strong>
+
+        </div>
+
+
+        <span class="categoria-porcentaje">
+
+          {{
+            calcularPorcentaje(
+              categoria.monto
+            ).toFixed(1)
+          }}%
+
+        </span>
+
+      </div>
+
+    }
+
+  </div>
+
+</article>

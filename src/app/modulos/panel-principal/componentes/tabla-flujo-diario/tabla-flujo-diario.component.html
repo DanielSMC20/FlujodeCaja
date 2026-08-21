@@ -1,0 +1,173 @@
+<article class="tarjeta-flujo">
+
+  <!-- ============================================= -->
+  <!-- ENCABEZADO -->
+  <!-- ============================================= -->
+
+  <header class="tarjeta-header">
+
+    <div class="header-titulo">
+
+      <h3>
+        Flujo de caja diario
+      </h3>
+
+      <p>
+        Últimos movimientos del periodo
+      </p>
+
+    </div>
+
+    <div class="saldo-resumen">
+
+      <span>
+        Saldo
+      </span>
+
+      <strong>
+        {{ saldoActual | monedaSol }}
+      </strong>
+
+    </div>
+
+  </header>
+
+
+  <!-- ============================================= -->
+  <!-- TABLA -->
+  <!-- ============================================= -->
+
+  <div class="tabla-contenedor">
+
+    <table>
+
+      <thead>
+
+        <tr>
+
+          <th>
+            Fecha
+          </th>
+
+          <th>
+            Concepto
+          </th>
+
+          <th class="texto-derecha">
+            Ingreso
+          </th>
+
+          <th class="texto-derecha">
+            Egreso
+          </th>
+
+          <th class="texto-derecha">
+            Saldo
+          </th>
+
+        </tr>
+
+      </thead>
+
+      <tbody>
+
+        @for (
+          fila of data;
+          track fila.fecha + fila.concepto
+        ) {
+
+          <tr>
+
+            <!-- Fecha -->
+            <td class="fecha">
+              {{ fila.fecha }}
+            </td>
+
+            <!-- Concepto -->
+            <td>
+
+              <span class="concepto">
+                {{ fila.concepto }}
+              </span>
+
+            </td>
+
+            <!-- Ingreso -->
+            <td class="monto texto-derecha">
+
+              @if (fila.ingreso > 0) {
+
+                <span class="ingreso">
+                  + {{ fila.ingreso | monedaSol }}
+                </span>
+
+              } @else {
+
+                <span class="sin-movimiento">
+                  —
+                </span>
+
+              }
+
+            </td>
+
+            <!-- Egreso -->
+            <td class="monto texto-derecha">
+
+              @if (fila.egreso > 0) {
+
+                <span class="egreso">
+                  - {{ fila.egreso | monedaSol }}
+                </span>
+
+              } @else {
+
+                <span class="sin-movimiento">
+                  —
+                </span>
+
+              }
+
+            </td>
+
+            <!-- Saldo -->
+            <td class="monto saldo texto-derecha">
+
+              {{ fila.saldo | monedaSol }}
+
+            </td>
+
+          </tr>
+
+        }
+
+      </tbody>
+
+    </table>
+
+  </div>
+
+
+  <!-- ============================================= -->
+  <!-- FOOTER -->
+  <!-- ============================================= -->
+
+  <footer class="tarjeta-footer">
+
+    <span>
+      {{ data.length }} movimientos recientes
+    </span>
+
+    <a
+      routerLink="/flujo-caja"
+      class="ver-completo"
+    >
+      Ver flujo completo
+
+      <lucide-icon [img]="ArrowRight" aria-hidden="true"></lucide-icon>
+
+    </a>
+
+  </footer>
+
+</article>
