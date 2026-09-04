@@ -26,7 +26,10 @@ import {
   Save,
 } from 'lucide-angular';
 
-import { RegistrarMovimientoRequest } from '../../../../nucleo/modelos/movimiento';
+import {
+  FlagCancelado,
+  RegistrarMovimientoRequest,
+} from '../../../../nucleo/modelos/movimiento';
 
 import { CategoriaService } from '../../../../nucleo/servicios/categoria.service';
 
@@ -36,11 +39,10 @@ import { ConstanteService } from '../../../../nucleo/servicios/constante.service
 
 import { MovimientoService } from '../../../../nucleo/servicios/movimiento.service';
 
-import { MonedaSolPipe } from '../../../../compartido/pipes/moneda-sol.pipe';
-
 type CampoMovimiento =
   | 'tipoMovimiento'
   | 'fechaMovimiento'
+  | 'fechaPago'
   | 'categoriaId'
   | 'descripcion'
   | 'monto'
@@ -65,7 +67,6 @@ type CampoMovimiento =
     ReactiveFormsModule,
     RouterLink,
     LucideAngularModule,
-    MonedaSolPipe,
   ],
 
   templateUrl: './formulario-movimiento.component.html',
@@ -115,6 +116,10 @@ export class FormularioMovimientoComponent {
 
   movimientoId: number | null = null;
 
+  tipoMovimientoOriginal: number | null = null;
+
+  estadoEgresoOriginal: FlagCancelado | null = null;
+
   guardando = false;
 
   cargandoMovimiento = false;
@@ -142,9 +147,11 @@ export class FormularioMovimientoComponent {
   readonly formulario = this.formBuilder.nonNullable.group({
     tipoMovimiento: [1, [Validators.required]],
 
-    bCancelado: [1 as 0 | 1, [Validators.required]],
-
     fechaMovimiento: [this.fechaActual, [Validators.required]],
+
+    bCancelado: this.formBuilder.nonNullable.control<FlagCancelado>(1),
+
+    fechaPago: [this.fechaActual],
 
     categoriaId: [0, [Validators.required, Validators.min(1)]],
 
@@ -210,8 +217,6 @@ export class FormularioMovimientoComponent {
 
         if (tipoMovimiento === 1) {
           this.limpiarDatosXml();
-
-          this.formulario.controls.bCancelado.setValue(1);
         }
 
         this.changeDetectorRef.markForCheck();
@@ -310,6 +315,10 @@ export class FormularioMovimientoComponent {
      ====================================================== */
 
   get textoBotonGuardar(): string {
+    if (this.mostrarFechaPago) {
+      return 'Guardar y marcar como pagado';
+    }
+
     return this.modoEdicion ? 'Guardar cambios' : 'Guardar movimiento';
   }
 
@@ -321,6 +330,25 @@ export class FormularioMovimientoComponent {
     return this.formulario.controls.tipoMovimiento.value;
   }
 
+  get estadoEgresoSeleccionado(): FlagCancelado {
+    return this.formulario.controls.bCancelado.value;
+  }
+
+  get esEgresoProyectadoEnEdicion(): boolean {
+    return (
+      this.modoEdicion &&
+      this.tipoMovimientoOriginal === 2 &&
+      this.estadoEgresoOriginal === 0
+    );
+  }
+
+  get mostrarFechaPago(): boolean {
+    return (
+      this.esEgresoProyectadoEnEdicion &&
+      this.estadoEgresoSeleccionado === 1
+    );
+  }
+
   /* ======================================================
      MOSTRAR NÚMERO DE COMPROBANTE
      ====================================================== */
@@ -329,32 +357,42 @@ export class FormularioMovimientoComponent {
     return this.formulario.controls.tipoComprobante.value !== 5;
   }
 
-  get categoriaResumen(): string {
-    const categoria = this.categoriaService.obtenerCategoriaPorId(
-      this.formulario.controls.categoriaId.value,
-    );
-
-    return categoria?.nombre ?? 'Por seleccionar';
-  }
-
-  get origenResumen(): string {
-    return this.xmlProcesado ? 'Comprobante XML' : 'Registro manual';
-  }
-
-  seleccionarEstadoEgreso(estado: 0 | 1): void {
-    this.formulario.controls.bCancelado.setValue(estado);
-  }
-
   /* ======================================================
      SELECCIONAR TIPO
      ====================================================== */
 
   seleccionarTipo(tipoMovimiento: number): void {
+    if (this.modoEdicion) {
+      return;
+    }
+
     if (this.formulario.controls.tipoMovimiento.value === tipoMovimiento) {
       return;
     }
 
     this.formulario.controls.tipoMovimiento.setValue(tipoMovimiento);
+  }
+
+  seleccionarEstadoEgreso(estado: FlagCancelado): void {
+    if (!this.esEgresoProyectadoEnEdicion) {
+      return;
+    }
+
+    const fechaPagoControl = this.formulario.controls.fechaPago;
+
+    this.formulario.controls.bCancelado.setValue(estado);
+
+    if (estado === 1) {
+      fechaPagoControl.setValidators([Validators.required]);
+
+      if (!fechaPagoControl.value) {
+        fechaPagoControl.setValue(this.fechaActual);
+      }
+    } else {
+      fechaPagoControl.clearValidators();
+    }
+
+    fechaPagoControl.updateValueAndValidity();
   }
 
   /* ======================================================
@@ -609,10 +647,28 @@ export class FormularioMovimientoComponent {
 
     const datos = this.formulario.getRawValue();
 
+    const tipoMovimiento =
+      this.modoEdicion && this.tipoMovimientoOriginal !== null
+        ? this.tipoMovimientoOriginal
+        : datos.tipoMovimiento;
+
+    const marcarComoPagado =
+      this.esEgresoProyectadoEnEdicion && datos.bCancelado === 1;
+
     const request: RegistrarMovimientoRequest = {
-      tipoMovimiento: datos.tipoMovimiento,
+      tipoMovimiento,
 
       fechaMovimiento: datos.fechaMovimiento,
+
+      fechaProyectada:
+        tipoMovimiento === 2 && this.modoEdicion
+          ? datos.fechaMovimiento
+          : undefined,
+
+      fechaPago:
+        tipoMovimiento === 2 && !this.modoEdicion
+          ? datos.fechaMovimiento
+          : undefined,
 
       categoriaId: datos.categoriaId,
 
@@ -657,16 +713,34 @@ export class FormularioMovimientoComponent {
         */
 
       bCancelado:
-        datos.tipoMovimiento === 2 ? datos.bCancelado : undefined,
+        tipoMovimiento === 2
+          ? this.modoEdicion
+            ? (this.estadoEgresoOriginal ?? 1)
+            : 1
+          : undefined,
     };
 
-    const operacion$ =
+    const actualizacion$ =
       this.modoEdicion && this.movimientoId !== null
         ? this.movimientoService.actualizarMovimiento(
             this.movimientoId,
             request,
           )
         : this.movimientoService.registrarMovimiento(request);
+
+    const operacion$ =
+      marcarComoPagado && this.movimientoId !== null
+        ? actualizacion$.pipe(
+            switchMap(() =>
+              this.movimientoService.marcarEgresoComoCancelado(
+                this.movimientoId!,
+                {
+                  fechaPago: datos.fechaPago,
+                },
+              ),
+            ),
+          )
+        : actualizacion$;
 
     operacion$
       .pipe(
@@ -722,6 +796,15 @@ export class FormularioMovimientoComponent {
             return;
           }
 
+          const estadoEgreso: FlagCancelado =
+            movimiento.bCancelado === 0 ? 0 : 1;
+
+          if (movimiento.tipoMovimiento === 2 && estadoEgreso === 1) {
+            void this.router.navigate(['/movimientos', movimiento.id]);
+
+            return;
+          }
+
           /*
               Primero establecemos el tipo.
 
@@ -729,12 +812,20 @@ export class FormularioMovimientoComponent {
               correspondientes al movimiento.
             */
 
+          this.tipoMovimientoOriginal = movimiento.tipoMovimiento;
+
+          this.estadoEgresoOriginal = estadoEgreso;
+
           this.formulario.controls.tipoMovimiento.setValue(
             movimiento.tipoMovimiento,
           );
 
           this.formulario.patchValue({
             fechaMovimiento: movimiento.fechaMovimiento,
+
+            bCancelado: estadoEgreso,
+
+            fechaPago: movimiento.fechaPago ?? this.fechaActual,
 
             categoriaId: movimiento.categoriaId,
 
@@ -757,8 +848,6 @@ export class FormularioMovimientoComponent {
             documentoEmisor: movimiento.documentoEmisor ?? '',
 
             razonSocialEmisor: movimiento.razonSocialEmisor ?? '',
-
-            bCancelado: movimiento.bCancelado ?? 1,
 
             observacion: movimiento.observacion ?? '',
           });

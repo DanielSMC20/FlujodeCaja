@@ -1,353 +1,630 @@
 <section class="pagina-movimiento">
-  <header class="pagina-header">
-    <span class="miga">Boulevard / {{ tituloPagina }}</span>
-    <h1>{{ tituloPagina }}</h1>
-    <p>Completa lo esencial y revisa el comprobante antes de guardar.</p>
-  </header>
+  <!-- ================================================== -->
+  <!-- ENCABEZADO -->
+  <!-- ================================================== -->
 
-  <form class="formulario-layout" [formGroup]="formulario" (ngSubmit)="guardar()">
-    <main class="formulario-principal">
-      <a routerLink="/movimientos" class="volver-link">
-        <lucide-icon [img]="iconos.volver" [size]="15" />
-        Volver a movimientos
+  <header class="pagina-header">
+    <div class="header-principal">
+      <a
+        routerLink="/movimientos"
+        class="boton-volver"
+        aria-label="Volver a movimientos"
+      >
+        <lucide-icon [img]="iconos.volver" [size]="17" [strokeWidth]="1.9" />
       </a>
 
-      <section class="selector-bloque selector-sin-tarjeta">
-        <h2>¿Qué deseas registrar?</h2>
+      <div>
+        <h1>
+          {{ tituloPagina }}
+        </h1>
 
-        <div class="selector-tipo">
+        <p>
+          {{ descripcionPagina }}
+        </p>
+      </div>
+    </div>
+  </header>
+
+  <!-- ================================================== -->
+  <!-- FORMULARIO -->
+  <!-- ================================================== -->
+
+  <form class="formulario" [formGroup]="formulario" (ngSubmit)="guardar()">
+    <!-- ================================================== -->
+    <!-- TIPO DE MOVIMIENTO -->
+    <!-- ================================================== -->
+
+    <section class="formulario-seccion">
+      <div class="seccion-header">
+        <h2>Tipo de movimiento</h2>
+
+        <p>
+          {{
+            modoEdicion
+              ? 'El tipo se conserva para mantener las reglas del movimiento registrado.'
+              : 'Selecciona si el dinero ingresa o sale de tu empresa.'
+          }}
+        </p>
+      </div>
+
+      <div
+        class="selector-tipo"
+        [class.selector-tipo-edicion]="modoEdicion"
+      >
+        <!-- ============================================ -->
+        <!-- INGRESO -->
+        <!-- ============================================ -->
+
+        @if (!modoEdicion || tipoMovimientoOriginal === 1) {
           <button
             type="button"
             class="tipo-opcion tipo-ingreso"
             [class.tipo-seleccionado]="tipoMovimientoSeleccionado === 1"
+            [attr.aria-pressed]="tipoMovimientoSeleccionado === 1"
+            [disabled]="modoEdicion"
             (click)="seleccionarTipo(1)"
           >
-            <span class="tipo-icono">
-              <lucide-icon [img]="iconos.ingreso" [size]="17" />
-            </span>
-            <span class="tipo-texto">
-              <strong>Ingreso</strong>
-              <small>Dinero que entra</small>
+            <div class="tipo-icono">
+              <lucide-icon [img]="iconos.ingreso" [size]="18" [strokeWidth]="1.9" />
+            </div>
+
+            <div class="tipo-texto">
+              <strong> Ingreso </strong>
+
+              <small>
+                {{ modoEdicion ? 'Tipo registrado' : 'Dinero que entra a la empresa' }}
+              </small>
+            </div>
+
+            <span class="tipo-check" aria-hidden="true"></span>
+          </button>
+        }
+
+        <!-- ============================================ -->
+        <!-- EGRESO -->
+        <!-- ============================================ -->
+
+        @if (!modoEdicion || tipoMovimientoOriginal === 2) {
+          <button
+            type="button"
+            class="tipo-opcion tipo-egreso"
+            [class.tipo-seleccionado]="tipoMovimientoSeleccionado === 2"
+            [attr.aria-pressed]="tipoMovimientoSeleccionado === 2"
+            [disabled]="modoEdicion"
+            (click)="seleccionarTipo(2)"
+          >
+            <div class="tipo-icono">
+              <lucide-icon [img]="iconos.egreso" [size]="18" [strokeWidth]="1.9" />
+            </div>
+
+            <div class="tipo-texto">
+              <strong> Egreso </strong>
+
+              <small>
+                {{ modoEdicion ? 'Tipo registrado' : 'Dinero que sale de la empresa' }}
+              </small>
+            </div>
+
+            <span class="tipo-check" aria-hidden="true"></span>
+          </button>
+        }
+      </div>
+    </section>
+
+    <!-- ================================================== -->
+    <!-- ESTADO DEL EGRESO PROYECTADO -->
+    <!-- ================================================== -->
+
+    @if (esEgresoProyectadoEnEdicion) {
+      <section class="formulario-seccion estado-egreso-seccion">
+        <div class="seccion-header">
+          <h2>Estado del egreso</h2>
+
+          <p>
+            Conserva el egreso como proyectado o registra que ya fue pagado.
+          </p>
+        </div>
+
+        <div class="selector-estado-egreso">
+          <button
+            type="button"
+            class="estado-opcion estado-proyectado"
+            [class.estado-seleccionado]="estadoEgresoSeleccionado === 0"
+            [attr.aria-pressed]="estadoEgresoSeleccionado === 0"
+            (click)="seleccionarEstadoEgreso(0)"
+          >
+            <span class="estado-punto" aria-hidden="true"></span>
+
+            <span>
+              <strong>Proyectado</strong>
+              <small>El pago continúa pendiente</small>
             </span>
           </button>
 
           <button
             type="button"
-            class="tipo-opcion tipo-egreso"
-            [class.tipo-seleccionado]="tipoMovimientoSeleccionado === 2"
-            (click)="seleccionarTipo(2)"
+            class="estado-opcion estado-pagado"
+            [class.estado-seleccionado]="estadoEgresoSeleccionado === 1"
+            [attr.aria-pressed]="estadoEgresoSeleccionado === 1"
+            (click)="seleccionarEstadoEgreso(1)"
           >
-            <span class="tipo-icono">
-              <lucide-icon [img]="iconos.egreso" [size]="17" />
-            </span>
-            <span class="tipo-texto">
-              <strong>Egreso</strong>
-              <small>Dinero que sale o saldrá</small>
+            <span class="estado-punto" aria-hidden="true"></span>
+
+            <span>
+              <strong>Pagado</strong>
+              <small>Confirma la salida real de dinero</small>
             </span>
           </button>
         </div>
-      </section>
 
-      @if (tipoMovimientoSeleccionado === 2) {
-        <section class="selector-bloque selector-sin-tarjeta">
-          <h2>¿Este egreso ya se pagó?</h2>
+        @if (mostrarFechaPago) {
+          <div class="campo fecha-pago-campo">
+            <label for="fechaPago">
+              Fecha de pago
 
-          <div class="selector-estado">
-            <button
-              type="button"
-              class="estado-opcion"
-              [class.estado-seleccionado]="formulario.controls.bCancelado.value === 1"
-              (click)="seleccionarEstadoEgreso(1)"
-            >
-              <span class="radio-simulado"></span>
-              <span>
-                <strong>Pagado</strong>
-                <small>El dinero ya salió de la caja</small>
-              </span>
-            </button>
-
-            <button
-              type="button"
-              class="estado-opcion"
-              [class.estado-seleccionado]="formulario.controls.bCancelado.value === 0"
-              (click)="seleccionarEstadoEgreso(0)"
-            >
-              <span class="radio-simulado"></span>
-              <span>
-                <strong>Proyectado</strong>
-                <small>Se pagará en una fecha futura</small>
-              </span>
-            </button>
-          </div>
-        </section>
-      }
-
-      <section class="formulario-seccion">
-        <header class="seccion-header">
-          <span class="paso">1</span>
-          <div>
-            <h2>Información principal</h2>
-            <p>Estos datos identifican el movimiento en caja.</p>
-          </div>
-        </header>
-
-        <div class="campos-grid">
-          <div class="campo">
-            <label for="fechaMovimiento">
-              {{ tipoMovimientoSeleccionado === 2 && formulario.controls.bCancelado.value === 0 ? 'Fecha proyectada' : 'Fecha de pago' }}
+              <span> * </span>
             </label>
+
             <input
-              id="fechaMovimiento"
+              id="fechaPago"
               type="date"
-              formControlName="fechaMovimiento"
-              [max]="formulario.controls.bCancelado.value === 1 ? fechaActual : null"
+              formControlName="fechaPago"
+              [max]="fechaActual"
             />
-            @if (mostrarError('fechaMovimiento')) {
-              <small class="error">La fecha es obligatoria.</small>
+
+            <small class="campo-ayuda">
+              Esta fecha se enviará al registro de pago del egreso.
+            </small>
+
+            @if (mostrarError('fechaPago')) {
+              <small class="error"> La fecha de pago es obligatoria. </small>
             }
           </div>
+        }
+      </section>
+    }
 
-          <div class="campo">
-            <label for="categoriaId">Categoría</label>
-            <select id="categoriaId" formControlName="categoriaId">
-              <option [ngValue]="0">Selecciona una categoría</option>
-              @if (categorias$ | async; as categorias) {
-                @for (categoria of categorias; track categoria.id) {
-                  <option [ngValue]="categoria.id">{{ categoria.nombre }}</option>
-                }
-              }
-            </select>
-            @if (mostrarError('categoriaId')) {
-              <small class="error">Selecciona una categoría.</small>
-            }
+    <!-- ================================================== -->
+    <!-- COMPROBANTE XML -->
+    <!-- SOLO PARA EGRESOS -->
+    <!-- ================================================== -->
+
+    @if (tipoMovimientoSeleccionado === 2) {
+      <section class="formulario-seccion">
+        <div class="xml-header">
+          <div>
+            <h2>Comprobante XML</h2>
+
+            <p>
+              Carga un XML para completar automáticamente la información
+              disponible del egreso.
+            </p>
           </div>
 
-          <div class="campo campo-ancho">
-            <label for="descripcion">Descripción</label>
-            <input
-              id="descripcion"
-              type="text"
-              maxlength="150"
-              formControlName="descripcion"
-              placeholder="Ej. Servicio de seguridad"
-            />
-            @if (mostrarError('descripcion')) {
-              <small class="error">La descripción es obligatoria.</small>
-            }
-          </div>
+          <span class="xml-opcional"> Opcional </span>
+        </div>
 
-          <div class="campo">
-            <label for="monto">Monto</label>
-            <div class="input-monto">
-              <span>S/</span>
-              <input
-                id="monto"
-                type="number"
-                min="0.01"
-                step="0.01"
-                formControlName="monto"
-                placeholder="0.00"
+        <!-- ============================================ -->
+        <!-- XML NO PROCESADO -->
+        <!-- ============================================ -->
+
+        @if (!xmlProcesado) {
+          <label class="xml-cargador" for="archivoXml">
+            <div class="xml-icono">
+              <lucide-icon
+                [img]="procesandoXml ? iconos.cargando : iconos.xml"
+                [size]="20"
+                [strokeWidth]="1.9"
+                [class.animate-spin]="procesandoXml"
               />
             </div>
-            @if (mostrarError('monto')) {
-              <small class="error">Ingresa un monto mayor a cero.</small>
+
+            <div class="xml-texto">
+              @if (procesandoXml) {
+                <strong> Procesando XML... </strong>
+
+                <span> Estamos leyendo la información del comprobante. </span>
+              } @else {
+                <strong> Selecciona un archivo XML </strong>
+
+                <span>
+                  Factura, boleta, recibo por honorarios u otro comprobante
+                  compatible.
+                </span>
+              }
+            </div>
+
+            <span class="xml-boton"> Seleccionar XML </span>
+          </label>
+
+          <input
+            id="archivoXml"
+            class="input-archivo"
+            type="file"
+            accept=".xml,text/xml,application/xml"
+            [disabled]="procesandoXml"
+            (change)="seleccionarArchivoXml($event)"
+          />
+        }
+
+        <!-- ============================================ -->
+        <!-- XML PROCESADO -->
+        <!-- ============================================ -->
+
+        @else {
+          <div class="xml-procesado">
+            <div class="xml-estado-icono">
+              <lucide-icon [img]="iconos.correcto" [size]="18" [strokeWidth]="2.2" />
+            </div>
+
+            <div class="xml-resultado">
+              <strong> XML procesado correctamente </strong>
+
+              <span class="xml-nombre">
+                {{ nombreArchivoXml }}
+              </span>
+
+              <span class="xml-campos">
+                Se encontraron
+                {{ camposCompletadosXml }}
+                campos que pueden ayudar a completar el egreso.
+              </span>
+            </div>
+
+            <button type="button" class="xml-cambiar" (click)="quitarXml()">
+              Cambiar XML
+            </button>
+          </div>
+        }
+
+        <!-- ============================================ -->
+        <!-- ERROR XML -->
+        <!-- ============================================ -->
+
+        @if (errorXml) {
+          <div class="xml-error">
+            {{ errorXml }}
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ================================================== -->
+    <!-- INFORMACIÓN DEL MOVIMIENTO -->
+    <!-- ================================================== -->
+
+    <section class="formulario-seccion">
+      <div class="seccion-header">
+        <h2>Información del movimiento</h2>
+
+        <p>Ingresa los datos principales de la operación.</p>
+      </div>
+
+      <div class="campos-grid">
+        <!-- ============================================ -->
+        <!-- FECHA -->
+        <!-- ============================================ -->
+
+        <div class="campo">
+          <label for="fechaMovimiento">
+            Fecha
+
+            <span> * </span>
+          </label>
+
+          <input
+            id="fechaMovimiento"
+            type="date"
+            formControlName="fechaMovimiento"
+            [max]="fechaActual"
+          />
+
+          @if (mostrarError("fechaMovimiento")) {
+            <small class="error"> La fecha es obligatoria. </small>
+          }
+        </div>
+
+        <!-- ============================================ -->
+        <!-- CATEGORÍA -->
+        <!-- ============================================ -->
+
+        <div class="campo">
+          <label for="categoriaId">
+            Categoría
+
+            <span> * </span>
+          </label>
+
+          <select id="categoriaId" formControlName="categoriaId">
+            <option [ngValue]="0">Selecciona una categoría</option>
+
+            @if (categorias$ | async; as categorias) {
+              @for (categoria of categorias; track categoria.id) {
+                <option [ngValue]="categoria.id">
+                  {{ categoria.nombre }}
+                </option>
+              }
             }
+          </select>
+
+          @if (mostrarError("categoriaId")) {
+            <small class="error"> Selecciona una categoría. </small>
+          }
+        </div>
+
+        <!-- ============================================ -->
+        <!-- MONTO -->
+        <!-- ============================================ -->
+
+        <div class="campo">
+          <label for="monto">
+            Monto
+
+            <span> * </span>
+          </label>
+
+          <div class="input-monto">
+            <span> S/ </span>
+
+            <input
+              id="monto"
+              type="number"
+              min="0.01"
+              step="0.01"
+              formControlName="monto"
+              placeholder="0.00"
+            />
           </div>
 
+          @if (mostrarError("monto")) {
+            <small class="error"> Ingresa un monto mayor a cero. </small>
+          }
+        </div>
+
+        <!-- ============================================ -->
+        <!-- DESCRIPCIÓN -->
+        <!-- ============================================ -->
+
+        <div class="campo campo-ancho">
+          <label for="descripcion">
+            Descripción
+
+            <span> * </span>
+          </label>
+
+          <input
+            id="descripcion"
+            type="text"
+            maxlength="150"
+            formControlName="descripcion"
+            placeholder="Ej. Venta del día - mostrador"
+          />
+
+          @if (mostrarError("descripcion")) {
+            <small class="error"> La descripción es obligatoria. </small>
+          }
+        </div>
+      </div>
+    </section>
+
+    <!-- ================================================== -->
+    <!-- PAGO Y COMPROBANTE -->
+    <!-- ================================================== -->
+
+    <section class="formulario-seccion">
+      <div class="seccion-header">
+        <h2>Pago y comprobante</h2>
+
+        <p>Información relacionada con la forma de pago y documento.</p>
+      </div>
+
+      <div class="campos-grid">
+        <!-- ============================================ -->
+        <!-- MEDIO DE PAGO -->
+        <!-- ============================================ -->
+
+        <div class="campo">
+          <label for="medioPago">
+            Medio de pago
+
+            <span> * </span>
+          </label>
+
+          <select id="medioPago" formControlName="medioPago">
+            <option [ngValue]="1">
+              {{ etiquetaMedioPago(1) }}
+            </option>
+
+            <option [ngValue]="2">
+              {{ etiquetaMedioPago(2) }}
+            </option>
+          </select>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- MONEDA -->
+        <!-- ============================================ -->
+
+        <div class="campo">
+          <label for="moneda">
+            Moneda
+
+            <span> * </span>
+          </label>
+
+          <select id="moneda" formControlName="moneda">
+            <option [ngValue]="1">
+              {{ etiquetaMoneda(1) }}
+            </option>
+
+            <option [ngValue]="2">
+              {{ etiquetaMoneda(2) }}
+            </option>
+          </select>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- TIPO DE COMPROBANTE -->
+        <!-- ============================================ -->
+
+        <div class="campo">
+          <label for="tipoComprobante"> Tipo de comprobante </label>
+
+          <select id="tipoComprobante" formControlName="tipoComprobante">
+            <option [ngValue]="1">
+              {{ etiquetaComprobante(1) }}
+            </option>
+
+            <option [ngValue]="2">
+              {{ etiquetaComprobante(2) }}
+            </option>
+
+            <option [ngValue]="3">
+              {{ etiquetaComprobante(3) }}
+            </option>
+
+            <option [ngValue]="4">
+              {{ etiquetaComprobante(4) }}
+            </option>
+
+            <option [ngValue]="5">
+              {{ etiquetaComprobante(5) }}
+            </option>
+          </select>
+        </div>
+
+        <!-- ============================================ -->
+        <!-- FECHA DEL COMPROBANTE -->
+        <!-- ============================================ -->
+
+        <div class="campo">
+          <label for="fechaComprobante"> Fecha del comprobante </label>
+
+          <input
+            id="fechaComprobante"
+            type="date"
+            formControlName="fechaComprobante"
+          />
+        </div>
+
+        <!-- ============================================ -->
+        <!-- SERIE / NÚMERO -->
+        <!-- ============================================ -->
+
+        @if (mostrarNumeroComprobante) {
+          <!-- SERIE -->
+
           <div class="campo">
-            <label for="moneda">Moneda</label>
-            <select id="moneda" formControlName="moneda">
-              <option [ngValue]="1">{{ etiquetaMoneda(1) }}</option>
-              <option [ngValue]="2">{{ etiquetaMoneda(2) }}</option>
-            </select>
+            <label for="serieComprobante"> Serie </label>
+
+            <input
+              id="serieComprobante"
+              type="text"
+              maxlength="20"
+              formControlName="serieComprobante"
+              placeholder="Ej. F001"
+            />
+          </div>
+
+          <!-- NÚMERO -->
+
+          <div class="campo">
+            <label for="numeroComprobante">
+              Número de comprobante
+
+              <span> * </span>
+            </label>
+
+            <input
+              id="numeroComprobante"
+              type="text"
+              maxlength="50"
+              formControlName="numeroComprobante"
+              placeholder="Ej. 00001234"
+            />
+
+            @if (mostrarError("numeroComprobante")) {
+              <small class="error"> Ingresa el número del comprobante. </small>
+            }
+          </div>
+        }
+
+        <!-- ============================================ -->
+        <!-- DATOS DEL EMISOR -->
+        <!-- SOLO EGRESOS -->
+        <!-- ============================================ -->
+
+        @if (tipoMovimientoSeleccionado === 2) {
+          <div class="campo">
+            <label for="documentoEmisor"> RUC / Documento del emisor </label>
+
+            <input
+              id="documentoEmisor"
+              type="text"
+              maxlength="20"
+              formControlName="documentoEmisor"
+              placeholder="Ej. 20548796321"
+            />
           </div>
 
           <div class="campo campo-ancho">
-            <label for="medioPago">Medio de pago</label>
-            <select id="medioPago" formControlName="medioPago">
-              <option [ngValue]="1">{{ etiquetaMedioPago(1) }}</option>
-              <option [ngValue]="2">{{ etiquetaMedioPago(2) }}</option>
-            </select>
-          </div>
-        </div>
-      </section>
+            <label for="razonSocialEmisor"> Proveedor / Emisor </label>
 
-      @if (tipoMovimientoSeleccionado === 2) {
-        <section class="formulario-seccion">
-          <header class="seccion-header">
-            <span class="paso">2</span>
-            <div>
-              <h2>Comprobante XML</h2>
-              <p>Opcional. Lee el comprobante y autocompleta sus datos.</p>
-            </div>
-          </header>
-
-          @if (!xmlProcesado) {
-            <label class="xml-cargador" for="archivoXml">
-              <span class="xml-icono">
-                <lucide-icon
-                  [img]="procesandoXml ? iconos.cargando : iconos.xml"
-                  [size]="22"
-                  [class.animate-spin]="procesandoXml"
-                />
-              </span>
-              <strong>{{ procesandoXml ? 'Procesando XML...' : 'Seleccionar archivo XML' }}</strong>
-              <small>Los datos adicionales aparecerán después de leer el archivo.</small>
-            </label>
             <input
-              id="archivoXml"
-              class="input-archivo"
-              type="file"
-              accept=".xml,text/xml,application/xml"
-              [disabled]="procesandoXml"
-              (change)="seleccionarArchivoXml($event)"
+              id="razonSocialEmisor"
+              type="text"
+              maxlength="200"
+              formControlName="razonSocialEmisor"
+              placeholder="Nombre o razón social"
             />
-          } @else {
-            <div class="xml-procesado">
-              <span class="xml-estado-icono">
-                <lucide-icon [img]="iconos.correcto" [size]="18" />
-              </span>
-              <span class="xml-resultado">
-                <strong>XML procesado correctamente</strong>
-                <small>{{ nombreArchivoXml }} · {{ camposCompletadosXml }} campos encontrados</small>
-              </span>
-              <button type="button" (click)="quitarXml()">Cambiar XML</button>
-            </div>
-
-            <div class="datos-xml">
-              <h3>Datos encontrados en el comprobante</h3>
-              <div class="campos-grid">
-                <div class="campo">
-                  <label for="documentoEmisor">RUC del emisor</label>
-                  <input id="documentoEmisor" type="text" formControlName="documentoEmisor" />
-                </div>
-                <div class="campo">
-                  <label for="razonSocialEmisor">Razón social</label>
-                  <input id="razonSocialEmisor" type="text" formControlName="razonSocialEmisor" />
-                </div>
-                <div class="campo">
-                  <label for="tipoComprobante">Tipo de comprobante</label>
-                  <select id="tipoComprobante" formControlName="tipoComprobante">
-                    <option [ngValue]="1">{{ etiquetaComprobante(1) }}</option>
-                    <option [ngValue]="2">{{ etiquetaComprobante(2) }}</option>
-                    <option [ngValue]="3">{{ etiquetaComprobante(3) }}</option>
-                    <option [ngValue]="4">{{ etiquetaComprobante(4) }}</option>
-                    <option [ngValue]="5">{{ etiquetaComprobante(5) }}</option>
-                  </select>
-                </div>
-                <div class="campo">
-                  <label for="fechaComprobante">Fecha de emisión</label>
-                  <input id="fechaComprobante" type="date" formControlName="fechaComprobante" />
-                </div>
-                @if (mostrarNumeroComprobante) {
-                  <div class="campo">
-                    <label for="serieComprobante">Serie</label>
-                    <input id="serieComprobante" type="text" formControlName="serieComprobante" />
-                  </div>
-                  <div class="campo">
-                    <label for="numeroComprobante">Número</label>
-                    <input id="numeroComprobante" type="text" formControlName="numeroComprobante" />
-                  </div>
-                }
-              </div>
-            </div>
-          }
-
-          @if (errorXml) {
-            <div class="xml-error">{{ errorXml }}</div>
-          }
-        </section>
-      }
-
-      <section class="formulario-seccion">
-        <header class="seccion-header">
-          <span class="paso">{{ tipoMovimientoSeleccionado === 2 ? '3' : '2' }}</span>
-          <div>
-            <h2>Observación</h2>
-            <p>Opcional. Agrega contexto útil para tu equipo.</p>
           </div>
-        </header>
+        }
+      </div>
+    </section>
 
-        <div class="campo">
-          <label for="observacion">Observación</label>
-          <textarea
-            id="observacion"
-            rows="4"
-            maxlength="500"
-            formControlName="observacion"
-            placeholder="Agrega algún detalle adicional..."
-          ></textarea>
-        </div>
-      </section>
+    <!-- ================================================== -->
+    <!-- OBSERVACIÓN -->
+    <!-- ================================================== -->
 
-      @if (errorGuardado) {
-        <div class="error-guardado">{{ errorGuardado }}</div>
-      }
-    </main>
+    <section class="formulario-seccion">
+      <div class="seccion-header">
+        <h2>Observación</h2>
 
-    <aside class="resumen-card">
-      <span class="resumen-etiqueta">Resumen</span>
-      <h2>
-        {{
-          tipoMovimientoSeleccionado === 1
-            ? 'Ingreso confirmado'
-            : formulario.controls.bCancelado.value === 1
-              ? 'Egreso pagado'
-              : 'Egreso proyectado'
-        }}
-      </h2>
-
-      <dl>
-        <div>
-          <dt>Monto</dt>
-          <dd>{{ formulario.controls.monto.value | monedaSol }}</dd>
-        </div>
-        <div>
-          <dt>Fecha</dt>
-          <dd>{{ formulario.controls.fechaMovimiento.value }}</dd>
-        </div>
-        <div>
-          <dt>Categoría</dt>
-          <dd>{{ categoriaResumen }}</dd>
-        </div>
-        <div>
-          <dt>Origen</dt>
-          <dd>{{ origenResumen }}</dd>
-        </div>
-      </dl>
-
-      <div
-        class="impacto-caja"
-        [class.impacto-proyectado]="
-          tipoMovimientoSeleccionado === 2 && formulario.controls.bCancelado.value === 0
-        "
-      >
-        <lucide-icon [img]="iconos.correcto" [size]="17" />
-        <div>
-          <strong>
-            {{
-              tipoMovimientoSeleccionado === 2 && formulario.controls.bCancelado.value === 0
-                ? 'Todavía no afectará la caja'
-                : 'Afectará la caja del periodo'
-            }}
-          </strong>
-          <p>El resumen se actualizará después de guardar.</p>
-        </div>
+        <p>Información adicional del movimiento.</p>
       </div>
 
-      <button
-        type="submit"
-        class="boton-guardar"
-        [disabled]="guardando || procesandoXml || cargandoMovimiento"
-      >
-        @if (guardando) {
-          Guardando...
-        } @else {
-          <lucide-icon [img]="iconos.guardar" [size]="16" />
-          {{ textoBotonGuardar }}
-        }
-      </button>
+      <div class="campo">
+        <label for="observacion">
+          Observación
 
+          <span class="opcional"> Opcional </span>
+        </label>
+
+        <textarea
+          id="observacion"
+          rows="4"
+          maxlength="500"
+          formControlName="observacion"
+          placeholder="Agrega algún detalle adicional..."
+        ></textarea>
+      </div>
+    </section>
+
+    <!-- ================================================== -->
+    <!-- ERROR DE GUARDADO -->
+    <!-- ================================================== -->
+
+    @if (errorGuardado) {
+      <div class="error-guardado">
+        {{ errorGuardado }}
+      </div>
+    }
+
+    <!-- ================================================== -->
+    <!-- ACCIONES -->
+    <!-- ================================================== -->
+
+    <footer class="formulario-footer">
       <button
         type="button"
         class="boton-cancelar"
@@ -356,6 +633,20 @@
       >
         Cancelar
       </button>
-    </aside>
+
+      <button
+        type="submit"
+        class="boton-guardar"
+        [disabled]="guardando || procesandoXml || cargandoMovimiento"
+      >
+        @if (guardando) {
+          {{ modoEdicion ? "Guardando cambios..." : "Guardando..." }}
+        } @else {
+          <lucide-icon [img]="iconos.guardar" [size]="17" [strokeWidth]="2" />
+
+          {{ textoBotonGuardar }}
+        }
+      </button>
+    </footer>
   </form>
 </section>

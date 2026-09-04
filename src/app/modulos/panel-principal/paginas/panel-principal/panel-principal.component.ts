@@ -1,48 +1,34 @@
 import { AsyncPipe, CommonModule } from '@angular/common';
-
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
-
 import { RouterLink } from '@angular/router';
-
 import {
-  ArrowRight,
   CalendarDays,
-  CircleAlert,
+  FileUp,
+  ListFilter,
   LucideAngularModule,
   Plus,
 } from 'lucide-angular';
-
 import { BehaviorSubject, switchMap } from 'rxjs';
 
-import { PeriodoDashboard } from '../../../../nucleo/modelos/filtros';
-
-import { DashboardService } from '../../../../nucleo/servicios/dashboard.service';
-
 import { MonedaSolPipe } from '../../../../compartido/pipes/moneda-sol.pipe';
-
+import { PeriodoDashboard } from '../../../../nucleo/modelos/filtros';
+import { DashboardService } from '../../../../nucleo/servicios/dashboard.service';
 import { FiltroPeriodoComponent } from '../../componentes/filtro-periodo/filtro-periodo.component';
-
 import { GraficoEgresosCategoriaComponent } from '../../componentes/grafico-egresos-categoria/grafico-egresos-categoria.component';
-
 import { GraficoIngresosEgresosComponent } from '../../componentes/grafico-ingresos-egresos/grafico-ingresos-egresos.component';
-
 import { GraficoNetoDiarioComponent } from '../../componentes/grafico-neto-diario/grafico-neto-diario.component';
-
 import { TablaFlujoDiarioComponent } from '../../componentes/tabla-flujo-diario/tabla-flujo-diario.component';
-
 import { TarjetaIndicadorComponent } from '../../componentes/tarjeta-indicador/tarjeta-indicador.component';
-
 import { UltimosMovimientosComponent } from '../../componentes/ultimos-movimientos/ultimos-movimientos.component';
 
 @Component({
   selector: 'app-panel-principal',
-
   standalone: true,
-
   imports: [
     CommonModule,
     AsyncPipe,
     RouterLink,
+    LucideAngularModule,
     MonedaSolPipe,
     FiltroPeriodoComponent,
     TarjetaIndicadorComponent,
@@ -51,24 +37,20 @@ import { UltimosMovimientosComponent } from '../../componentes/ultimos-movimient
     GraficoEgresosCategoriaComponent,
     TablaFlujoDiarioComponent,
     UltimosMovimientosComponent,
-    LucideAngularModule,
   ],
-
   templateUrl: './panel-principal.component.html',
-
   styleUrl: './panel-principal.component.scss',
-
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PanelPrincipalComponent {
-  readonly iconos = {
-    registrar: Plus,
-    verTodos: ArrowRight,
-    consejo: CircleAlert,
-    calendario: CalendarDays,
-  };
-
   private readonly dashboardService = inject(DashboardService);
+
+  readonly iconos = {
+    periodo: CalendarDays,
+    nuevo: Plus,
+    importar: FileUp,
+    movimientos: ListFilter,
+  };
 
   periodoSeleccionado: PeriodoDashboard = 'mes-actual';
 
@@ -108,66 +90,29 @@ export class PanelPrincipalComponent {
     ),
   );
 
-  readonly proximosPagos$ = this.dashboardService.obtenerPagosProximos();
+  get etiquetaPeriodoSeleccionado(): string {
+    const etiquetas: Record<PeriodoDashboard, string> = {
+      hoy: 'Hoy',
+      semana: 'Esta semana',
+      'mes-actual': 'Mes actual',
+      'mes-anterior': 'Mes anterior',
+      anio: 'Este año',
+      personalizado: 'Periodo personalizado',
+    };
 
-  readonly fechaActualTexto = new Intl.DateTimeFormat('es-PE', {
-    weekday: 'long',
-    day: '2-digit',
-    month: 'long',
-  })
-    .format(new Date(2026, 7, 20))
-    .toUpperCase();
+    return etiquetas[this.periodoSeleccionado];
+  }
 
   cambiarPeriodo(periodo: PeriodoDashboard): void {
     this.periodoSeleccionado = periodo;
-
     this.periodoSubject.next(periodo);
   }
 
   formatearVariacion(valor: number): string {
-    if (valor > 0) {
-      return `+${valor}%`;
-    }
-
-    return `${valor}%`;
+    return valor > 0 ? `+${valor}%` : `${valor}%`;
   }
 
   formatearVariacionCantidad(valor: number): string {
-    if (valor > 0) {
-      return `+${valor}`;
-    }
-
-    return valor.toString();
-  }
-
-  calcularNeto(ingresos: number, egresos: number): number {
-    return ingresos - egresos;
-  }
-
-  sumarPagosProximos(pagos: { monto: number }[]): number {
-    return pagos.reduce((total, pago) => total + pago.monto, 0);
-  }
-
-  obtenerDia(fecha: string): string {
-    return fecha.split('-')[2] ?? '';
-  }
-
-  obtenerMes(fecha: string): string {
-    const mes = Number(fecha.split('-')[1] ?? 1);
-
-    return [
-      'ENE',
-      'FEB',
-      'MAR',
-      'ABR',
-      'MAY',
-      'JUN',
-      'JUL',
-      'AGO',
-      'SEP',
-      'OCT',
-      'NOV',
-      'DIC',
-    ][mes - 1];
+    return valor > 0 ? `+${valor}` : valor.toString();
   }
 }

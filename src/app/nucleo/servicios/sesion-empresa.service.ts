@@ -10,12 +10,16 @@ import { EmpresaSesion } from '../modelos/empresa-sesion.model';
 export class SesionEmpresaService {
   private readonly empresas: EmpresaSesion[] = [
     {
-    id: 1,
-    nombre: 'Boulevard Eventos S.A.C.',
-    nombreComercial: 'Boulevard',
-    rubro: 'Entretenimiento y eventos',
-    }
-
+      id: 1,
+      ruc: null,
+      razonSocial: 'Boulevard Eventos S.A.C.',
+      nombreComercial: 'Boulevard',
+      monedaBase: 1,
+      monedaBaseDescripcion: 'Soles',
+      monedaBaseAbreviatura: 'PEN',
+      zonaHoraria: 'America/Lima',
+      activa: true,
+    },
   ];
 
   private readonly empresaActualSubject = new BehaviorSubject<EmpresaSesion>(

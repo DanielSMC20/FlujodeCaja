@@ -11,34 +11,38 @@
 
     @if (empresaActual$ | async; as empresa) {
       <div class="empresa-actual">
-        <div class="empresa-logo">{{ obtenerIniciales(empresa.nombreComercial) }}</div>
+        <div class="empresa-logo">
+          {{ obtenerIniciales(empresa.nombreComercial) }}
+        </div>
+
         <div class="empresa-informacion">
           <strong>{{ empresa.nombreComercial }}</strong>
-          <span>{{ empresa.rubro }}</span>
+          <span>
+            {{ empresa.monedaBaseAbreviatura }} · {{ empresa.zonaHoraria }}
+          </span>
         </div>
       </div>
     }
   </div>
 
   <div class="barra-derecha">
-    <a routerLink="/movimientos/nuevo" class="registrar-movimiento">
-      <lucide-icon [img]="iconos.registrar" [size]="16" [strokeWidth]="2" />
-      Registrar movimiento
-    </a>
-
     @if (usuarioActual$ | async; as usuario) {
       <div class="usuario">
         <div class="usuario-avatar">
           {{ obtenerInicialesUsuario(usuario.nombres, usuario.apellidos) }}
         </div>
+
         <div class="usuario-informacion">
           <strong>{{ usuario.nombres }} {{ usuario.apellidos }}</strong>
-          <span>{{ usuario.rol }}</span>
+          <span>
+            {{ usuario.roles.length > 0 ? usuario.roles[0].nombre : 'Sin rol asignado' }}
+          </span>
         </div>
+
         <lucide-icon
           class="usuario-flecha"
           [img]="iconos.abrirUsuario"
-          [size]="15"
+          [size]="16"
           [strokeWidth]="1.9"
         />
       </div>

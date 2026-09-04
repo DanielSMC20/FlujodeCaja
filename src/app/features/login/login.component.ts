@@ -19,6 +19,7 @@ import {
 } from 'lucide-angular';
 
 import { AuthService } from '../../core/auth/auth.service';
+import { ConfiguracionFinancieraService } from '../../nucleo/servicios/configuracion-financiera.service';
 
 @Component({
   selector: 'app-login',
@@ -45,6 +46,7 @@ export class LoginComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
+  private readonly configuracionFinancieraService = inject(ConfiguracionFinancieraService);
 
   isSubmitting = false;
   authError = '';
@@ -74,7 +76,7 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
 
     if (this.authService.isAuthenticated()) {
-      void this.router.navigateByUrl('/inicio');
+      this.redirigirSegunConfiguracion();
     }
 
   }
@@ -111,7 +113,7 @@ export class LoginComponent implements OnInit {
 
         next: () => {
 
-          void this.router.navigateByUrl('/inicio');
+          this.redirigirSegunConfiguracion();
 
         },
 
@@ -124,6 +126,14 @@ export class LoginComponent implements OnInit {
 
       });
 
+  }
+
+  private redirigirSegunConfiguracion(): void {
+    const destino = this.configuracionFinancieraService.tieneConfiguracionInicial()
+      ? '/inicio'
+      : '/configuracion-inicial';
+
+    void this.router.navigateByUrl(destino);
   }
 
   hasError(

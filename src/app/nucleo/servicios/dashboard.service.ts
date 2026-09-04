@@ -8,7 +8,6 @@ import {
   EvolucionSaldo,
   FlujoCajaDiario,
   MovimientoResumen,
-  PagoProximo,
   ResumenDashboard,
   NetoDiario,
 } from '../modelos/dashboard.model';
@@ -128,8 +127,7 @@ export class DashboardService {
               movimiento.fechaMovimiento,
               rango.desde,
               rango.hasta,
-            ) &&
-            (movimiento.tipoMovimiento !== 2 || movimiento.bCancelado !== 0),
+            ),
           )
           .sort((a, b) => {
             const comparacionFecha = b.fechaMovimiento.localeCompare(
@@ -163,33 +161,23 @@ export class DashboardService {
                   : 'Pagado'
                 : 'Registrado',
 
-            origen: movimiento.origenRegistro === 2 ? 'XML' : 'Manual',
+            origen:
+              movimiento.origenRegistroDescripcion ??
+              (movimiento.origenRegistro === 2
+                ? 'Registro asistido por XML'
+                : movimiento.origenRegistro === 3
+                  ? 'Importación desde Excel'
+                  : 'Registro manual'),
 
             medioPago:
-              movimiento.medioPago === 2 ? 'Transferencia' : 'Efectivo',
+              movimiento.medioPagoDescripcion ??
+              (movimiento.medioPago === 2
+                ? 'Tarjeta / POS'
+                : movimiento.medioPago === 9
+                  ? 'No especificado'
+                  : 'Efectivo'),
           }));
       }),
-    );
-  }
-
-  obtenerPagosProximos(): Observable<PagoProximo[]> {
-    return this.movimientoService.listarMovimientos(2).pipe(
-      map((movimientos) =>
-        movimientos
-          .filter((movimiento) => movimiento.bCancelado === 0)
-          .sort((a, b) => a.fechaMovimiento.localeCompare(b.fechaMovimiento))
-          .map((movimiento) => ({
-            id: movimiento.id,
-            fecha: movimiento.fechaProyectada ?? movimiento.fechaMovimiento,
-            descripcion: movimiento.descripcion,
-            categoria: movimiento.categoria,
-            proveedor:
-              movimiento.razonSocialEmisor ??
-              movimiento.observacion ??
-              'Proveedor por confirmar',
-            monto: movimiento.monto,
-          })),
-      ),
     );
   }
 

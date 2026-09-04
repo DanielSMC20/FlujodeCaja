@@ -17,14 +17,16 @@
         </div>
       </div>
 
-      <a
-        class="boton-editar"
-        [routerLink]="['/movimientos', movimiento.id, 'editar']"
-      >
-        <lucide-icon [img]="iconos.editar" [size]="16" [strokeWidth]="1.9" />
+      @if (puedeEditar(movimiento)) {
+        <a
+          class="boton-editar"
+          [routerLink]="['/movimientos', movimiento.id, 'editar']"
+        >
+          <lucide-icon [img]="iconos.editar" [size]="16" [strokeWidth]="1.9" />
 
-        Editar movimiento
-      </a>
+          Editar movimiento
+        </a>
+      }
     </header>
 
     <article class="resumen-movimiento">
@@ -291,12 +293,14 @@
         Volver a movimientos
       </a>
 
-      <a
-        [routerLink]="['/movimientos', movimiento.id, 'editar']"
-        class="boton-principal"
-      >
-        Editar movimiento
-      </a>
+      @if (puedeEditar(movimiento)) {
+        <a
+          [routerLink]="['/movimientos', movimiento.id, 'editar']"
+          class="boton-principal"
+        >
+          Editar movimiento
+        </a>
+      }
     </footer>
   } @else {
     <div class="movimiento-no-encontrado">

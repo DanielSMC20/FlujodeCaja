@@ -1,6 +1,11 @@
 export interface EmpresaSesion {
   id: number;
-  nombre: string;
+  ruc: string | null;
+  razonSocial: string;
   nombreComercial: string;
-  rubro: string;
+  monedaBase: number;
+  monedaBaseDescripcion: string;
+  monedaBaseAbreviatura: string;
+  zonaHoraria: string;
+  activa: boolean;
 }

@@ -48,15 +48,6 @@ export interface MovimientoResumen {
   medioPago: string;
 }
 
-export interface PagoProximo {
-  id: number;
-  fecha: string;
-  descripcion: string;
-  categoria: string;
-  proveedor: string;
-  monto: number;
-}
-
 export interface NetoDiario {
   etiquetas: string[];
   valores: number[];

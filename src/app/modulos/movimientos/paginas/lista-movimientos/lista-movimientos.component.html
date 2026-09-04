@@ -248,13 +248,18 @@
 
                       <!-- Editar -->
 
-                      <a
-                        class="boton-accion"
-                        [routerLink]="['/movimientos', movimiento.id, 'editar']"
-                        title="Editar movimiento"
-                      >
-                        <lucide-icon [img]="iconos.editar" [size]="15" [strokeWidth]="1.9" />
-                      </a>
+                      @if (
+                        movimiento.tipoMovimiento === 1 ||
+                        movimiento.bCancelado === 0
+                      ) {
+                        <a
+                          class="boton-accion"
+                          [routerLink]="['/movimientos', movimiento.id, 'editar']"
+                          title="Editar movimiento"
+                        >
+                          <lucide-icon [img]="iconos.editar" [size]="15" [strokeWidth]="1.9" />
+                        </a>
+                      }
                     </div>
                   </td>
                 </tr>

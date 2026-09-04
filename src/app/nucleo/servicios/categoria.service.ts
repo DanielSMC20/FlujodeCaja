@@ -21,6 +21,8 @@ import { SesionEmpresaService } from './sesion-empresa.service';
   providedIn: 'root',
 })
 export class CategoriaService {
+  private readonly storageKey = 'fc_categorias_movimiento';
+
   private readonly categorias: CategoriaMovimiento[] = [
     {
       id: 1,
@@ -92,7 +94,9 @@ export class CategoriaService {
     CategoriaMovimiento[]
   >(this.copiarCategorias());
 
-  constructor(private readonly sesionEmpresaService: SesionEmpresaService) {}
+  constructor(private readonly sesionEmpresaService: SesionEmpresaService) {
+    this.restaurarCategorias();
+  }
 
   listarCategorias(): Observable<CategoriaMovimiento[]> {
     return combineLatest([
@@ -299,7 +303,29 @@ export class CategoriaService {
   }
 
   private notificarCambios(): void {
+    localStorage.setItem(this.storageKey, JSON.stringify(this.categorias));
     this.categoriasSubject.next(this.copiarCategorias());
+  }
+
+  private restaurarCategorias(): void {
+    const raw = localStorage.getItem(this.storageKey);
+
+    if (!raw) {
+      return;
+    }
+
+    try {
+      const categorias = JSON.parse(raw) as CategoriaMovimiento[];
+
+      if (!Array.isArray(categorias)) {
+        return;
+      }
+
+      this.categorias.splice(0, this.categorias.length, ...categorias);
+      this.categoriasSubject.next(this.copiarCategorias());
+    } catch {
+      localStorage.removeItem(this.storageKey);
+    }
   }
 
   private copiarCategorias(): CategoriaMovimiento[] {

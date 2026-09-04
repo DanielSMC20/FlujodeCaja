@@ -3,6 +3,7 @@ import { Routes } from '@angular/router';
 import { EstructuraPrincipalComponent } from './estructura/estructura-principal/estructura-principal.component';
 import { LoginComponent } from './features/login/login.component';
 import { authGuard } from './core/guards/auth.guard';
+import { configuracionInicialGuard } from './core/guards/configuracion-inicial.guard';
 
 export const routes: Routes = [
   {
@@ -15,10 +16,18 @@ export const routes: Routes = [
     redirectTo: 'login',
   },
   {
+    path: 'configuracion-inicial',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./modulos/configuracion/paginas/configuracion-inicial/configuracion-inicial.component').then(
+        (component) => component.ConfiguracionInicialComponent,
+      ),
+  },
+  {
     path: '',
     component: EstructuraPrincipalComponent,
-    canActivate: [authGuard],
-    canActivateChild: [authGuard],
+    canActivate: [authGuard, configuracionInicialGuard],
+    canActivateChild: [authGuard, configuracionInicialGuard],
     children: [
       {
         path: 'inicio',
@@ -86,6 +95,13 @@ export const routes: Routes = [
         loadComponent: () =>
           import('./modulos/categorias/paginas/lista-categorias/lista-categorias.component').then(
             (component) => component.ListaCategoriasComponent,
+          ),
+      },
+      {
+        path: 'configuracion/usuarios/nuevo',
+        loadComponent: () =>
+          import('./modulos/configuracion/paginas/crear-cuenta-empresa/crear-cuenta-empresa.component').then(
+            (component) => component.CrearCuentaEmpresaComponent,
           ),
       },
       {

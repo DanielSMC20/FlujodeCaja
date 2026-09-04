@@ -1,28 +1,224 @@
-<section class="space-y-6">
-  <div>
-    <p class="text-sm font-semibold uppercase tracking-[0.24em] text-blue-600">Configuración</p>
-    <h2 class="mt-2 text-2xl font-semibold tracking-tight text-slate-900">Configuración de la empresa</h2>
-    <p class="mt-1 text-sm text-slate-500">Ajustes generales del cliente SaaS y parámetros visibles para el usuario actual.</p>
-  </div>
+<section class="pagina-configuracion">
+  <header class="pagina-header">
+    <div>
+      <span class="pagina-etiqueta">Configuración</span>
+      <h1>Empresa y cuenta</h1>
+      <p>Consulta el contexto empresarial y los permisos de la sesión actual.</p>
+    </div>
+  </header>
 
-  <div class="grid gap-4 xl:grid-cols-2">
-    <article class="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
-      <h3 class="text-lg font-semibold text-slate-900">Datos de la empresa</h3>
-      <div class="mt-4 space-y-3 text-sm text-slate-600">
-        <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"><span>Nombre comercial</span><strong>Boulevard</strong></div>
-        <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"><span>Rubro</span><strong>Entretenimiento y eventos</strong></div>
-        <div class="flex items-center justify-between rounded-2xl bg-slate-50 px-4 py-3"><span>Moneda</span><strong>Soles</strong></div>
+  @if (empresaActual$ | async; as empresa) {
+    <article class="perfil-empresa">
+      <div class="perfil-decoracion perfil-decoracion-uno"></div>
+      <div class="perfil-decoracion perfil-decoracion-dos"></div>
+
+      <div class="empresa-logo" aria-hidden="true">
+        {{ obtenerIniciales(empresa.nombreComercial) }}
       </div>
+
+      <div class="empresa-presentacion">
+        <div class="empresa-estado">
+          <lucide-icon
+            [img]="iconos.verificada"
+            [size]="15"
+            [strokeWidth]="2"
+          />
+          {{ empresa.activa ? 'Empresa activa' : 'Empresa inactiva' }}
+        </div>
+
+        <h2>{{ empresa.nombreComercial }}</h2>
+        <p>{{ empresa.razonSocial }}</p>
+
+        <div class="empresa-metadatos">
+          <span>RUC {{ empresa.ruc ?? 'pendiente de sincronizar' }}</span>
+          <span>{{ empresa.monedaBaseAbreviatura }}</span>
+          <span>{{ empresa.zonaHoraria }}</span>
+        </div>
+      </div>
+
+      <span class="modo-lectura">Datos de sesión</span>
     </article>
 
-    <article class="rounded-3xl border border-slate-200 bg-white p-5 shadow-soft">
-      <h3 class="text-lg font-semibold text-slate-900">Preferencias</h3>
-      <div class="mt-4 grid gap-3 md:grid-cols-2">
-        <button class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50" type="button">Editar perfil de empresa</button>
-        <button class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50" type="button">Cambiar logo</button>
-        <button class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50" type="button">Configurar categorías</button>
-        <button class="rounded-2xl border border-slate-200 px-4 py-3 text-sm font-semibold text-slate-600 hover:bg-slate-50" type="button">Seguridad y acceso</button>
+    <div class="configuracion-grid">
+      <article class="tarjeta datos-generales">
+        <header class="tarjeta-header">
+          <span class="tarjeta-icono tarjeta-icono-azul">
+            <lucide-icon [img]="iconos.empresa" [size]="20" [strokeWidth]="1.9" />
+          </span>
+          <div>
+            <h2>Datos de la empresa</h2>
+            <p>Información registrada para la empresa actual.</p>
+          </div>
+        </header>
+
+        <dl class="lista-datos">
+          <div>
+            <dt>RUC</dt>
+            <dd>{{ empresa.ruc ?? 'Pendiente de sincronizar' }}</dd>
+          </div>
+          <div>
+            <dt>Estado</dt>
+            <dd>
+              <span class="badge-activo" [class.badge-inactivo]="!empresa.activa">
+                {{ empresa.activa ? 'Activa' : 'Inactiva' }}
+              </span>
+            </dd>
+          </div>
+          <div>
+            <dt>Razón social</dt>
+            <dd>{{ empresa.razonSocial }}</dd>
+          </div>
+          <div>
+            <dt>Nombre comercial</dt>
+            <dd>{{ empresa.nombreComercial }}</dd>
+          </div>
+        </dl>
+
+        <div class="nota-integracion">
+          <lucide-icon [img]="iconos.correcto" [size]="18" [strokeWidth]="2" />
+          <p>
+            Estos datos deben llegar desde el contexto devuelto por el inicio de sesión.
+            La edición se habilitará cuando exista el endpoint de actualización de empresa.
+          </p>
+        </div>
+      </article>
+
+      <article class="tarjeta preferencias-operativas">
+        <header class="tarjeta-header">
+          <span class="tarjeta-icono tarjeta-icono-verde">
+            <lucide-icon [img]="iconos.moneda" [size]="20" [strokeWidth]="1.9" />
+          </span>
+          <div>
+            <h2>Preferencias operativas</h2>
+            <p>Valores respaldados por la empresa en la base de datos.</p>
+          </div>
+        </header>
+
+        <div class="preferencias-lista">
+          <div class="preferencia-item">
+            <span class="preferencia-icono preferencia-icono-verde">
+              <lucide-icon [img]="iconos.moneda" [size]="19" [strokeWidth]="1.9" />
+            </span>
+            <div>
+              <small>Moneda base</small>
+              <strong>{{ empresa.monedaBaseDescripcion }}</strong>
+            </div>
+            <span class="preferencia-codigo">{{ empresa.monedaBaseAbreviatura }}</span>
+          </div>
+
+          <div class="preferencia-item">
+            <span class="preferencia-icono preferencia-icono-azul">
+              <lucide-icon [img]="iconos.zonaHoraria" [size]="19" [strokeWidth]="1.9" />
+            </span>
+            <div>
+              <small>Zona horaria</small>
+              <strong>{{ empresa.zonaHoraria }}</strong>
+            </div>
+          </div>
+        </div>
+
+        <p class="preferencias-ayuda">
+          La moneda filtra Dashboard, Flujo de caja y Reportes. Las monedas no deben
+          sumarse entre sí.
+        </p>
+      </article>
+    </div>
+
+    @if (usuarioActual$ | async; as usuario) {
+      <div class="configuracion-grid configuracion-grid-inferior">
+        <article class="tarjeta cuenta-actual">
+          <header class="tarjeta-header">
+            <span class="tarjeta-icono tarjeta-icono-violeta">
+              <lucide-icon [img]="iconos.seguridad" [size]="20" [strokeWidth]="1.9" />
+            </span>
+            <div>
+              <h2>Cuenta actual</h2>
+              <p>Identidad y autorización asociadas a esta empresa.</p>
+            </div>
+          </header>
+
+          <div class="usuario-resumen">
+            <div class="usuario-avatar">
+              {{ usuario.nombres.charAt(0) }}{{ usuario.apellidos.charAt(0) }}
+            </div>
+            <div>
+              <strong>{{ usuario.nombres }} {{ usuario.apellidos }}</strong>
+              <span>{{ usuario.roles.length > 0 ? usuario.roles[0].nombre : 'Sin rol asignado' }}</span>
+            </div>
+            <span class="badge-cuenta" [class.badge-inactivo]="!usuario.activo">
+              {{ usuario.activo ? 'Acceso activo' : 'Acceso inactivo' }}
+            </span>
+          </div>
+
+          <dl class="cuenta-datos">
+            <div>
+              <dt><lucide-icon [img]="iconos.correo" [size]="16" /> Correo</dt>
+              <dd>{{ usuario.correo }}</dd>
+            </div>
+            <div>
+              <dt><lucide-icon [img]="iconos.verificada" [size]="16" /> Verificación</dt>
+              <dd>{{ usuario.correoVerificado ? 'Correo verificado' : 'Correo no verificado' }}</dd>
+            </div>
+            <div>
+              <dt><lucide-icon [img]="iconos.ultimoAcceso" [size]="16" /> Último acceso</dt>
+              <dd>
+                {{
+                  usuario.ultimoAcceso
+                    ? (usuario.ultimoAcceso | date: 'dd/MM/yyyy, HH:mm')
+                    : 'Sin registro sincronizado'
+                }}
+              </dd>
+            </div>
+          </dl>
+        </article>
+
+        <article class="tarjeta administracion">
+          <header class="tarjeta-header">
+            <span class="tarjeta-icono tarjeta-icono-naranja">
+              <lucide-icon [img]="iconos.usuarios" [size]="20" [strokeWidth]="1.9" />
+            </span>
+            <div>
+              <h2>Administración</h2>
+              <p>Opciones relacionadas con la empresa y sus accesos.</p>
+            </div>
+          </header>
+
+          <div class="accesos-lista">
+            <a routerLink="/categorias" class="acceso-item">
+              <span class="acceso-icono acceso-icono-azul">
+                <lucide-icon [img]="iconos.categorias" [size]="20" [strokeWidth]="1.9" />
+              </span>
+              <span class="acceso-contenido">
+                <strong>Categorías de movimientos</strong>
+                <small>Administra categorías de ingreso y egreso por empresa.</small>
+              </span>
+              <lucide-icon
+                class="acceso-flecha"
+                [img]="iconos.siguiente"
+                [size]="18"
+                [strokeWidth]="2"
+              />
+            </a>
+
+            <a routerLink="/configuracion/usuarios/nuevo" class="acceso-item">
+              <span class="acceso-icono acceso-icono-violeta">
+                <lucide-icon [img]="iconos.usuarios" [size]="20" [strokeWidth]="1.9" />
+              </span>
+              <span class="acceso-contenido">
+                <strong>Crear cuenta de usuario</strong>
+                <small>Agrega un nuevo acceso para esta empresa.</small>
+              </span>
+              <span class="badge-pendiente">Nuevo</span>
+              <lucide-icon
+                class="acceso-flecha"
+                [img]="iconos.siguiente"
+                [size]="18"
+                [strokeWidth]="2"
+              />
+            </a>
+          </div>
+        </article>
       </div>
-    </article>
-  </div>
+    }
+  }
 </section>

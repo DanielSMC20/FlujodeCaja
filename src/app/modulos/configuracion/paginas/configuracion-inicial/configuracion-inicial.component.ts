@@ -1,0 +1,189 @@
+import { CommonModule } from '@angular/common';
+import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
+import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router } from '@angular/router';
+import { forkJoin } from 'rxjs';
+import { finalize, switchMap } from 'rxjs/operators';
+import {
+  ArrowRight,
+  ChartNoAxesCombined,
+  CircleCheck,
+  Coins,
+  Plus,
+  Tags,
+  Trash2,
+  WalletCards,
+  LucideAngularModule,
+} from 'lucide-angular';
+
+import { CategoriaService } from '../../../../nucleo/servicios/categoria.service';
+import { ConfiguracionFinancieraService } from '../../../../nucleo/servicios/configuracion-financiera.service';
+import { SesionEmpresaService } from '../../../../nucleo/servicios/sesion-empresa.service';
+
+@Component({
+  selector: 'app-configuracion-inicial',
+  standalone: true,
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+  templateUrl: './configuracion-inicial.component.html',
+  styleUrl: './configuracion-inicial.component.scss',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class ConfiguracionInicialComponent implements OnInit {
+  private readonly formBuilder = inject(FormBuilder);
+  private readonly router = inject(Router);
+  private readonly configuracionService = inject(ConfiguracionFinancieraService);
+  private readonly categoriaService = inject(CategoriaService);
+  private readonly sesionEmpresaService = inject(SesionEmpresaService);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  readonly empresa = this.sesionEmpresaService.empresaActual;
+  readonly fechaInicio = this.obtenerFechaLocalActual();
+
+  readonly iconos = {
+    marca: ChartNoAxesCombined,
+    saldo: WalletCards,
+    moneda: Coins,
+    categorias: Tags,
+    agregar: Plus,
+    eliminar: Trash2,
+    continuar: ArrowRight,
+    correcto: CircleCheck,
+  };
+
+  guardando = false;
+  errorGuardado = '';
+
+  readonly formulario = this.formBuilder.nonNullable.group({
+    saldoInicial: [0, [Validators.required, Validators.min(0)]],
+    fechaSaldoInicial: [this.fechaInicio, [Validators.required]],
+    moneda: [1, [Validators.required]],
+    ingresos: this.formBuilder.array([
+      this.crearControlClasificador('Ventas'),
+    ]),
+    egresos: this.formBuilder.array([
+      this.crearControlClasificador('Compras'),
+    ]),
+  });
+
+  get ingresos(): FormArray {
+    return this.formulario.controls.ingresos;
+  }
+
+  get egresos(): FormArray {
+    return this.formulario.controls.egresos;
+  }
+
+  ngOnInit(): void {
+    if (this.configuracionService.tieneConfiguracionInicial()) {
+      void this.router.navigateByUrl('/inicio');
+    }
+  }
+
+  agregarClasificador(tipoMovimiento: 1 | 2): void {
+    const lista = tipoMovimiento === 1 ? this.ingresos : this.egresos;
+    lista.push(this.crearControlClasificador(''));
+  }
+
+  eliminarClasificador(tipoMovimiento: 1 | 2, indice: number): void {
+    const lista = tipoMovimiento === 1 ? this.ingresos : this.egresos;
+
+    if (lista.length <= 1) {
+      return;
+    }
+
+    lista.removeAt(indice);
+  }
+
+  guardarConfiguracion(): void {
+    this.errorGuardado = '';
+
+    if (this.formulario.invalid || this.guardando) {
+      this.formulario.markAllAsTouched();
+      return;
+    }
+
+    const datos = this.formulario.getRawValue();
+    const nombresIngreso = this.normalizarClasificadores(datos.ingresos);
+    const nombresEgreso = this.normalizarClasificadores(datos.egresos);
+
+    if (nombresIngreso.length === 0 || nombresEgreso.length === 0) {
+      this.errorGuardado =
+        'Registra al menos un clasificador de ingreso y uno de egreso.';
+      return;
+    }
+
+    if (this.tieneDuplicados(nombresIngreso) || this.tieneDuplicados(nombresEgreso)) {
+      this.errorGuardado =
+        'No repitas nombres dentro del mismo tipo de clasificador.';
+      return;
+    }
+
+    this.guardando = true;
+
+    const categorias = [
+      ...nombresIngreso.map((nombre) => ({
+        nombre,
+        tipoMovimiento: 1,
+        descripcion: 'Clasificador definido durante la configuración inicial.',
+      })),
+      ...nombresEgreso.map((nombre) => ({
+        nombre,
+        tipoMovimiento: 2,
+        descripcion: 'Clasificador definido durante la configuración inicial.',
+      })),
+    ];
+
+    forkJoin(
+      categorias.map((categoria) => this.categoriaService.registrarCategoria(categoria)),
+    )
+      .pipe(
+        switchMap(() =>
+          this.configuracionService.actualizarConfiguracion({
+            saldoInicial: Number(datos.saldoInicial),
+            fechaSaldoInicial: datos.fechaSaldoInicial,
+            moneda: datos.moneda,
+          }),
+        ),
+        finalize(() => {
+          this.guardando = false;
+          this.changeDetectorRef.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          void this.router.navigateByUrl('/inicio');
+        },
+        error: (error) => {
+          this.errorGuardado =
+            error instanceof Error
+              ? error.message
+              : 'No se pudo completar la configuración inicial.';
+          this.changeDetectorRef.markForCheck();
+        },
+      });
+  }
+
+  private crearControlClasificador(valor: string) {
+    return this.formBuilder.nonNullable.control(valor, [
+      Validators.required,
+      Validators.maxLength(80),
+    ]);
+  }
+
+  private normalizarClasificadores(valores: string[]): string[] {
+    return valores.map((valor) => valor.trim()).filter(Boolean);
+  }
+
+  private tieneDuplicados(valores: string[]): boolean {
+    const normalizados = valores.map((valor) => valor.toLowerCase());
+    return new Set(normalizados).size !== normalizados.length;
+  }
+
+  private obtenerFechaLocalActual(): string {
+    const fecha = new Date();
+    const anio = fecha.getFullYear();
+    const mes = String(fecha.getMonth() + 1).padStart(2, '0');
+    const dia = String(fecha.getDate()).padStart(2, '0');
+    return `${anio}-${mes}-${dia}`;
+  }
+}

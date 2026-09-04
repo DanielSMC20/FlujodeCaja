@@ -1,6 +1,18 @@
 <section class="dashboard">
-  <header class="dashboard-topbar">
-    <p>Lo importante de tu caja, sin cálculos manuales.</p>
+  <header class="dashboard-header">
+    <div class="dashboard-title">
+      <span class="dashboard-eyebrow">
+        <lucide-icon
+          [img]="iconos.periodo"
+          [size]="15"
+          [strokeWidth]="2"
+        />
+        {{ etiquetaPeriodoSeleccionado }}
+      </span>
+
+      <h1>Dashboard financiero</h1>
+      <p>Consulta el comportamiento real de los ingresos y egresos de tu empresa.</p>
+    </div>
 
     <app-filtro-periodo
       [value]="periodoSeleccionado"
@@ -8,128 +20,132 @@
     />
   </header>
 
-  @if (resumen$ | async; as resumen) {
-    <section class="hero-caja">
-      <div class="hero-contenido">
-        <span class="hero-fecha">{{ fechaActualTexto }}</span>
-        <h1>
-          {{
-            calcularNeto(resumen.ingresosMes, resumen.egresosMes) >= 0
-              ? 'Tu caja se mantiene positiva'
-              : 'Tu caja necesita atención'
-          }}
-        </h1>
-        <p>
-          Los ingresos
-          {{
-            calcularNeto(resumen.ingresosMes, resumen.egresosMes) >= 0
-              ? 'superan'
-              : 'no cubren'
-          }}
-          los egresos pagados en
-          <strong>
-            {{
-              calcularNeto(resumen.ingresosMes, resumen.egresosMes)
-                | monedaSol
-            }}
-          </strong>
-          durante el periodo.
-        </p>
-      </div>
+  <section class="acciones-rapidas" aria-label="Acciones rápidas">
+    <div class="acciones-introduccion">
+      <span>Acciones rápidas</span>
+      <strong>¿Qué deseas registrar?</strong>
+      <p>Accede a las tareas más utilizadas sin salir del panel.</p>
+    </div>
 
-      <a routerLink="/movimientos/nuevo" class="hero-accion">
-        <lucide-icon [img]="iconos.registrar" [size]="17" [strokeWidth]="2" />
-        Registrar ahora
+    <div class="acciones-enlaces">
+      <a routerLink="/movimientos/nuevo" class="accion-rapida accion-principal">
+        <span class="accion-icono">
+          <lucide-icon [img]="iconos.nuevo" [size]="18" [strokeWidth]="2" />
+        </span>
+        <span>
+          <strong>Nuevo movimiento</strong>
+          <small>Registrar ingreso o egreso</small>
+        </span>
       </a>
-    </section>
 
-    @if (proximosPagos$ | async; as proximosPagos) {
-      <div class="kpi-grid">
-        <app-tarjeta-indicador
-          titulo="Ingresos del periodo"
-          [valor]="resumen.ingresosMes | monedaSol"
-          [textoSecundario]="resumen.movimientosMes + ' movimientos registrados'"
-          variacion="Actualizado"
-          tono="success"
-          icono="ingresos"
-        />
-        <app-tarjeta-indicador
-          titulo="Egresos pagados"
-          [valor]="resumen.egresosMes | monedaSol"
-          textoSecundario="Afectan a la caja real"
-          variacion="Actualizado"
-          tono="danger"
-          icono="egresos"
-        />
-        <app-tarjeta-indicador
-          titulo="Neto del periodo"
-          [valor]="calcularNeto(resumen.ingresosMes, resumen.egresosMes) | monedaSol"
-          textoSecundario="Ingresos menos egresos pagados"
-          variacion="Actualizado"
-          tono="info"
-          icono="saldo"
-        />
-        <app-tarjeta-indicador
-          titulo="Próximos pagos"
-          [valor]="sumarPagosProximos(proximosPagos) | monedaSol"
-          textoSecundario="Todavía no afectan la caja"
-          variacion="Pendiente"
-          tono="accent"
-          icono="movimientos"
-        />
-      </div>
+      <a routerLink="/movimientos/egresos-masivos" class="accion-rapida">
+        <span class="accion-icono">
+          <lucide-icon [img]="iconos.importar" [size]="18" [strokeWidth]="2" />
+        </span>
+        <span>
+          <strong>Importar egresos</strong>
+          <small>Cargar desde una plantilla Excel</small>
+        </span>
+      </a>
 
-      <div class="paneles-principales">
-        @if (comparacionSemanal$ | async; as comparacionSemanal) {
-          <app-grafico-ingresos-egresos [data]="comparacionSemanal" />
-        }
+      <a routerLink="/movimientos" class="accion-rapida">
+        <span class="accion-icono">
+          <lucide-icon
+            [img]="iconos.movimientos"
+            [size]="18"
+            [strokeWidth]="2"
+          />
+        </span>
+        <span>
+          <strong>Ver movimientos</strong>
+          <small>Buscar, filtrar y revisar registros</small>
+        </span>
+      </a>
+    </div>
+  </section>
 
-        <article class="pagos-card">
-          <header class="pagos-header">
-            <div>
-              <h2>Pagos próximos</h2>
-              <p>Egresos proyectados</p>
-            </div>
-            <a routerLink="/movimientos">Ver todos</a>
-          </header>
+  @if (resumen$ | async; as resumen) {
+    <div class="kpi-grid">
+      <app-tarjeta-indicador
+        titulo="Ingresos del periodo"
+        [valor]="resumen.ingresosMes | monedaSol"
+        textoSecundario="Comparado con el periodo anterior"
+        [variacion]="formatearVariacion(resumen.variacionIngresos)"
+        tono="success"
+        icono="ingresos"
+      />
 
-          <div class="pagos-lista">
-            @for (pago of proximosPagos; track pago.id) {
-              <a class="pago-item" [routerLink]="['/movimientos', pago.id]">
-                <span class="pago-fecha">
-                  <strong>{{ obtenerDia(pago.fecha) }}</strong>
-                  <small>{{ obtenerMes(pago.fecha) }}</small>
-                </span>
-                <span class="pago-info">
-                  <strong>{{ pago.descripcion }}</strong>
-                  <small>{{ pago.categoria }} · {{ pago.proveedor }}</small>
-                </span>
-                <strong class="pago-monto">{{ pago.monto | monedaSol }}</strong>
-              </a>
-            } @empty {
-              <div class="pagos-vacio">
-                <lucide-icon [img]="iconos.calendario" [size]="21" />
-                <span>No tienes pagos proyectados.</span>
-              </div>
-            }
-          </div>
+      <app-tarjeta-indicador
+        titulo="Egresos del periodo"
+        [valor]="resumen.egresosMes | monedaSol"
+        textoSecundario="Solo egresos que afectan la caja"
+        [variacion]="formatearVariacion(resumen.variacionEgresos)"
+        tono="danger"
+        icono="egresos"
+      />
 
-          <div class="consejo-caja">
-            <lucide-icon [img]="iconos.consejo" [size]="18" />
-            <div>
-              <strong>Consejo de caja</strong>
-              <p>
-                Reserva fondos para los próximos pagos antes de asumir nuevos
-                gastos.
-              </p>
-            </div>
-          </div>
-        </article>
-      </div>
-    }
+      <app-tarjeta-indicador
+        titulo="Neto del periodo"
+        [valor]="resumen.ingresosMes - resumen.egresosMes | monedaSol"
+        textoSecundario="Ingresos menos egresos"
+        [tono]="resumen.ingresosMes - resumen.egresosMes >= 0 ? 'info' : 'danger'"
+        icono="saldo"
+      />
+
+      <app-tarjeta-indicador
+        titulo="Movimientos"
+        [valor]="resumen.movimientosMes.toString()"
+        textoSecundario="Registrados en el periodo"
+        [variacion]="formatearVariacionCantidad(resumen.variacionMovimientosHoy)"
+        tono="accent"
+        icono="movimientos"
+      />
+    </div>
   }
 
-  @if (ultimosMovimientos$ | async; as ultimosMovimientos) {
-    <app-ultimos-movimientos [data]="ultimosMovimientos" />
+  <div class="seccion-encabezado">
+    <div>
+      <span>Análisis visual</span>
+      <h2>Comportamiento del periodo</h2>
+    </div>
+    <p>Los indicadores se actualizan cuando cambias el periodo.</p>
+  </div>
+
+  <div class="graficos-principales">
+    @if (comparacionSemanal$ | async; as comparacionSemanal) {
+      <div class="grafico-ingresos">
+        <app-grafico-ingresos-egresos [data]="comparacionSemanal" />
+      </div>
+    }
+
+    @if (netoDiario$ | async; as netoDiario) {
+      <div class="grafico-neto">
+        <app-grafico-neto-diario [data]="netoDiario" />
+      </div>
+    }
+
+    @if (distribucionEgresos$ | async; as distribucionEgresos) {
+      <div class="grafico-egresos">
+        <app-grafico-egresos-categoria [data]="distribucionEgresos" />
+      </div>
+    }
+  </div>
+
+  <div class="seccion-encabezado seccion-actividad">
+    <div>
+      <span>Actividad reciente</span>
+      <h2>Detalle de movimientos</h2>
+    </div>
+    <p>Revisa los últimos registros del periodo seleccionado.</p>
+  </div>
+
+  @if (flujoCaja$ | async; as flujoCaja) {
+    <div class="resumen-inferior">
+      <app-tabla-flujo-diario [data]="flujoCaja" />
+
+      @if (ultimosMovimientos$ | async; as ultimosMovimientos) {
+        <app-ultimos-movimientos [data]="ultimosMovimientos" />
+      }
+    </div>
   }
 </section>

@@ -79,6 +79,10 @@ export class DetalleMovimientoComponent {
     return movimiento.tipoMovimiento === 1;
   }
 
+  puedeEditar(movimiento: Movimiento): boolean {
+    return movimiento.tipoMovimiento === 1 || movimiento.bCancelado === 0;
+  }
+
   tieneComprobante(movimiento: Movimiento): boolean {
     return movimiento.tipoComprobante !== 5;
   }

@@ -1,0 +1,324 @@
+<section class="pagina-cuenta">
+  <a routerLink="/configuracion" class="volver-link">
+    <lucide-icon [img]="iconos.volver" [size]="17" [strokeWidth]="2" />
+    Volver a configuración
+  </a>
+
+  @if (empresaActual$ | async; as empresa) {
+    <header class="pagina-header">
+      <div>
+        <span class="pagina-etiqueta">Usuarios y accesos</span>
+        <h1>Crear una nueva cuenta</h1>
+        <p>Otorga acceso al sistema a una persona de {{ empresa.nombreComercial }}.</p>
+      </div>
+
+      <div class="empresa-contexto">
+        <span class="empresa-icono">
+          <lucide-icon [img]="iconos.empresa" [size]="20" [strokeWidth]="1.9" />
+        </span>
+        <div>
+          <small>Empresa actual</small>
+          <strong>{{ empresa.nombreComercial }}</strong>
+          <span>{{ empresa.ruc ? 'RUC ' + empresa.ruc : empresa.razonSocial }}</span>
+        </div>
+      </div>
+    </header>
+
+    @if (cuentaCreada; as cuenta) {
+      <article class="resultado-exito">
+        <span class="resultado-icono">
+          <lucide-icon [img]="iconos.exito" [size]="34" [strokeWidth]="1.8" />
+        </span>
+
+        <span class="resultado-etiqueta">Cuenta creada</span>
+        <h2>{{ cuenta.nombres }} {{ cuenta.apellidos }}</h2>
+        <p>
+          El acceso para <strong>{{ cuenta.correo }}</strong> fue registrado en
+          {{ empresa.nombreComercial }}.
+        </p>
+
+        <div class="resultado-resumen">
+          <div>
+            <small>Rol asignado</small>
+            <strong>{{ cuenta.rol.nombre }}</strong>
+          </div>
+          <div>
+            <small>Estado</small>
+            <strong class="estado-activo">Activo</strong>
+          </div>
+          <div>
+            <small>Empresa</small>
+            <strong>{{ empresa.nombreComercial }}</strong>
+          </div>
+        </div>
+
+        <div class="resultado-aviso">
+          <lucide-icon [img]="iconos.informacion" [size]="18" [strokeWidth]="2" />
+          <span>
+            En la integración real, el backend guardará el hash de la contraseña y
+            devolverá el identificador definitivo del usuario.
+          </span>
+        </div>
+
+        <footer class="resultado-acciones">
+          <button type="button" class="boton-secundario" (click)="crearOtraCuenta()">
+            Crear otra cuenta
+          </button>
+          <button type="button" class="boton-principal" (click)="volverAConfiguracion()">
+            Finalizar
+          </button>
+        </footer>
+      </article>
+    } @else {
+      <div class="contenido-grid">
+        <form class="formulario-cuenta" [formGroup]="formulario" (ngSubmit)="guardar()">
+          @if (mensajeError) {
+            <div class="mensaje-error-general" role="alert">
+              <lucide-icon [img]="iconos.error" [size]="18" [strokeWidth]="2" />
+              {{ mensajeError }}
+            </div>
+          }
+
+          <section class="formulario-seccion">
+            <header class="seccion-header">
+              <span class="numero-seccion">1</span>
+              <div>
+                <h2>Datos de la persona</h2>
+                <p>Información que identificará al usuario dentro de la empresa.</p>
+              </div>
+            </header>
+
+            <div class="campos-grid">
+              <div class="campo">
+                <label for="nombres">Nombres <span>*</span></label>
+                <input
+                  id="nombres"
+                  type="text"
+                  maxlength="100"
+                  autocomplete="given-name"
+                  formControlName="nombres"
+                  placeholder="Ej. Andrea"
+                />
+                @if (
+                  formulario.controls.nombres.touched &&
+                  formulario.controls.nombres.invalid
+                ) {
+                  <small class="campo-error">Ingresa los nombres del usuario.</small>
+                }
+              </div>
+
+              <div class="campo">
+                <label for="apellidos">Apellidos <span>*</span></label>
+                <input
+                  id="apellidos"
+                  type="text"
+                  maxlength="150"
+                  autocomplete="family-name"
+                  formControlName="apellidos"
+                  placeholder="Ej. Torres Ramos"
+                />
+                @if (
+                  formulario.controls.apellidos.touched &&
+                  formulario.controls.apellidos.invalid
+                ) {
+                  <small class="campo-error">Ingresa los apellidos del usuario.</small>
+                }
+              </div>
+            </div>
+          </section>
+
+          <section class="formulario-seccion">
+            <header class="seccion-header">
+              <span class="numero-seccion">2</span>
+              <div>
+                <h2>Credenciales de acceso</h2>
+                <p>El correo será utilizado para iniciar sesión.</p>
+              </div>
+            </header>
+
+            <div class="campo campo-ancho">
+              <label for="correo">Correo electrónico <span>*</span></label>
+              <div class="campo-con-icono">
+                <lucide-icon [img]="iconos.correo" [size]="18" [strokeWidth]="1.9" />
+                <input
+                  id="correo"
+                  type="email"
+                  maxlength="254"
+                  autocomplete="email"
+                  formControlName="correo"
+                  placeholder="usuario@empresa.com"
+                />
+              </div>
+              @if (
+                formulario.controls.correo.touched &&
+                formulario.controls.correo.invalid
+              ) {
+                <small class="campo-error">Ingresa un correo electrónico válido.</small>
+              }
+            </div>
+
+            <div class="campos-grid campos-password">
+              <div class="campo">
+                <label for="password">Contraseña <span>*</span></label>
+                <div class="campo-con-icono campo-password">
+                  <lucide-icon [img]="iconos.password" [size]="18" [strokeWidth]="1.9" />
+                  <input
+                    id="password"
+                    [type]="mostrarPassword ? 'text' : 'password'"
+                    maxlength="72"
+                    autocomplete="new-password"
+                    formControlName="password"
+                    placeholder="Crea una contraseña segura"
+                  />
+                  <button
+                    type="button"
+                    class="boton-visibilidad"
+                    [attr.aria-label]="mostrarPassword ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                    (click)="mostrarPassword = !mostrarPassword"
+                  >
+                    <lucide-icon
+                      [img]="mostrarPassword ? iconos.ocultar : iconos.mostrar"
+                      [size]="18"
+                      [strokeWidth]="1.9"
+                    />
+                  </button>
+                </div>
+              </div>
+
+              <div class="campo">
+                <label for="confirmarPassword">Confirmar contraseña <span>*</span></label>
+                <div class="campo-con-icono campo-password">
+                  <lucide-icon [img]="iconos.password" [size]="18" [strokeWidth]="1.9" />
+                  <input
+                    id="confirmarPassword"
+                    [type]="mostrarConfirmacion ? 'text' : 'password'"
+                    maxlength="72"
+                    autocomplete="new-password"
+                    formControlName="confirmarPassword"
+                    placeholder="Repite la contraseña"
+                  />
+                  <button
+                    type="button"
+                    class="boton-visibilidad"
+                    [attr.aria-label]="mostrarConfirmacion ? 'Ocultar contraseña' : 'Mostrar contraseña'"
+                    (click)="mostrarConfirmacion = !mostrarConfirmacion"
+                  >
+                    <lucide-icon
+                      [img]="mostrarConfirmacion ? iconos.ocultar : iconos.mostrar"
+                      [size]="18"
+                      [strokeWidth]="1.9"
+                    />
+                  </button>
+                </div>
+                @if (
+                  formulario.controls.confirmarPassword.touched &&
+                  formulario.hasError('passwordsNoCoinciden')
+                ) {
+                  <small class="campo-error">Las contraseñas no coinciden.</small>
+                }
+              </div>
+            </div>
+
+            <div class="requisitos-password">
+              <span
+                [class.cumplido]="tieneMinimo(formulario.controls.password.value)"
+              >
+                <lucide-icon [img]="iconos.correcto" [size]="14" /> 8 caracteres
+              </span>
+              <span
+                [class.cumplido]="tieneMayuscula(formulario.controls.password.value)"
+              >
+                <lucide-icon [img]="iconos.correcto" [size]="14" /> Una mayúscula
+              </span>
+              <span
+                [class.cumplido]="tieneMinuscula(formulario.controls.password.value)"
+              >
+                <lucide-icon [img]="iconos.correcto" [size]="14" /> Una minúscula
+              </span>
+              <span
+                [class.cumplido]="tieneNumero(formulario.controls.password.value)"
+              >
+                <lucide-icon [img]="iconos.correcto" [size]="14" /> Un número
+              </span>
+            </div>
+          </section>
+
+          <section class="formulario-seccion">
+            <header class="seccion-header">
+              <span class="numero-seccion">3</span>
+              <div>
+                <h2>Rol dentro de la empresa</h2>
+                <p>Define el nivel de acceso inicial de la nueva cuenta.</p>
+              </div>
+            </header>
+
+            @if (roles$ | async; as roles) {
+              <div class="roles-grid">
+                @for (rol of roles; track rol.id) {
+                  <label
+                    class="rol-opcion"
+                    [class.rol-seleccionado]="formulario.controls.rolId.value === rol.id"
+                  >
+                    <input type="radio" formControlName="rolId" [value]="rol.id" />
+                    <span class="rol-icono">
+                      <lucide-icon [img]="iconos.rol" [size]="19" [strokeWidth]="1.9" />
+                    </span>
+                    <span class="rol-contenido">
+                      <strong>{{ rol.nombre }}</strong>
+                      <small>{{ rol.descripcion }}</small>
+                    </span>
+                    <span class="rol-radio"></span>
+                  </label>
+                }
+              </div>
+            }
+          </section>
+
+          <footer class="formulario-acciones">
+            <button type="button" class="boton-secundario" (click)="volverAConfiguracion()">
+              Cancelar
+            </button>
+            <button type="submit" class="boton-principal" [disabled]="guardando">
+              <lucide-icon [img]="iconos.usuario" [size]="18" [strokeWidth]="2" />
+              {{ guardando ? 'Creando cuenta...' : 'Crear cuenta' }}
+            </button>
+          </footer>
+        </form>
+
+        <aside class="panel-ayuda">
+          <span class="panel-ayuda-icono">
+            <lucide-icon [img]="iconos.informacion" [size]="22" [strokeWidth]="1.9" />
+          </span>
+          <h2>Antes de crear la cuenta</h2>
+          <p>
+            La nueva persona tendrá acceso únicamente a
+            <strong>{{ empresa.nombreComercial }}</strong>.
+          </p>
+
+          <ul>
+            <li>
+              <lucide-icon [img]="iconos.correcto" [size]="16" />
+              El correo debe ser único.
+            </li>
+            <li>
+              <lucide-icon [img]="iconos.correcto" [size]="16" />
+              La contraseña no se almacena en el navegador.
+            </li>
+            <li>
+              <lucide-icon [img]="iconos.correcto" [size]="16" />
+              El rol puede modificarse posteriormente.
+            </li>
+          </ul>
+
+          <div class="panel-seguridad">
+            <lucide-icon [img]="iconos.rol" [size]="18" [strokeWidth]="1.9" />
+            <span>
+              La empresa se obtendrá del JWT. El formulario no enviará un tenant
+              seleccionado por el usuario.
+            </span>
+          </div>
+        </aside>
+      </div>
+    }
+  }
+</section>

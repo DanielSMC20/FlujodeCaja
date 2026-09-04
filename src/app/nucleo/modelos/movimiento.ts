@@ -162,10 +162,6 @@ export interface PagarMovimientoRequest {
 
 export interface CancelarEgresoRequest {
   fechaPago: string;
-
-  medioPago: number;
-
-  observacion?: string;
 }
 
 
