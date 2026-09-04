@@ -1,29 +1,26 @@
 import { Injectable } from '@angular/core';
-
 import { BehaviorSubject, Observable } from 'rxjs';
 
 import { EmpresaSesion } from '../modelos/empresa-sesion.model';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class SesionEmpresaService {
-  private readonly empresas: EmpresaSesion[] = [
-    {
-      id: 1,
-      ruc: null,
-      razonSocial: 'Boulevard Eventos S.A.C.',
-      nombreComercial: 'Boulevard',
-      monedaBase: 1,
-      monedaBaseDescripcion: 'Soles',
-      monedaBaseAbreviatura: 'PEN',
-      zonaHoraria: 'America/Lima',
-      activa: true,
-    },
-  ];
+  private readonly storageKey = 'fc_empresa_sesion';
+
+  private readonly empresaVacia: EmpresaSesion = {
+    id: 0,
+    ruc: null,
+    razonSocial: '',
+    nombreComercial: '',
+    monedaBase: 1,
+    monedaBaseDescripcion: 'Soles',
+    monedaBaseAbreviatura: 'PEN',
+    zonaHoraria: 'America/Lima',
+    activa: true,
+  };
 
   private readonly empresaActualSubject = new BehaviorSubject<EmpresaSesion>(
-    this.empresas[0],
+    this.restaurarEmpresa(),
   );
 
   readonly empresaActual$: Observable<EmpresaSesion> =
@@ -37,13 +34,29 @@ export class SesionEmpresaService {
     return this.empresaActualSubject.value.id;
   }
 
-  cambiarEmpresaDemo(empresaId: number): void {
-    const empresa = this.empresas.find((item) => item.id === empresaId);
+  establecerEmpresa(empresa: EmpresaSesion): void {
+    localStorage.setItem(this.storageKey, JSON.stringify(empresa));
+    this.empresaActualSubject.next({ ...empresa });
+  }
 
-    if (!empresa) {
-      return;
+  limpiarSesion(): void {
+    localStorage.removeItem(this.storageKey);
+    this.empresaActualSubject.next({ ...this.empresaVacia });
+  }
+
+  private restaurarEmpresa(): EmpresaSesion {
+    const raw = localStorage.getItem(this.storageKey);
+
+    if (!raw) {
+      return { ...this.empresaVacia };
     }
 
-    this.empresaActualSubject.next(empresa);
+    try {
+      const empresa = JSON.parse(raw) as EmpresaSesion;
+      return empresa?.id ? empresa : { ...this.empresaVacia };
+    } catch {
+      localStorage.removeItem(this.storageKey);
+      return { ...this.empresaVacia };
+    }
   }
 }

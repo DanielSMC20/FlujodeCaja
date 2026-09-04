@@ -19,7 +19,6 @@ import {
 } from 'lucide-angular';
 
 import { AuthService } from '../../core/auth/auth.service';
-import { ConfiguracionFinancieraService } from '../../nucleo/servicios/configuracion-financiera.service';
 
 @Component({
   selector: 'app-login',
@@ -46,7 +45,6 @@ export class LoginComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly authService = inject(AuthService);
   private readonly router = inject(Router);
-  private readonly configuracionFinancieraService = inject(ConfiguracionFinancieraService);
 
   isSubmitting = false;
   authError = '';
@@ -55,7 +53,7 @@ export class LoginComponent implements OnInit {
 
   readonly loginForm = this.formBuilder.nonNullable.group({
     email: [
-      'gerente@miempresa.com',
+      '',
       [
         Validators.required,
         Validators.email,
@@ -63,10 +61,10 @@ export class LoginComponent implements OnInit {
     ],
 
     password: [
-      '12345678',
+      '',
       [
         Validators.required,
-        Validators.minLength(6),
+        Validators.minLength(8),
       ],
     ],
 
@@ -76,7 +74,7 @@ export class LoginComponent implements OnInit {
   ngOnInit(): void {
 
     if (this.authService.isAuthenticated()) {
-      this.redirigirSegunConfiguracion();
+      void this.router.navigateByUrl('/inicio');
     }
 
   }
@@ -113,27 +111,21 @@ export class LoginComponent implements OnInit {
 
         next: () => {
 
-          this.redirigirSegunConfiguracion();
+          void this.router.navigateByUrl('/inicio');
 
         },
 
-        error: () => {
+        error: (error) => {
 
           this.authError =
-            'No se pudo iniciar sesión. Verifica tus credenciales.';
+            error instanceof Error
+              ? error.message
+              : 'No se pudo iniciar sesión. Verifica tus credenciales.';
 
         },
 
       });
 
-  }
-
-  private redirigirSegunConfiguracion(): void {
-    const destino = this.configuracionFinancieraService.tieneConfiguracionInicial()
-      ? '/inicio'
-      : '/configuracion-inicial';
-
-    void this.router.navigateByUrl(destino);
   }
 
   hasError(

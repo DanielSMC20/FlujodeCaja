@@ -3,32 +3,25 @@ import { BehaviorSubject, Observable } from 'rxjs';
 
 import { UsuarioSesion } from '../modelos/usuario-sesion.model';
 
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class SesionUsuarioService {
-  private readonly usuarios: UsuarioSesion[] = [
-    {
-      id: 1,
-      empresaId: 1,
-      nombres: 'Carlos',
-      apellidos: 'Reyes',
-      correo: 'administrador@boulevard.pe',
-      correoVerificado: true,
-      activo: true,
-      ultimoAcceso: null,
-      roles: [
-        {
-          id: 1,
-          codigo: 'ADMINISTRADOR',
-          nombre: 'Administrador',
-        },
-      ],
-    },
-  ];
+  private readonly storageKey = 'fc_usuario_sesion';
 
-  private readonly usuarioActualSubject =
-    new BehaviorSubject<UsuarioSesion>(this.usuarios[0]);
+  private readonly usuarioVacio: UsuarioSesion = {
+    id: 0,
+    empresaId: 0,
+    nombres: '',
+    apellidos: '',
+    correo: '',
+    correoVerificado: true,
+    activo: true,
+    ultimoAcceso: null,
+    roles: [],
+  };
+
+  private readonly usuarioActualSubject = new BehaviorSubject<UsuarioSesion>(
+    this.restaurarUsuario(),
+  );
 
   readonly usuarioActual$: Observable<UsuarioSesion> =
     this.usuarioActualSubject.asObservable();
@@ -43,26 +36,46 @@ export class SesionUsuarioService {
 
   get nombreCompleto(): string {
     const usuario = this.usuarioActualSubject.value;
-
-    return `${usuario.nombres} ${usuario.apellidos}`;
+    return `${usuario.nombres} ${usuario.apellidos}`.trim();
   }
 
   get rolPrincipal(): string {
-    return (
-      this.usuarioActualSubject.value.roles[0]?.nombre ??
-      'Sin rol asignado'
-    );
+    return this.usuarioActualSubject.value.roles[0]?.nombre ?? 'Sin rol asignado';
   }
 
-  cambiarUsuarioDemo(usuarioId: number): void {
-    const usuario = this.usuarios.find(
-      (item) => item.id === usuarioId,
-    );
+  establecerUsuario(usuario: UsuarioSesion): void {
+    localStorage.setItem(this.storageKey, JSON.stringify(usuario));
+    this.usuarioActualSubject.next({
+      ...usuario,
+      roles: usuario.roles.map((rol) => ({ ...rol })),
+    });
+  }
 
-    if (!usuario) {
-      return;
+  limpiarSesion(): void {
+    localStorage.removeItem(this.storageKey);
+    this.usuarioActualSubject.next({ ...this.usuarioVacio, roles: [] });
+  }
+
+  private restaurarUsuario(): UsuarioSesion {
+    const raw = localStorage.getItem(this.storageKey);
+
+    if (!raw) {
+      return { ...this.usuarioVacio, roles: [] };
     }
 
-    this.usuarioActualSubject.next(usuario);
+    try {
+      const usuario = JSON.parse(raw) as UsuarioSesion;
+      return usuario?.id
+        ? {
+            ...usuario,
+            roles: Array.isArray(usuario.roles)
+              ? usuario.roles.map((rol) => ({ ...rol }))
+              : [],
+          }
+        : { ...this.usuarioVacio, roles: [] };
+    } catch {
+      localStorage.removeItem(this.storageKey);
+      return { ...this.usuarioVacio, roles: [] };
+    }
   }
 }

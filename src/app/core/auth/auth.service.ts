@@ -1,17 +1,65 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { BehaviorSubject, Observable, Subscription, delay, interval, of } from 'rxjs';
+import {
+  BehaviorSubject,
+  Observable,
+  Subscription,
+  catchError,
+  interval,
+  map,
+  tap,
+  throwError,
+} from 'rxjs';
+
+import { API_CONFIG } from '../config/api.config';
+import { EmpresaSesion } from '../../nucleo/modelos/empresa-sesion.model';
+import { UsuarioSesion } from '../../nucleo/modelos/usuario-sesion.model';
+import { SesionEmpresaService } from '../../nucleo/servicios/sesion-empresa.service';
+import { SesionUsuarioService } from '../../nucleo/servicios/sesion-usuario.service';
+
+interface LoginBackendResponse {
+  accessToken: string;
+  tokenType: string;
+  expiresIn: number;
+  usuario: {
+    id: number;
+    correo: string;
+    nombres: string;
+    apellidos: string;
+    nombreCompleto: string;
+  };
+  empresa: {
+    id: number;
+    ruc: string | null;
+    razonSocial: string;
+    nombreComercial: string;
+    monedaBase: number;
+    monedaBaseDescripcion: string;
+    monedaBaseAbreviatura: string;
+    zonaHoraria: string;
+  };
+  roles: string[];
+  debeCambiarPassword: boolean;
+}
+
+interface ApiErrorResponse {
+  message?: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly http = inject(HttpClient);
   private readonly router = inject(Router);
+  private readonly sesionEmpresaService = inject(SesionEmpresaService);
+  private readonly sesionUsuarioService = inject(SesionUsuarioService);
 
-  private readonly tokenStorageKey = 'fc_access_token';
-  private readonly expiryStorageKey = 'fc_expires_at';
-  private readonly emailStorageKey = 'fc_user_email';
+  private readonly tokenStorageKey = 'fc_access_token_v2';
+    private readonly expiryStorageKey = 'fc_expires_at_v2';
+      private readonly emailStorageKey = 'fc_user_email_v2';
 
-private readonly inactivityWindowMs =  8 * 60 * 60 * 1000;  
-private readonly monitorIntervalMs = 15 * 1000;
+  private readonly inactivityWindowMs = 8 * 60 * 60 * 1000;
+  private readonly monitorIntervalMs = 15 * 1000;
 
   private readonly authenticatedSubject = new BehaviorSubject<boolean>(false);
   readonly authenticated$ = this.authenticatedSubject.asObservable();
@@ -30,18 +78,63 @@ private readonly monitorIntervalMs = 15 * 1000;
   }
 
   login(email: string, password: string): Observable<void> {
-    void password;
+    return this.http
+      .post<LoginBackendResponse>(`${API_CONFIG.baseUrl}/auth/login`, {
+        correo: email.trim().toLowerCase(),
+        password,
+      })
+      .pipe(
+        tap((response) => {
+          const expiresInMs =
+            Number(response.expiresIn) > 0
+              ? Number(response.expiresIn) * 1000
+              : this.inactivityWindowMs;
 
-    // Placeholder until backend JWT endpoint is available.
-    const token = this.buildMockJwt(email);
-    const expiresAt = Date.now() + this.inactivityWindowMs;
+          const expiresAt = Date.now() + expiresInMs;
 
-    this.setSession(token, expiresAt, email);
-    return of(void 0).pipe(delay(500));
+          const empresa: EmpresaSesion = {
+            id: response.empresa.id,
+            ruc: response.empresa.ruc,
+            razonSocial: response.empresa.razonSocial,
+            nombreComercial: response.empresa.nombreComercial,
+            monedaBase: response.empresa.monedaBase,
+            monedaBaseDescripcion: response.empresa.monedaBaseDescripcion,
+            monedaBaseAbreviatura: response.empresa.monedaBaseAbreviatura,
+            zonaHoraria: response.empresa.zonaHoraria,
+            activa: true,
+          };
+
+          const usuario: UsuarioSesion = {
+            id: response.usuario.id,
+            empresaId: response.empresa.id,
+            nombres: response.usuario.nombres,
+            apellidos: response.usuario.apellidos,
+            correo: response.usuario.correo,
+            correoVerificado: true,
+            activo: true,
+            ultimoAcceso: null,
+            roles: (response.roles ?? []).map((rol, index) => ({
+              id: index + 1,
+              codigo: rol,
+              nombre: this.formatearRol(rol),
+            })),
+          };
+
+          this.sesionEmpresaService.establecerEmpresa(empresa);
+          this.sesionUsuarioService.establecerUsuario(usuario);
+          this.setSession(response.accessToken, expiresAt, response.usuario.correo);
+        }),
+        map(() => void 0),
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.obtenerMensajeError(error))),
+        ),
+      );
   }
 
   logout(redirectToLogin = true): void {
     this.clearSession();
+    this.sesionEmpresaService.limpiarSesion();
+    this.sesionUsuarioService.limpiarSesion();
 
     if (redirectToLogin) {
       void this.router.navigateByUrl('/login');
@@ -70,9 +163,14 @@ private readonly monitorIntervalMs = 15 * 1000;
       return;
     }
 
-    const renewedExpiry = Date.now() + this.inactivityWindowMs;
-    localStorage.setItem(this.expiryStorageKey, renewedExpiry.toString());
-    this.expiresAtSubject.next(renewedExpiry);
+    // La expiración real la controla el JWT del backend. Aquí solo mantenemos
+    // el estado visual/local de la sesión sin exceder la vigencia original.
+    const expiresAtRaw = localStorage.getItem(this.expiryStorageKey);
+    const expiresAt = expiresAtRaw ? Number(expiresAtRaw) : null;
+
+    if (expiresAt && Number.isFinite(expiresAt)) {
+      this.expiresAtSubject.next(expiresAt);
+    }
   }
 
   private setSession(token: string, expiresAt: number, email: string): void {
@@ -127,18 +225,28 @@ private readonly monitorIntervalMs = 15 * 1000;
     });
   }
 
-  private buildMockJwt(email: string): string {
-    const header = { alg: 'HS256', typ: 'JWT' };
-    const payload = {
-      sub: email,
-      iat: Math.floor(Date.now() / 1000),
-      exp: Math.floor((Date.now() + this.inactivityWindowMs) / 1000)
-    };
+  private obtenerMensajeError(error: HttpErrorResponse): string {
+    const apiError = error.error as ApiErrorResponse | null;
 
-    return `${this.base64UrlEncode(JSON.stringify(header))}.${this.base64UrlEncode(JSON.stringify(payload))}.mock-signature`;
+    if (apiError?.message) {
+      return apiError.message;
+    }
+
+    if (error.status === 0) {
+      return 'No se pudo conectar con el servidor.';
+    }
+
+    if (error.status === 401) {
+      return 'Correo o contraseña incorrectos.';
+    }
+
+    return 'No se pudo iniciar sesión.';
   }
 
-  private base64UrlEncode(value: string): string {
-    return btoa(value).replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/g, '');
+  private formatearRol(rol: string): string {
+    return rol
+      .replace(/_/g, ' ')
+      .toLowerCase()
+      .replace(/(^|\s)\S/g, (letra) => letra.toUpperCase());
   }
 }

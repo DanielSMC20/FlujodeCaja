@@ -2,8 +2,7 @@ import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
 import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { Router } from '@angular/router';
-import { forkJoin } from 'rxjs';
-import { finalize, switchMap } from 'rxjs/operators';
+import { finalize, forkJoin, map, of, switchMap, take } from 'rxjs';
 import {
   ArrowRight,
   ChartNoAxesCombined,
@@ -74,9 +73,25 @@ export class ConfiguracionInicialComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    if (this.configuracionService.tieneConfiguracionInicial()) {
-      void this.router.navigateByUrl('/inicio');
-    }
+    forkJoin({
+      configuracion: this.configuracionService.obtenerConfiguracion().pipe(take(1)),
+      ingresos: this.categoriaService.listarCategoriasPorTipo(1).pipe(take(1)),
+      egresos: this.categoriaService.listarCategoriasPorTipo(2).pipe(take(1)),
+    }).subscribe({
+      next: ({ configuracion, ingresos, egresos }) => {
+        if (
+          configuracion?.configuracionInicialCompletada === true &&
+          ingresos.length > 0 &&
+          egresos.length > 0
+        ) {
+          void this.router.navigateByUrl('/inicio');
+        }
+      },
+      error: () => {
+        // La pantalla queda disponible para que el usuario pueda completar
+        // la configuración cuando el backend vuelva a responder.
+      },
+    });
   }
 
   agregarClasificador(tipoMovimiento: 1 | 2): void {
@@ -133,10 +148,35 @@ export class ConfiguracionInicialComponent implements OnInit {
       })),
     ];
 
-    forkJoin(
-      categorias.map((categoria) => this.categoriaService.registrarCategoria(categoria)),
-    )
+    forkJoin({
+      ingresos: this.categoriaService.listarCategoriasPorTipo(1).pipe(take(1)),
+      egresos: this.categoriaService.listarCategoriasPorTipo(2).pipe(take(1)),
+    })
       .pipe(
+        map(({ ingresos, egresos }) => {
+          const existentes = new Set(
+            [...ingresos, ...egresos].map(
+              (categoria) =>
+                `${categoria.tipoMovimiento}|${categoria.nombre.trim().toLowerCase()}`,
+            ),
+          );
+
+          return categorias.filter(
+            (categoria) =>
+              !existentes.has(
+                `${categoria.tipoMovimiento}|${categoria.nombre.trim().toLowerCase()}`,
+              ),
+          );
+        }),
+        switchMap((pendientes) =>
+          pendientes.length > 0
+            ? forkJoin(
+                pendientes.map((categoria) =>
+                  this.categoriaService.registrarCategoria(categoria),
+                ),
+              )
+            : of([]),
+        ),
         switchMap(() =>
           this.configuracionService.actualizarConfiguracion({
             saldoInicial: Number(datos.saldoInicial),

@@ -69,7 +69,6 @@ export class CargaMasivaMovimientosComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
 
-  readonly rutaPlantilla = 'plantillas/plantilla-carga-masiva-egresos.xlsx';
   readonly nombrePlantilla = 'plantilla-carga-masiva-egresos.xlsx';
 
   readonly iconos = {
@@ -92,6 +91,7 @@ export class CargaMasivaMovimientosComponent {
   archivoSeleccionado: File | null = null;
   resultado: ResultadoCargaMasivaEgreso | null = null;
   procesandoArchivo = false;
+  descargandoPlantilla = false;
   guardandoCarga = false;
   cargaCompletada = false;
   movimientosRegistrados = 0;
@@ -374,6 +374,42 @@ export class CargaMasivaMovimientosComponent {
     this.recalcularResumen();
   }
 
+  descargarPlantilla(): void {
+    if (this.descargandoPlantilla) {
+      return;
+    }
+
+    this.descargandoPlantilla = true;
+    this.errorArchivo = '';
+
+    this.cargaMasivaService
+      .descargarPlantilla()
+      .pipe(
+        finalize(() => {
+          this.descargandoPlantilla = false;
+          this.changeDetectorRef.markForCheck();
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (archivo) => {
+          const url = URL.createObjectURL(archivo);
+          const enlace = document.createElement('a');
+          enlace.href = url;
+          enlace.download = this.nombrePlantilla;
+          enlace.click();
+          URL.revokeObjectURL(url);
+        },
+        error: (error) => {
+          this.errorArchivo =
+            error instanceof Error
+              ? error.message
+              : 'No se pudo descargar la plantilla.';
+          this.changeDetectorRef.markForCheck();
+        },
+      });
+  }
+
   seleccionarArchivo(event: Event): void {
     const input = event.target as HTMLInputElement;
     const archivo = input.files?.[0];
@@ -451,8 +487,8 @@ export class CargaMasivaMovimientosComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: (movimientos) => {
-          this.movimientosRegistrados = movimientos.length;
+        next: (cantidadRegistrada) => {
+          this.movimientosRegistrados = cantidadRegistrada;
           this.cargaCompletada = true;
           this.gridApi?.deselectAll();
           this.changeDetectorRef.markForCheck();

@@ -1,14 +1,13 @@
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 
 import {
   Observable,
-  concatMap,
-  defer,
+  catchError,
   from,
   map,
   switchMap,
   throwError,
-  toArray,
 } from 'rxjs';
 
 import * as XLSX from 'xlsx';
@@ -20,22 +19,17 @@ import {
   ResultadoCargaMasivaEgreso,
 } from '../modelos/carga-masiva-movimiento';
 
-import {
-  FlagCancelado,
-  Movimiento,
-  RegistrarMovimientoRequest,
-} from '../modelos/movimiento';
+import { FlagCancelado } from '../modelos/movimiento';
 
+import { API_CONFIG } from '../../core/config/api.config';
 import { CategoriaService } from './categoria.service';
-import { MovimientoService } from './movimiento.service';
 
 @Injectable({
   providedIn: 'root',
 })
 export class CargaMasivaMovimientoService {
+  private readonly http = inject(HttpClient);
   private readonly categoriaService = inject(CategoriaService);
-
-  private readonly movimientoService = inject(MovimientoService);
 
   procesarArchivo(archivo: File): Observable<ResultadoCargaMasivaEgreso> {
     const extension = archivo.name.toLowerCase().split('.').pop();
@@ -63,53 +57,54 @@ export class CargaMasivaMovimientoService {
     );
   }
 
-  construirRequests(
-    resultado: ResultadoCargaMasivaEgreso,
-  ): RegistrarMovimientoRequest[] {
-    if (resultado.filasConError > 0) {
-      throw new Error(
-        'No se puede confirmar la carga mientras existan filas con errores.',
+  descargarPlantilla(): Observable<Blob> {
+    return this.http
+      .get(`${API_CONFIG.baseUrl}/cargas-masivas/egresos/plantilla`, {
+        responseType: 'blob',
+      })
+      .pipe(
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.obtenerMensajeError(error))),
+        ),
       );
-    }
-
-    return resultado.filas.map((fila) => {
-      if (fila.categoriaId === null) {
-        throw new Error(
-          `La fila ${fila.filaExcel} no tiene una categoría válida.`,
-        );
-      }
-
-      return {
-        tipoMovimiento: 2,
-
-        fechaMovimiento: fila.fechaMovimiento,
-
-        categoriaId: fila.categoriaId,
-
-        descripcion: fila.descripcion,
-
-        monto: fila.monto,
-
-        medioPago: 9,
-
-        moneda: 1,
-
-        tipoComprobante: 5,
-
-        origenRegistro: 3,
-
-        bCancelado: fila.bCancelado,
-      };
-    });
   }
 
   registrarResultado(
     resultado: ResultadoCargaMasivaEgreso,
-  ): Observable<Movimiento[]> {
-    return defer(() => from(this.construirRequests(resultado))).pipe(
-      concatMap((request) => this.movimientoService.registrarMovimiento(request)),
-      toArray(),
-    );
+  ): Observable<number> {
+    if (resultado.filasConError > 0) {
+      return throwError(
+        () =>
+          new Error(
+            'No se puede confirmar la carga mientras existan filas con errores.',
+          ),
+      );
+    }
+
+    const filas = resultado.filas.map((fila, indice) => ({
+      numeroRegistro: indice + 1,
+      filaExcel: fila.filaExcel,
+      fecha: fila.fechaMovimiento,
+      dato: fila.descripcion,
+      precio: Number(fila.monto),
+      clasificador: fila.clasificador || fila.categoria,
+      cancelado: fila.bCancelado === 1,
+    }));
+
+    return this.http
+      .post<{ filasValidas: number; filasError: number }>(
+        `${API_CONFIG.baseUrl}/cargas-masivas/egresos`,
+        {
+          nombreArchivo: resultado.nombreArchivo,
+          filas,
+        },
+      )
+      .pipe(
+        map((response) => Number(response.filasValidas ?? filas.length)),
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.obtenerMensajeError(error))),
+        ),
+      );
   }
 
   private procesarLibro(
@@ -481,4 +476,18 @@ export class CargaMasivaMovimientoService {
 
     return null;
   }
+  private obtenerMensajeError(error: HttpErrorResponse): string {
+    const mensaje = (error.error as { message?: string } | null)?.message;
+
+    if (mensaje) {
+      return mensaje;
+    }
+
+    if (error.status === 0) {
+      return 'No se pudo conectar con el servidor.';
+    }
+
+    return 'No se pudo procesar la carga masiva.';
+  }
+
 }

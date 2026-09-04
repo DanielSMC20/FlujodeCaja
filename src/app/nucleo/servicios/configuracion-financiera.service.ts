@@ -1,102 +1,146 @@
-import { Injectable } from '@angular/core';
-import { BehaviorSubject, Observable, of } from 'rxjs';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import {
+  BehaviorSubject,
+  Observable,
+  catchError,
+  map,
+  of,
+  switchMap,
+  tap,
+  throwError,
+} from 'rxjs';
 
+import { API_CONFIG } from '../../core/config/api.config';
 import {
   ActualizarConfiguracionFinancieraRequest,
   ConfiguracionFinanciera,
 } from '../modelos/configuracion-financiera.model';
 import { SesionEmpresaService } from './sesion-empresa.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+interface SaldoAperturaBackendResponse {
+  configurado: boolean;
+  saldoInicial: number | null;
+  fechaApertura: string | null;
+  moneda: number;
+  monedaDescripcion: string;
+  usuarioRegistroId: number | null;
+  fechaRegistro: string | null;
+}
+
+interface ApiErrorResponse {
+  message?: string;
+}
+
+@Injectable({ providedIn: 'root' })
 export class ConfiguracionFinancieraService {
-  private readonly storagePrefix = 'fc_configuracion_financiera_';
+  private readonly http = inject(HttpClient);
+  private readonly sesionEmpresaService = inject(SesionEmpresaService);
 
   private readonly configuracionSubject =
     new BehaviorSubject<ConfiguracionFinanciera | null>(null);
 
   readonly configuracion$ = this.configuracionSubject.asObservable();
 
-  constructor(private readonly sesionEmpresaService: SesionEmpresaService) {
-    this.restaurarConfiguracion();
+  obtenerConfiguracion(): Observable<ConfiguracionFinanciera | null> {
+    return this.http
+      .get<SaldoAperturaBackendResponse>(`${API_CONFIG.baseUrl}/saldo-apertura`)
+      .pipe(
+        map((response) => this.mapearConfiguracion(response)),
+        tap((configuracion) => this.configuracionSubject.next(configuracion)),
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.obtenerMensajeError(error))),
+        ),
+      );
   }
 
-  obtenerConfiguracion(): Observable<ConfiguracionFinanciera | null> {
-    return this.configuracion$;
+  verificarConfiguracionInicial(): Observable<boolean> {
+    return this.obtenerConfiguracion().pipe(
+      map((configuracion) => configuracion?.configuracionInicialCompletada === true),
+    );
   }
 
   tieneConfiguracionInicial(): boolean {
-    const configuracion = this.obtenerConfiguracionActual();
-    return configuracion?.configuracionInicialCompletada === true;
+    return this.configuracionSubject.value?.configuracionInicialCompletada === true;
   }
 
   obtenerConfiguracionActual(): ConfiguracionFinanciera | null {
-    const empresaId = this.sesionEmpresaService.empresaActualId;
     const configuracion = this.configuracionSubject.value;
-
-    if (configuracion?.empresaId === empresaId) {
-      return { ...configuracion };
-    }
-
-    const restaurada = this.leerConfiguracion(empresaId);
-    this.configuracionSubject.next(restaurada);
-    return restaurada ? { ...restaurada } : null;
+    return configuracion ? { ...configuracion } : null;
   }
 
   actualizarConfiguracion(
     request: ActualizarConfiguracionFinancieraRequest,
   ): Observable<ConfiguracionFinanciera> {
-    const empresaId = this.sesionEmpresaService.empresaActualId;
+    const guardar$ = () =>
+      this.http
+        .post<SaldoAperturaBackendResponse>(`${API_CONFIG.baseUrl}/saldo-apertura`, {
+          saldoInicial: Number(request.saldoInicial),
+        })
+        .pipe(
+          map((response) => {
+            const configuracion = this.mapearConfiguracion(response);
 
-    const configuracion: ConfiguracionFinanciera = {
-      empresaId,
-      saldoInicial: Number(request.saldoInicial),
-      fechaSaldoInicial: request.fechaSaldoInicial,
-      moneda: request.moneda,
+            if (!configuracion) {
+              throw new Error('El backend no confirmó el saldo inicial.');
+            }
+
+            return configuracion;
+          }),
+        );
+
+    return this.obtenerConfiguracion().pipe(
+      switchMap((actual) => {
+        if (actual?.configuracionInicialCompletada) {
+          return of(actual);
+        }
+
+        return guardar$();
+      }),
+      tap((configuracion) => this.configuracionSubject.next(configuracion)),
+      catchError((error: unknown) => {
+        if (error instanceof Error) {
+          return throwError(() => error);
+        }
+
+        return throwError(
+          () => new Error('No se pudo registrar el saldo inicial.'),
+        );
+      }),
+    );
+  }
+
+  limpiarCache(): void {
+    this.configuracionSubject.next(null);
+  }
+
+  private mapearConfiguracion(
+    response: SaldoAperturaBackendResponse,
+  ): ConfiguracionFinanciera | null {
+    if (!response.configurado) {
+      return null;
+    }
+
+    return {
+      empresaId: this.sesionEmpresaService.empresaActualId,
+      saldoInicial: Number(response.saldoInicial ?? 0),
+      fechaSaldoInicial: response.fechaApertura ?? '',
+      moneda: response.moneda ?? 1,
       configuracionInicialCompletada: true,
     };
-
-    localStorage.setItem(
-      this.obtenerStorageKey(empresaId),
-      JSON.stringify(configuracion),
-    );
-
-    this.configuracionSubject.next(configuracion);
-
-    return of({ ...configuracion });
   }
 
-  private restaurarConfiguracion(): void {
-    const empresaId = this.sesionEmpresaService.empresaActualId;
-    this.configuracionSubject.next(this.leerConfiguracion(empresaId));
-  }
+  private obtenerMensajeError(error: HttpErrorResponse): string {
+    const apiError = error.error as ApiErrorResponse | null;
 
-  private leerConfiguracion(empresaId: number): ConfiguracionFinanciera | null {
-    const raw = localStorage.getItem(this.obtenerStorageKey(empresaId));
-
-    if (!raw) {
-      return null;
+    if (apiError?.message) {
+      return apiError.message;
     }
 
-    try {
-      const configuracion = JSON.parse(raw) as ConfiguracionFinanciera;
-
-      if (
-        configuracion.empresaId !== empresaId ||
-        configuracion.configuracionInicialCompletada !== true
-      ) {
-        return null;
-      }
-
-      return configuracion;
-    } catch {
-      localStorage.removeItem(this.obtenerStorageKey(empresaId));
-      return null;
+    if (error.status === 0) {
+      return 'No se pudo conectar con el servidor.';
     }
-  }
 
-  private obtenerStorageKey(empresaId: number): string {
-    return `${this.storagePrefix}${empresaId}`;
+    return 'No se pudo consultar la configuración financiera.';
   }
 }

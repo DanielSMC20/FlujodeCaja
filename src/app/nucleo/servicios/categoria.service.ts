@@ -1,336 +1,220 @@
-import { Injectable } from '@angular/core';
-
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
 import {
-  BehaviorSubject,
   Observable,
-  combineLatest,
+  Subject,
+  catchError,
   map,
   of,
+  startWith,
+  switchMap,
+  tap,
   throwError,
 } from 'rxjs';
 
+import { API_CONFIG } from '../../core/config/api.config';
 import {
   ActualizarCategoriaRequest,
   CategoriaMovimiento,
   RegistrarCategoriaRequest,
 } from '../modelos/categoria-movimiento';
-
 import { SesionEmpresaService } from './sesion-empresa.service';
 
-@Injectable({
-  providedIn: 'root',
-})
+interface CategoriaBackendResponse {
+  id: number;
+  tipoMovimiento: number;
+  nombre: string;
+  descripcion: string | null;
+  activo: boolean;
+}
+
+interface ApiErrorResponse {
+  message?: string;
+}
+
+@Injectable({ providedIn: 'root' })
 export class CategoriaService {
-  private readonly storageKey = 'fc_categorias_movimiento';
+  private readonly http = inject(HttpClient);
+  private readonly sesionEmpresaService = inject(SesionEmpresaService);
 
-  private readonly categorias: CategoriaMovimiento[] = [
-    {
-      id: 1,
-      empresaId: 1,
-      nombre: 'Venta en barra',
-      tipoMovimiento: 1,
-      descripcion: 'Ventas realizadas en barra y POS',
-      estado: true,
-    },
-    {
-      id: 2,
-      empresaId: 1,
-      nombre: 'Entradas',
-      tipoMovimiento: 1,
-      descripcion: 'Venta de entradas y preventas',
-      estado: true,
-    },
-    {
-      id: 3,
-      empresaId: 1,
-      nombre: 'Reservas',
-      tipoMovimiento: 1,
-      descripcion: 'Adelantos y reservas de mesas',
-      estado: true,
-    },
-    {
-      id: 4,
-      empresaId: 1,
-      nombre: 'DJ / Artistas',
-      tipoMovimiento: 2,
-      descripcion: 'Pago a DJ, artistas y producciones',
-      estado: true,
-    },
-    {
-      id: 5,
-      empresaId: 1,
-      nombre: 'Seguridad',
-      tipoMovimiento: 2,
-      descripcion: 'Pago al personal de seguridad',
-      estado: true,
-    },
-    {
-      id: 6,
-      empresaId: 1,
-      nombre: 'Bebidas e insumos',
-      tipoMovimiento: 2,
-      descripcion: 'Reposición de bebidas e insumos',
-      estado: true,
-    },
-    {
-      id: 7,
-      empresaId: 1,
-      nombre: 'Alquiler',
-      tipoMovimiento: 2,
-      descripcion: 'Alquiler del local',
-      estado: true,
-    },
-    {
-      id: 8,
-      empresaId: 1,
-      nombre: 'Servicios básicos',
-      tipoMovimiento: 2,
-      descripcion: 'Luz, agua, internet y telefonía',
-      estado: true,
-    },
-  ];
-
-  private readonly categoriasSubject = new BehaviorSubject<
-    CategoriaMovimiento[]
-  >(this.copiarCategorias());
-
-  constructor(private readonly sesionEmpresaService: SesionEmpresaService) {
-    this.restaurarCategorias();
-  }
+  private readonly refrescarSubject = new Subject<void>();
+  private cacheCategorias: CategoriaMovimiento[] = [];
 
   listarCategorias(): Observable<CategoriaMovimiento[]> {
-    return combineLatest([
-      this.categoriasSubject,
-      this.sesionEmpresaService.empresaActual$,
-    ]).pipe(
-      map(([categorias, empresa]) =>
-        categorias
-          .filter((categoria) => categoria.empresaId === empresa.id)
-          .map((categoria) => ({
-            ...categoria,
-          })),
-      ),
+    return this.refrescarSubject.pipe(
+      startWith(void 0),
+      switchMap(() => this.listarDesdeBackend(undefined, false)),
+      tap((categorias) => {
+        this.cacheCategorias = categorias.map((categoria) => ({ ...categoria }));
+      }),
     );
   }
 
   listarCategoriasPorTipo(
     tipoMovimiento: number,
   ): Observable<CategoriaMovimiento[]> {
-    return combineLatest([
-      this.categoriasSubject,
-      this.sesionEmpresaService.empresaActual$,
-    ]).pipe(
-      map(([categorias, empresa]) =>
-        categorias
-          .filter(
-            (categoria) =>
-              categoria.empresaId === empresa.id &&
-              categoria.tipoMovimiento === tipoMovimiento &&
-              categoria.estado,
-          )
-          .map((categoria) => ({
-            ...categoria,
-          })),
-      ),
+    return this.refrescarSubject.pipe(
+      startWith(void 0),
+      switchMap(() => this.listarDesdeBackend(tipoMovimiento, true)),
+      tap((categorias) => {
+        this.actualizarCacheParcial(categorias, tipoMovimiento);
+      }),
     );
   }
 
   obtenerCategoriaPorId(id: number): CategoriaMovimiento | undefined {
-    const empresaActualId = this.sesionEmpresaService.empresaActualId;
-
-    const categoria = this.categorias.find(
-      (item) => item.id === id && item.empresaId === empresaActualId,
-    );
-
-    return categoria
-      ? {
-          ...categoria,
-        }
-      : undefined;
+    const categoria = this.cacheCategorias.find((item) => item.id === id);
+    return categoria ? { ...categoria } : undefined;
   }
 
   registrarCategoria(
     request: RegistrarCategoriaRequest,
   ): Observable<CategoriaMovimiento> {
-    const empresaActualId = this.sesionEmpresaService.empresaActualId;
-
-    const nombre = request.nombre.trim();
-
-    const descripcion = request.descripcion.trim();
-
-    if (!nombre) {
-      return throwError(
-        () => new Error('El nombre de la categoría es obligatorio.'),
+    return this.http
+      .post<CategoriaBackendResponse>(`${API_CONFIG.baseUrl}/categorias`, {
+        tipoMovimiento: request.tipoMovimiento,
+        nombre: request.nombre.trim(),
+        descripcion: request.descripcion?.trim() || null,
+      })
+      .pipe(
+        map((response) => this.mapearCategoria(response)),
+        tap(() => this.refrescarSubject.next()),
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.obtenerMensajeError(error))),
+        ),
       );
-    }
-
-    if (request.tipoMovimiento !== 1 && request.tipoMovimiento !== 2) {
-      return throwError(() => new Error('El tipo de movimiento no es válido.'));
-    }
-
-    const existe = this.categorias.some(
-      (categoria) =>
-        categoria.empresaId === empresaActualId &&
-        categoria.tipoMovimiento === request.tipoMovimiento &&
-        categoria.nombre.trim().toLowerCase() === nombre.toLowerCase(),
-    );
-
-    if (existe) {
-      return throwError(
-        () =>
-          new Error(
-            'Ya existe una categoría con ese nombre para este tipo de movimiento.',
-          ),
-      );
-    }
-
-    const nuevoId =
-      this.categorias.length > 0
-        ? Math.max(...this.categorias.map((categoria) => categoria.id)) + 1
-        : 1;
-
-    const categoria: CategoriaMovimiento = {
-      id: nuevoId,
-
-      empresaId: empresaActualId,
-
-      nombre,
-
-      tipoMovimiento: request.tipoMovimiento,
-
-      descripcion,
-
-      estado: true,
-    };
-
-    this.categorias.push(categoria);
-
-    this.notificarCambios();
-
-    return of({
-      ...categoria,
-    });
   }
 
   actualizarCategoria(
     id: number,
     request: ActualizarCategoriaRequest,
   ): Observable<CategoriaMovimiento> {
-    const empresaActualId = this.sesionEmpresaService.empresaActualId;
-
-    const indice = this.categorias.findIndex(
-      (categoria) =>
-        categoria.id === id && categoria.empresaId === empresaActualId,
+    return this.obtenerCategoriaParaModificar(id).pipe(
+      switchMap((categoriaActual) =>
+        this.http.put<CategoriaBackendResponse>(
+          `${API_CONFIG.baseUrl}/categorias/${id}`,
+          {
+            nombre: request.nombre.trim(),
+            descripcion: request.descripcion?.trim() || null,
+            activo: categoriaActual.estado,
+          },
+        ),
+      ),
+      map((response) => this.mapearCategoria(response)),
+      tap(() => this.refrescarSubject.next()),
+      catchError((error: HttpErrorResponse | Error) =>
+        throwError(() =>
+          error instanceof HttpErrorResponse
+            ? new Error(this.obtenerMensajeError(error))
+            : error,
+        ),
+      ),
     );
-
-    if (indice === -1) {
-      return throwError(() => new Error('La categoría no existe.'));
-    }
-
-    const nombre = request.nombre.trim();
-
-    const descripcion = request.descripcion.trim();
-
-    if (!nombre) {
-      return throwError(
-        () => new Error('El nombre de la categoría es obligatorio.'),
-      );
-    }
-
-    const categoriaActual = this.categorias[indice];
-
-    const duplicada = this.categorias.some(
-      (categoria) =>
-        categoria.id !== id &&
-        categoria.empresaId === empresaActualId &&
-        categoria.tipoMovimiento === categoriaActual.tipoMovimiento &&
-        categoria.nombre.trim().toLowerCase() === nombre.toLowerCase(),
-    );
-
-    if (duplicada) {
-      return throwError(
-        () =>
-          new Error(
-            'Ya existe una categoría con ese nombre para este tipo de movimiento.',
-          ),
-      );
-    }
-
-    const categoriaActualizada: CategoriaMovimiento = {
-      ...categoriaActual,
-
-      nombre,
-
-      descripcion,
-    };
-
-    this.categorias[indice] = categoriaActualizada;
-
-    this.notificarCambios();
-
-    return of({
-      ...categoriaActualizada,
-    });
   }
 
   cambiarEstado(id: number): Observable<CategoriaMovimiento> {
-    const empresaActualId = this.sesionEmpresaService.empresaActualId;
+    return this.obtenerCategoriaParaModificar(id).pipe(
+      switchMap((categoriaActual) =>
+        this.http.put<CategoriaBackendResponse>(
+          `${API_CONFIG.baseUrl}/categorias/${id}`,
+          {
+            nombre: categoriaActual.nombre,
+            descripcion: categoriaActual.descripcion || null,
+            activo: !categoriaActual.estado,
+          },
+        ),
+      ),
+      map((response) => this.mapearCategoria(response)),
+      tap(() => this.refrescarSubject.next()),
+      catchError((error: HttpErrorResponse | Error) =>
+        throwError(() =>
+          error instanceof HttpErrorResponse
+            ? new Error(this.obtenerMensajeError(error))
+            : error,
+        ),
+      ),
+    );
+  }
 
-    const indice = this.categorias.findIndex(
-      (categoria) =>
-        categoria.id === id && categoria.empresaId === empresaActualId,
+  private obtenerCategoriaParaModificar(
+    id: number,
+  ): Observable<CategoriaMovimiento> {
+    const cache = this.cacheCategorias.find((categoria) => categoria.id === id);
+
+    if (cache) {
+      return of({ ...cache });
+    }
+
+    return this.listarDesdeBackend(undefined, false).pipe(
+      switchMap((categorias) => {
+        this.cacheCategorias = categorias.map((categoria) => ({ ...categoria }));
+        const categoria = categorias.find((item) => item.id === id);
+
+        return categoria
+          ? of(categoria)
+          : throwError(() => new Error('La categoría no existe.'));
+      }),
+    );
+  }
+
+  private listarDesdeBackend(
+    tipoMovimiento?: number,
+    soloActivos = true,
+  ): Observable<CategoriaMovimiento[]> {
+    let params = new HttpParams().set('soloActivos', String(soloActivos));
+
+    if (tipoMovimiento) {
+      params = params.set('tipoMovimiento', String(tipoMovimiento));
+    }
+
+    return this.http
+      .get<CategoriaBackendResponse[]>(`${API_CONFIG.baseUrl}/categorias`, {
+        params,
+      })
+      .pipe(
+        map((categorias) => categorias.map((item) => this.mapearCategoria(item))),
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.obtenerMensajeError(error))),
+        ),
+      );
+  }
+
+  private mapearCategoria(response: CategoriaBackendResponse): CategoriaMovimiento {
+    return {
+      id: response.id,
+      empresaId: this.sesionEmpresaService.empresaActualId,
+      nombre: response.nombre,
+      tipoMovimiento: response.tipoMovimiento,
+      descripcion: response.descripcion ?? '',
+      estado: response.activo,
+    };
+  }
+
+  private actualizarCacheParcial(
+    categorias: CategoriaMovimiento[],
+    tipoMovimiento: number,
+  ): void {
+    const otras = this.cacheCategorias.filter(
+      (categoria) => categoria.tipoMovimiento !== tipoMovimiento,
     );
 
-    if (indice === -1) {
-      return throwError(() => new Error('La categoría no existe.'));
-    }
-
-    const categoria = this.categorias[indice];
-
-    const categoriaActualizada: CategoriaMovimiento = {
-      ...categoria,
-
-      estado: !categoria.estado,
-    };
-
-    this.categorias[indice] = categoriaActualizada;
-
-    this.notificarCambios();
-
-    return of({
-      ...categoriaActualizada,
-    });
+    this.cacheCategorias = [
+      ...otras,
+      ...categorias.map((categoria) => ({ ...categoria })),
+    ];
   }
 
-  private notificarCambios(): void {
-    localStorage.setItem(this.storageKey, JSON.stringify(this.categorias));
-    this.categoriasSubject.next(this.copiarCategorias());
-  }
+  private obtenerMensajeError(error: HttpErrorResponse): string {
+    const apiError = error.error as ApiErrorResponse | null;
 
-  private restaurarCategorias(): void {
-    const raw = localStorage.getItem(this.storageKey);
-
-    if (!raw) {
-      return;
+    if (apiError?.message) {
+      return apiError.message;
     }
 
-    try {
-      const categorias = JSON.parse(raw) as CategoriaMovimiento[];
-
-      if (!Array.isArray(categorias)) {
-        return;
-      }
-
-      this.categorias.splice(0, this.categorias.length, ...categorias);
-      this.categoriasSubject.next(this.copiarCategorias());
-    } catch {
-      localStorage.removeItem(this.storageKey);
+    if (error.status === 0) {
+      return 'No se pudo conectar con el servidor.';
     }
-  }
 
-  private copiarCategorias(): CategoriaMovimiento[] {
-    return this.categorias.map((categoria) => ({
-      ...categoria,
-    }));
+    return 'No se pudo procesar la categoría.';
   }
 }
