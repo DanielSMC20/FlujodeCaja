@@ -1,7 +1,9 @@
 export interface ResumenDashboard {
   ingresosMes: number;
   egresosMes: number;
+  egresosProyectados: number;
   saldoAcumulado: number;
+  saldoProyectado: number;
   saldoFechaTexto: string;
   movimientosMes: number;
   variacionIngresos: number;
@@ -44,8 +46,6 @@ export interface MovimientoResumen {
   descripcion: string;
   monto: number;
   estado: string;
-  origen: string;
-  medioPago: string;
 }
 
 export interface NetoDiario {

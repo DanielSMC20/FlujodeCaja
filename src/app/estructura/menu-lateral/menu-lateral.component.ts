@@ -1,5 +1,5 @@
 import { CommonModule } from '@angular/common';
-
+import { SesionUsuarioService } from '../../nucleo/servicios/sesion-usuario.service';
 import {
   ChangeDetectionStrategy,
   Component,
@@ -52,6 +52,12 @@ interface OpcionMenu {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MenuLateralComponent {
+  
+  private readonly sesionUsuarioService = inject(SesionUsuarioService);
+
+  get mostrarGestion(): boolean {
+    return this.sesionUsuarioService.esAdministrador;
+  }
 
   private readonly authService = inject(AuthService);
 
@@ -92,7 +98,7 @@ export class MenuLateralComponent {
 
   readonly opcionesGestion: OpcionMenu[] = [
     {
-      label: 'Categorías',
+      label: 'Clasificadores',
       path: '/categorias',
       icon: Tags,
     },

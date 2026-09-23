@@ -195,7 +195,7 @@ export class CargaMasivaMovimientosComponent {
     },
     {
       field: 'categoria',
-      headerName: 'Categoría',
+      headerName: 'Clasificador',
       width: 190,
       minWidth: 170,
       filter: 'agTextColumnFilter',

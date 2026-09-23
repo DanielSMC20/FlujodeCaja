@@ -12,11 +12,7 @@
   </header>
 
   <article class="tarjeta filtros">
-    <form
-      class="filtros-grid"
-      [formGroup]="formulario"
-      (ngSubmit)="aplicarFiltros()"
-    >
+    <form class="filtros-grid" [formGroup]="formulario">
       <div class="campo">
         <label for="fechaDesde"> Desde </label>
 
@@ -35,14 +31,16 @@
         <select id="tipoMovimiento" formControlName="tipoMovimiento">
           <option [ngValue]="0">Todos</option>
 
-          <option [ngValue]="1">Ingreso</option>
-
-          <option [ngValue]="2">Egreso</option>
+          @for (tipo of tiposMovimiento$ | async; track tipo.nValor) {
+            <option [ngValue]="tipo.nValor">
+              {{ tipo.cDescripcion }}
+            </option>
+          }
         </select>
       </div>
 
       <div class="campo">
-        <label for="categoriaId"> Categoría </label>
+        <label for="categoriaId"> Clasificador </label>
 
         <select id="categoriaId" formControlName="categoriaId">
           <option [ngValue]="0">Todas</option>
@@ -55,7 +53,31 @@
         </select>
       </div>
 
+      <div class="campo">
+        <label for="estadoEgreso"> Estado del egreso </label>
+
+        <select id="estadoEgreso" formControlName="estadoEgreso">
+          <option value="todos">Todos</option>
+          <option value="pagado">Pagado</option>
+          <option value="proyectado">Proyectado</option>
+        </select>
+      </div>
+      <div class="campo campo-checkbox">
+        <label for="incluirAnulados"> Consulta histórica </label>
+
+        <label class="checkbox-control">
+          <input
+            id="incluirAnulados"
+            type="checkbox"
+            formControlName="incluirAnulados"
+          />
+
+          <span> Incluir movimientos anulados </span>
+        </label>
+      </div>
+
       <div class="acciones-filtros">
+        <span class="actualizacion-automatica"> Actualización automática </span>
         <button
           type="button"
           class="boton-secundario"
@@ -63,13 +85,43 @@
         >
           Limpiar
         </button>
-
-        <button type="submit" class="boton-principal">Generar reporte</button>
       </div>
     </form>
   </article>
+  @if (cargandoReporte) {
+    <div class="estado-carga">Actualizando reporte...</div>
+  }
 
   @if (reporte$ | async; as reporte) {
+    <section class="cabecera-impresion">
+      <div class="cabecera-empresa">
+        <span>Reporte financiero</span>
+
+        <h1>Reporte de movimientos</h1>
+
+        <p>
+          {{ empresaActual.razonSocial || empresaActual.nombreComercial }}
+        </p>
+
+        <p>
+          RUC:
+          {{ empresaActual.ruc || "No registrado" }}
+        </p>
+      </div>
+
+      <div class="cabecera-periodo">
+        <span>Periodo consultado</span>
+
+        <strong>
+          {{ obtenerPeriodoActual() }}
+        </strong>
+
+        <small>
+          Generado:
+          {{ obtenerFechaHoraActual() }}
+        </small>
+      </div>
+    </section>
     <div class="resumen-grid">
       <article class="indicador">
         <span> Ingresos </span>
@@ -80,30 +132,46 @@
       </article>
 
       <article class="indicador">
-        <span> Egresos </span>
+        <span> Egresos pagados </span>
 
         <strong class="egreso">
-          {{ reporte.resumen.totalEgresos | monedaSol }}
+          {{ reporte.resumen.totalEgresosPagados | monedaSol }}
         </strong>
       </article>
 
       <article class="indicador">
-        <span> Resultado neto </span>
+        <span> Egresos proyectados </span>
+
+        <strong class="proyectado">
+          {{ reporte.resumen.totalEgresosProyectados | monedaSol }}
+        </strong>
+      </article>
+
+      <article class="indicador">
+        <span>Neto real</span>
 
         <strong
-          [class.ingreso]="reporte.resumen.neto >= 0"
-          [class.egreso]="reporte.resumen.neto < 0"
+          [class.ingreso]="calcularNetoReal(reporte) >= 0"
+          [class.egreso]="calcularNetoReal(reporte) < 0"
         >
-          {{ reporte.resumen.neto | monedaSol }}
+          {{ calcularNetoReal(reporte) | monedaSol }}
         </strong>
+
+        <small> Ingresos menos egresos pagados </small>
       </article>
 
       <article class="indicador">
-        <span> Movimientos </span>
+        <span>Neto proyectado</span>
 
-        <strong class="movimientos">
-          {{ reporte.resumen.cantidadMovimientos }}
+        <strong
+          [class.ingreso]="calcularNetoProyectado(reporte) >= 0"
+          [class.egreso]="calcularNetoProyectado(reporte) < 0"
+          [class.proyectado]="calcularNetoProyectado(reporte) >= 0"
+        >
+          {{ calcularNetoProyectado(reporte) | monedaSol }}
         </strong>
+
+        <small> Incluye los egresos pendientes </small>
       </article>
     </div>
 
@@ -113,18 +181,26 @@
           <h2>Detalle de movimientos</h2>
 
           <p>
-            {{ reporte.resumen.cantidadMovimientos }}
+            {{ reporte.resumen.cantidadRegistros }}
             movimientos encontrados.
           </p>
         </div>
 
         <div class="exportaciones">
-          <button type="button" disabled title="Disponible próximamente">
+          <button
+            type="button"
+            [disabled]="cargandoReporte"
+            (click)="exportarExcel(reporte)"
+          >
             Exportar Excel
           </button>
 
-          <button type="button" disabled title="Disponible próximamente">
-            Exportar PDF
+          <button
+            type="button"
+            [disabled]="cargandoReporte"
+            (click)="exportarPdf(reporte)"
+          >
+            Descargar PDF
           </button>
         </div>
       </header>
@@ -138,11 +214,16 @@
 
                 <th>Tipo</th>
 
-                <th>Categoría</th>
+                <th>Clasificador</th>
 
                 <th>Descripción</th>
 
+                <th>Estado</th>
+
                 <th>Medio de pago</th>
+                @if (formulario.controls.incluirAnulados.value) {
+                  <th>Anulación</th>
+                }
 
                 <th class="texto-derecha">Monto</th>
               </tr>
@@ -176,8 +257,35 @@
                   </td>
 
                   <td>
-                    {{ etiquetaMedioPago(movimiento.medioPago) }}
+                    <span
+                      class="badge"
+                      [class.badge-proyectado]="
+                        movimiento.estado === 'Proyectado'
+                      "
+                    >
+                      {{ movimiento.estado }}
+                    </span>
                   </td>
+
+                  <td>
+                    {{ movimiento.medioPagoDescripcion }}
+                  </td>
+                  @if (formulario.controls.incluirAnulados.value) {
+                    <td>
+                      @if (!movimiento.activo) {
+                        <strong> Anulado </strong>
+
+                        <small class="motivo-anulacion">
+                          {{
+                            movimiento.motivoAnulacion ||
+                              "Sin motivo registrado"
+                          }}
+                        </small>
+                      } @else {
+                        <span> — </span>
+                      }
+                    </td>
+                  }
 
                   <td
                     class="texto-derecha monto"
@@ -196,7 +304,10 @@
       } @else {
         <div class="estado-vacio">
           <div class="estado-vacio-icono">
-            <lucide-icon [img]="ChartNoAxesCombined" aria-hidden="true"></lucide-icon>
+            <lucide-icon
+              [img]="ChartNoAxesCombined"
+              aria-hidden="true"
+            ></lucide-icon>
           </div>
 
           <strong> No encontramos movimientos </strong>

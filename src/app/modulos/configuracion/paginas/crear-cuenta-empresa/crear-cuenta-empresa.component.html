@@ -55,8 +55,8 @@
         <div class="resultado-aviso">
           <lucide-icon [img]="iconos.informacion" [size]="18" [strokeWidth]="2" />
           <span>
-            En la integración real, el backend guardará el hash de la contraseña y
-            devolverá el identificador definitivo del usuario.
+            La contraseña temporal se almacenó de forma segura. El usuario deberá
+            cambiarla cuando inicie sesión por primera vez.
           </span>
         </div>
 
@@ -313,8 +313,8 @@
           <div class="panel-seguridad">
             <lucide-icon [img]="iconos.rol" [size]="18" [strokeWidth]="1.9" />
             <span>
-              La empresa se obtendrá del JWT. El formulario no enviará un tenant
-              seleccionado por el usuario.
+              La empresa se obtiene de la sesión autenticada y no puede seleccionarse
+              manualmente desde este formulario.
             </span>
           </div>
         </aside>

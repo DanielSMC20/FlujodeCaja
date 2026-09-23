@@ -4,9 +4,11 @@ import { Injectable, inject } from '@angular/core';
 import {
   Observable,
   catchError,
+  forkJoin,
   from,
   map,
   switchMap,
+  take,
   throwError,
 } from 'rxjs';
 
@@ -23,6 +25,7 @@ import { FlagCancelado } from '../modelos/movimiento';
 
 import { API_CONFIG } from '../../core/config/api.config';
 import { CategoriaService } from './categoria.service';
+import { ConfiguracionFinancieraService } from './configuracion-financiera.service';
 
 @Injectable({
   providedIn: 'root',
@@ -30,6 +33,7 @@ import { CategoriaService } from './categoria.service';
 export class CargaMasivaMovimientoService {
   private readonly http = inject(HttpClient);
   private readonly categoriaService = inject(CategoriaService);
+  private readonly configuracionService = inject(ConfiguracionFinancieraService);
 
   procesarArchivo(archivo: File): Observable<ResultadoCargaMasivaEgreso> {
     const extension = archivo.name.toLowerCase().split('.').pop();
@@ -46,13 +50,29 @@ export class CargaMasivaMovimientoService {
 
     return from(archivo.arrayBuffer()).pipe(
       switchMap((buffer) =>
-        this.categoriaService
-          .listarCategoriasPorTipo(2)
-          .pipe(
-            map((categorias) =>
-              this.procesarLibro(buffer, archivo.name, categorias),
-            ),
-          ),
+        forkJoin({
+          categorias: this.categoriaService
+            .listarCategoriasPorTipo(2)
+            .pipe(take(1)),
+          configuracion: this.configuracionService
+            .obtenerConfiguracion()
+            .pipe(take(1)),
+        }).pipe(
+          map(({ categorias, configuracion }) => {
+            if (!configuracion?.fechaSaldoInicial) {
+              throw new Error(
+                'Primero debes registrar el saldo y la fecha de apertura.',
+              );
+            }
+
+            return this.procesarLibro(
+              buffer,
+              archivo.name,
+              categorias,
+              configuracion.fechaSaldoInicial,
+            );
+          }),
+        ),
       ),
     );
   }
@@ -84,11 +104,11 @@ export class CargaMasivaMovimientoService {
     const filas = resultado.filas.map((fila, indice) => ({
       numeroRegistro: indice + 1,
       filaExcel: fila.filaExcel,
-      fecha: fila.fechaMovimiento,
-      dato: fila.descripcion,
-      precio: Number(fila.monto),
-      clasificador: fila.clasificador || fila.categoria,
-      cancelado: fila.bCancelado === 1,
+      fechaMovimiento: fila.fechaMovimiento,
+      categoriaId: fila.categoriaId!,
+      descripcion: fila.descripcion.trim(),
+      monto: Number(fila.monto),
+      bCancelado: fila.bCancelado,
     }));
 
     return this.http
@@ -111,6 +131,7 @@ export class CargaMasivaMovimientoService {
     buffer: ArrayBuffer,
     nombreArchivo: string,
     categorias: CategoriaMovimiento[],
+    fechaApertura: string,
   ): ResultadoCargaMasivaEgreso {
     let libro: XLSX.WorkBook;
 
@@ -157,7 +178,12 @@ export class CargaMasivaMovimientoService {
       }))
       .filter((fila) => !this.esFilaVacia(fila.valores))
       .map((fila) =>
-        this.procesarFila(fila.valores, fila.filaExcel, categorias),
+        this.procesarFila(
+          fila.valores,
+          fila.filaExcel,
+          categorias,
+          fechaApertura,
+        ),
       );
 
     if (filas.length === 0) {
@@ -209,6 +235,7 @@ export class CargaMasivaMovimientoService {
   private validarEncabezados(encabezados: unknown[]): void {
     const encabezadosValidos = [
       ['FECHA', 'DESCRIPCION', 'MONTO', 'CATEGORIA', 'YA SE PAGO'],
+      ['FECHA', 'DESCRIPCION', 'MONTO', 'CLASIFICADOR', 'YA SE PAGO'],
       ['FECHA', 'DATO', 'PRECIO', 'CLASIFICADOR', 'CANCELADO'],
     ];
 
@@ -224,7 +251,7 @@ export class CargaMasivaMovimientoService {
 
     if (!validos) {
       throw new Error(
-        'La estructura del Excel no es válida. Las columnas deben ser: FECHA, DESCRIPCIÓN, MONTO, CATEGORÍA y ¿YA SE PAGÓ?.',
+        'La estructura del Excel no es válida. Las columnas deben ser: FECHA, DESCRIPCIÓN, MONTO, CLASIFICADOR y ¿YA SE PAGÓ?.',
       );
     }
   }
@@ -232,6 +259,7 @@ export class CargaMasivaMovimientoService {
     valores: unknown[],
     filaExcel: number,
     categorias: CategoriaMovimiento[],
+    fechaApertura: string,
   ): FilaCargaMasivaEgreso {
     const errores: string[] = [];
 
@@ -247,6 +275,12 @@ export class CargaMasivaMovimientoService {
 
     if (!fecha) {
       errores.push('La fecha no es válida.');
+    } else if (fecha < fechaApertura) {
+      errores.push(
+        `La fecha es anterior a la apertura (${this.formatearFecha(fechaApertura)}).`,
+      );
+    } else if (bCancelado === 1 && fecha > this.obtenerFechaActual()) {
+      errores.push('Un egreso pagado no puede tener una fecha futura.');
     }
 
     if (!descripcion) {
@@ -260,7 +294,7 @@ export class CargaMasivaMovimientoService {
     }
 
     if (!clasificador) {
-      errores.push('La categoría es obligatoria.');
+      errores.push('El clasificador es obligatorio.');
     }
 
     if (bCancelado === null) {
@@ -277,7 +311,7 @@ export class CargaMasivaMovimientoService {
 
     if (clasificador && !categoria) {
       errores.push(
-        `La categoría "${clasificador}" no existe como categoría activa de egreso.`,
+        `El clasificador "${clasificador}" no existe como clasificador activo de egreso.`,
       );
     }
 
@@ -488,6 +522,20 @@ export class CargaMasivaMovimientoService {
     }
 
     return 'No se pudo procesar la carga masiva.';
+  }
+
+  private obtenerFechaActual(): string {
+    const fecha = new Date();
+    return this.crearFechaIso(
+      fecha.getFullYear(),
+      fecha.getMonth() + 1,
+      fecha.getDate(),
+    )!;
+  }
+
+  private formatearFecha(fecha: string): string {
+    const [anio, mes, dia] = fecha.split('-');
+    return anio && mes && dia ? `${dia}/${mes}/${anio}` : fecha;
   }
 
 }

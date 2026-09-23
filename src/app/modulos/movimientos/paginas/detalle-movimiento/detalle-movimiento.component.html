@@ -1,318 +1,819 @@
 <section class="pagina-detalle">
-  @if (movimiento$ | async; as movimiento) {
-    <header class="pagina-header">
-      <div class="header-principal">
-        <a
-          routerLink="/movimientos"
-          class="boton-volver"
-          aria-label="Volver a movimientos"
-        >
-          <lucide-icon [img]="iconos.volver" [size]="17" [strokeWidth]="1.9" />
-        </a>
 
-        <div>
-          <h1>Detalle del movimiento</h1>
+  @if (cargandoMovimiento) {
 
-          <p>Consulta toda la información registrada.</p>
-        </div>
+    <div class="movimiento-no-encontrado">
+
+      <div class="no-encontrado-icono">
+        <lucide-icon
+          [img]="iconos.noEncontrado"
+          [size]="22"
+          [strokeWidth]="1.8"
+        />
       </div>
 
-      @if (puedeEditar(movimiento)) {
-        <a
-          class="boton-editar"
-          [routerLink]="['/movimientos', movimiento.id, 'editar']"
-        >
-          <lucide-icon [img]="iconos.editar" [size]="16" [strokeWidth]="1.9" />
+      <h2>Cargando movimiento...</h2>
 
-          Editar movimiento
-        </a>
-      }
-    </header>
+      <p>
+        Consultando la información del registro.
+      </p>
 
-    <article class="resumen-movimiento">
-      <div
-        class="resumen-icono"
-        [class.icono-ingreso]="esIngreso(movimiento)"
-        [class.icono-egreso]="!esIngreso(movimiento)"
-      >
-        @if (esIngreso(movimiento)) {
-          <lucide-icon [img]="iconos.ingreso" [size]="20" [strokeWidth]="1.9" />
-        } @else {
-          <lucide-icon [img]="iconos.egreso" [size]="20" [strokeWidth]="1.9" />
-        }
-      </div>
+    </div>
 
-      <div class="resumen-informacion">
-        <div class="resumen-etiquetas">
-          <span
-            class="badge-tipo"
-            [class.badge-ingreso]="esIngreso(movimiento)"
-            [class.badge-egreso]="!esIngreso(movimiento)"
+  } @else {
+
+    @if (movimiento$ | async; as movimiento) {
+
+      <header class="pagina-header">
+
+        <div class="header-principal">
+
+          <a
+            routerLink="/movimientos"
+            class="boton-volver"
+            aria-label="Volver a movimientos"
           >
-            {{ etiquetaTipoMovimiento(movimiento.tipoMovimiento) }}
-          </span>
-
-          @if (fueRegistradoConXml(movimiento)) {
-            <span class="badge-xml">
-              <lucide-icon [img]="iconos.xml" [size]="13" [strokeWidth]="1.9" />
-
-              XML
-            </span>
-          }
-        </div>
-
-        <h2>
-          {{ movimiento.descripcion }}
-        </h2>
-
-        <div class="resumen-meta">
-          <span>
-            {{ movimiento.categoria }}
-          </span>
-
-          <span class="separador"> • </span>
-
-          <span>
-            {{ formatearFecha(movimiento.fechaMovimiento) }}
-          </span>
-        </div>
-      </div>
-
-      <div
-        class="resumen-monto"
-        [class.monto-ingreso]="esIngreso(movimiento)"
-        [class.monto-egreso]="!esIngreso(movimiento)"
-      >
-        {{ esIngreso(movimiento) ? "+" : "-" }}
-
-        {{ movimiento.monto | monedaSol }}
-      </div>
-    </article>
-
-    <article class="tarjeta-detalle">
-      <header class="tarjeta-header">
-        <h2>Información del movimiento</h2>
-
-        <p>Datos utilizados para el flujo de caja.</p>
-      </header>
-
-      <div class="detalle-grid">
-        <div class="detalle-item">
-          <span class="detalle-label"> Fecha del movimiento </span>
-
-          <strong>
-            {{ formatearFecha(movimiento.fechaMovimiento) }}
-          </strong>
-        </div>
-
-        <div class="detalle-item">
-          <span class="detalle-label"> Categoría </span>
-
-          <strong>
-            {{ movimiento.categoria }}
-          </strong>
-        </div>
-
-        <div class="detalle-item">
-          <span class="detalle-label"> Medio de pago </span>
-
-          <strong>
-            {{ etiquetaMedioPago(movimiento.medioPago) }}
-          </strong>
-        </div>
-
-        <div class="detalle-item">
-          <span class="detalle-label"> Moneda </span>
-
-          <strong>
-            {{ etiquetaMoneda(movimiento.moneda) }}
-          </strong>
-        </div>
-      </div>
-    </article>
-
-    <article class="tarjeta-detalle">
-      <header class="tarjeta-header">
-        <h2>Comprobante</h2>
-
-        <p>Información asociada al documento de sustento.</p>
-      </header>
-
-      @if (tieneComprobante(movimiento)) {
-        <div class="detalle-grid">
-          <div class="detalle-item">
-            <span class="detalle-label"> Tipo de comprobante </span>
-
-            <strong>
-              {{ etiquetaComprobante(movimiento.tipoComprobante) }}
-            </strong>
-          </div>
-
-          <div class="detalle-item">
-            <span class="detalle-label"> Fecha del comprobante </span>
-
-            <strong>
-              {{ formatearFecha(movimiento.fechaComprobante) }}
-            </strong>
-          </div>
-
-          <div class="detalle-item">
-            <span class="detalle-label"> Serie y número </span>
-
-            <strong>
-              {{ obtenerNumeroComprobante(movimiento) }}
-            </strong>
-          </div>
-
-          @if (movimiento.tipoMovimiento === 2) {
-            <div class="detalle-item">
-              <span class="detalle-label"> RUC / Documento del emisor </span>
-
-              <strong>
-                {{ movimiento.documentoEmisor || "No registrado" }}
-              </strong>
-            </div>
-
-            <div class="detalle-item detalle-item-ancho">
-              <span class="detalle-label"> Proveedor / Emisor </span>
-
-              <strong>
-                {{ movimiento.razonSocialEmisor || "No registrado" }}
-              </strong>
-            </div>
-          }
-        </div>
-      } @else {
-        <div class="sin-comprobante">
-          <div class="sin-comprobante-icono">
-            <lucide-icon [img]="iconos.sinComprobante" [size]="20" [strokeWidth]="1.8" />
-          </div>
+            <lucide-icon
+              [img]="iconos.volver"
+              [size]="17"
+              [strokeWidth]="1.9"
+            />
+          </a>
 
           <div>
-            <strong> Sin comprobante </strong>
-
-            <span>
-              Este movimiento fue registrado sin un documento asociado.
-            </span>
-          </div>
-        </div>
-      }
-    </article>
-
-    @if (fueRegistradoConXml(movimiento)) {
-      <article class="tarjeta-detalle tarjeta-xml">
-        <header class="tarjeta-header">
-          <div>
-            <h2>Registro asistido por XML</h2>
+            <h1>Detalle del movimiento</h1>
 
             <p>
-              Parte de la información fue obtenida automáticamente del
-              comprobante.
+              Consulta la información financiera y de registro.
             </p>
           </div>
 
-          <span class="xml-estado"> Procesado </span>
-        </header>
-
-        <div class="archivo-xml">
-          <div class="archivo-icono">
-            <lucide-icon [img]="iconos.xml" [size]="20" [strokeWidth]="1.8" />
-          </div>
-
-          <div>
-            <span> Archivo utilizado </span>
-
-            <strong>
-              {{ movimiento.archivoXmlNombre || "XML procesado" }}
-            </strong>
-          </div>
         </div>
+
+
+        <div class="header-acciones">
+
+          @if (puedeEditar(movimiento)) {
+
+            <a
+              class="boton-editar"
+              [routerLink]="[
+                '/movimientos',
+                movimiento.id,
+                'editar'
+              ]"
+            >
+              <lucide-icon
+                [img]="iconos.editar"
+                [size]="16"
+                [strokeWidth]="1.9"
+              />
+
+              Editar movimiento
+            </a>
+
+          }
+
+
+          @if (puedeAnular(movimiento)) {
+
+            <button
+              type="button"
+              class="boton-anular"
+              [disabled]="procesandoAnulacion"
+              (click)="anularMovimiento(movimiento)"
+            >
+              <lucide-icon
+                [img]="iconos.anular"
+                [size]="16"
+                [strokeWidth]="1.9"
+              />
+
+                      {{
+            procesandoAnulacion
+              ? 'Anulando...'
+              : 'Anular registro'
+          }}
+            </button>
+
+          }
+
+        </div>
+
+      </header>
+
+
+      <!-- =========================================================
+           RESUMEN DEL MOVIMIENTO
+      ========================================================== -->
+
+      <article class="resumen-movimiento">
+
+        <div
+          class="resumen-icono"
+          [class.icono-ingreso]="esIngreso(movimiento)"
+          [class.icono-egreso]="esEgreso(movimiento)"
+        >
+
+          @if (esIngreso(movimiento)) {
+
+            <lucide-icon
+              [img]="iconos.ingreso"
+              [size]="20"
+              [strokeWidth]="1.9"
+            />
+
+          } @else {
+
+            <lucide-icon
+              [img]="iconos.egreso"
+              [size]="20"
+              [strokeWidth]="1.9"
+            />
+
+          }
+
+        </div>
+
+
+        <div class="resumen-informacion">
+
+          <div class="resumen-etiquetas">
+
+            <span
+              class="badge-tipo"
+              [class.badge-ingreso]="esIngreso(movimiento)"
+              [class.badge-egreso]="esEgreso(movimiento)"
+            >
+              {{ etiquetaTipoMovimiento(movimiento.tipoMovimiento) }}
+            </span>
+
+
+            @if (esEgreso(movimiento)) {
+
+              <span
+                class="badge-estado"
+                [class.estado-proyectado]="esProyectado(movimiento)"
+                [class.estado-pagado]="!esProyectado(movimiento)"
+              >
+                {{ estadoEgreso(movimiento) }}
+              </span>
+
+            }
+
+
+            @if (fueRegistradoConXml(movimiento)) {
+
+              <span class="badge-xml">
+
+                <lucide-icon
+                  [img]="iconos.xml"
+                  [size]="13"
+                  [strokeWidth]="1.9"
+                />
+
+                XML
+
+              </span>
+
+            }
+
+          </div>
+
+
+          <h2>
+            {{ movimiento.descripcion }}
+          </h2>
+
+
+          <div class="resumen-meta">
+
+            <span>
+              {{ movimiento.categoria }}
+            </span>
+
+            <span class="separador">
+              •
+            </span>
+
+            <span>
+              {{ formatearFecha(movimiento.fechaMovimiento) }}
+            </span>
+
+          </div>
+
+        </div>
+
+
+        <div
+          class="resumen-monto"
+          [class.monto-ingreso]="esIngreso(movimiento)"
+          [class.monto-egreso]="esEgreso(movimiento)"
+        >
+          {{ esIngreso(movimiento) ? "+" : "-" }}
+
+          {{ movimiento.monto | monedaSol }}
+        </div>
+
       </article>
+
+
+      <!-- =========================================================
+           INGRESO
+      ========================================================== -->
+
+      @if (esIngreso(movimiento)) {
+
+        <article class="tarjeta-detalle tarjeta-ingreso">
+
+          <header class="tarjeta-header">
+
+            <div>
+
+              <span class="tarjeta-eyebrow">
+                Ingreso registrado
+              </span>
+
+              <h2>
+                Datos del ingreso
+              </h2>
+
+              <p>
+                Información necesaria para identificar la entrada de dinero.
+              </p>
+
+            </div>
+
+          </header>
+
+
+          <div class="detalle-grid detalle-grid-ingreso">
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Fecha del ingreso
+              </span>
+
+              <strong>
+                {{ formatearFecha(movimiento.fechaMovimiento) }}
+              </strong>
+
+            </div>
+
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Medio de ingreso
+              </span>
+
+              <strong>
+                {{ etiquetaMedioPago(movimiento.medioPago) }}
+              </strong>
+
+            </div>
+
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Origen del registro
+              </span>
+
+              <strong>
+                {{
+                  movimiento.origenRegistroDescripcion ||
+                  etiquetaOrigen(movimiento.origenRegistro)
+                }}
+              </strong>
+
+            </div>
+
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Registrado por
+              </span>
+
+              <strong>
+                {{ movimiento.usuarioRegistro || "No registrado" }}
+              </strong>
+
+            </div>
+
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Fecha de registro
+              </span>
+
+              <strong>
+                {{ formatearFechaHora(movimiento.fechaRegistro) }}
+              </strong>
+
+            </div>
+
+          </div>
+
+
+          @if (tieneObservacion(movimiento)) {
+
+            <div class="observacion-integrada">
+
+              <span class="detalle-label">
+                Observación
+              </span>
+
+              <p>
+                {{ movimiento.observacion }}
+              </p>
+
+            </div>
+
+          }
+
+        </article>
+
+      } @else {
+
+
+        <!-- =========================================================
+             DATOS FINANCIEROS DEL EGRESO
+        ========================================================== -->
+
+        <article class="tarjeta-detalle">
+
+          <header class="tarjeta-header">
+
+            <div>
+
+              <span class="tarjeta-eyebrow">
+                Seguimiento del egreso
+              </span>
+
+              <h2>
+                Datos financieros
+              </h2>
+
+              <p>
+                Información utilizada para controlar la salida de dinero.
+              </p>
+
+            </div>
+
+          </header>
+
+
+          <div class="detalle-grid">
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Clasificador
+              </span>
+
+              <strong>
+                {{ movimiento.categoria }}
+              </strong>
+
+            </div>
+
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Estado
+              </span>
+
+              <strong
+                class="estado-texto"
+                [class.texto-proyectado]="esProyectado(movimiento)"
+                [class.texto-pagado]="!esProyectado(movimiento)"
+              >
+                {{ estadoEgreso(movimiento) }}
+              </strong>
+
+            </div>
+
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Medio de pago
+              </span>
+
+              <strong>
+                {{ etiquetaMedioPago(movimiento.medioPago) }}
+              </strong>
+
+            </div>
+
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Fecha del movimiento
+              </span>
+
+              <strong>
+                {{ formatearFecha(movimiento.fechaMovimiento) }}
+              </strong>
+
+            </div>
+
+
+            @if (esProyectado(movimiento)) {
+
+              <div class="detalle-item">
+
+                <span class="detalle-label">
+                  Fecha proyectada
+                </span>
+
+                <strong>
+                  {{ formatearFecha(movimiento.fechaProyectada) }}
+                </strong>
+
+              </div>
+
+            } @else {
+
+              <div class="detalle-item">
+
+                <span class="detalle-label">
+                  Fecha de pago
+                </span>
+
+                <strong>
+                  {{ formatearFecha(movimiento.fechaPago) }}
+                </strong>
+
+              </div>
+
+            }
+
+
+            @if (!tieneComprobante(movimiento)) {
+
+              <div class="detalle-item sin-comprobante-compacto">
+
+                <span class="detalle-label">
+                  Comprobante
+                </span>
+
+                <strong>
+                  Sin comprobante
+                </strong>
+
+              </div>
+
+            }
+
+          </div>
+
+        </article>
+
+
+        <!-- =========================================================
+             COMPROBANTE
+        ========================================================== -->
+
+        @if (tieneComprobante(movimiento)) {
+
+          <article class="tarjeta-detalle">
+
+            <header class="tarjeta-header">
+
+              <div>
+
+                <span class="tarjeta-eyebrow">
+                  Documento de sustento
+                </span>
+
+                <h2>
+                  Comprobante
+                </h2>
+
+                <p>
+                  Información asociada al egreso registrado.
+                </p>
+
+              </div>
+
+            </header>
+
+
+            <div class="detalle-grid">
+
+              <div class="detalle-item">
+
+                <span class="detalle-label">
+                  Tipo de comprobante
+                </span>
+
+                <strong>
+                  {{ etiquetaComprobante(movimiento.tipoComprobante) }}
+                </strong>
+
+              </div>
+
+
+              <div class="detalle-item">
+
+                <span class="detalle-label">
+                  Fecha del comprobante
+                </span>
+
+                <strong>
+                  {{ formatearFecha(movimiento.fechaComprobante) }}
+                </strong>
+
+              </div>
+
+
+              <div class="detalle-item">
+
+                <span class="detalle-label">
+                  Serie y número
+                </span>
+
+                <strong>
+                  {{ obtenerNumeroComprobante(movimiento) }}
+                </strong>
+
+              </div>
+
+
+              <div class="detalle-item">
+
+                <span class="detalle-label">
+                  RUC / Documento del emisor
+                </span>
+
+                <strong>
+                  {{ movimiento.documentoEmisor || "No registrado" }}
+                </strong>
+
+              </div>
+
+
+              <div class="detalle-item detalle-item-ancho">
+
+                <span class="detalle-label">
+                  Proveedor / Emisor
+                </span>
+
+                <strong>
+                  {{ movimiento.razonSocialEmisor || "No registrado" }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </article>
+
+        }
+
+
+        <!-- =========================================================
+             XML
+        ========================================================== -->
+
+        @if (fueRegistradoConXml(movimiento)) {
+
+          <article class="tarjeta-detalle tarjeta-xml">
+
+            <header class="tarjeta-header">
+
+              <div>
+
+                <span class="tarjeta-eyebrow">
+                  Carga automatizada
+                </span>
+
+                <h2>
+                  Registro asistido por XML
+                </h2>
+
+                <p>
+                  Los datos del comprobante fueron procesados por el sistema.
+                </p>
+
+              </div>
+
+              <span class="xml-estado">
+                Procesado
+              </span>
+
+            </header>
+
+
+            <div class="archivo-xml">
+
+              <div class="archivo-icono">
+
+                <lucide-icon
+                  [img]="iconos.xml"
+                  [size]="20"
+                  [strokeWidth]="1.8"
+                />
+
+              </div>
+
+              <div>
+
+                <span>
+                  Archivo utilizado
+                </span>
+
+                <strong>
+                  {{ movimiento.archivoXmlNombre || "XML procesado" }}
+                </strong>
+
+              </div>
+
+            </div>
+
+          </article>
+
+        }
+
+
+        <!-- =========================================================
+             OBSERVACIÓN
+        ========================================================== -->
+
+        @if (tieneObservacion(movimiento)) {
+
+          <article class="tarjeta-detalle">
+
+            <header class="tarjeta-header">
+
+              <div>
+
+                <span class="tarjeta-eyebrow">
+                  Información complementaria
+                </span>
+
+                <h2>
+                  Observación
+                </h2>
+
+              </div>
+
+            </header>
+
+            <p class="observacion-texto">
+              {{ movimiento.observacion }}
+            </p>
+
+          </article>
+
+        }
+
+
+        <!-- =========================================================
+             TRAZABILIDAD
+        ========================================================== -->
+
+        <article class="tarjeta-detalle">
+
+          <header class="tarjeta-header">
+
+            <div>
+
+              <span class="tarjeta-eyebrow">
+                Trazabilidad
+              </span>
+
+              <h2>
+                Información de registro
+              </h2>
+
+              <p>
+                Datos de control y auditoría del movimiento.
+              </p>
+
+            </div>
+
+          </header>
+
+
+          <div class="detalle-grid auditoria-grid">
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Registrado por
+              </span>
+
+              <strong>
+                {{ movimiento.usuarioRegistro || "No registrado" }}
+              </strong>
+
+            </div>
+
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Fecha de registro
+              </span>
+
+              <strong>
+                {{ formatearFechaHora(movimiento.fechaRegistro) }}
+              </strong>
+
+            </div>
+
+
+            <div class="detalle-item">
+
+              <span class="detalle-label">
+                Origen del registro
+              </span>
+
+              <strong>
+                {{
+                  movimiento.origenRegistroDescripcion ||
+                  etiquetaOrigen(movimiento.origenRegistro)
+                }}
+              </strong>
+
+            </div>
+
+          </div>
+
+        </article>
+
+      }
+
+
+      <!-- =========================================================
+           PIE
+      ========================================================== -->
+
+      <footer class="pagina-footer">
+
+        <a
+          routerLink="/movimientos"
+          class="boton-secundario"
+        >
+          Volver a movimientos
+        </a>
+
+      </footer>
+
+
+    } @else {
+
+      <!-- =========================================================
+           ERROR / NO ENCONTRADO
+      ========================================================== -->
+
+      <div class="movimiento-no-encontrado">
+
+        <div class="no-encontrado-icono">
+
+          <lucide-icon
+            [img]="iconos.noEncontrado"
+            [size]="22"
+            [strokeWidth]="1.8"
+          />
+
+        </div>
+
+
+        <h2>
+          {{
+            errorCargaMovimiento
+              ? "No se pudo cargar el movimiento"
+              : "Movimiento no encontrado"
+          }}
+        </h2>
+
+
+        <p>
+          {{
+            errorCargaMovimiento
+              ? "Ocurrió un error al consultar el registro. Intenta nuevamente."
+              : "El movimiento solicitado no existe o no se encuentra disponible."
+          }}
+        </p>
+
+
+        <a routerLink="/movimientos">
+          Volver a movimientos
+        </a>
+
+      </div>
+
     }
 
-    <article class="tarjeta-detalle">
-      <header class="tarjeta-header">
-        <h2>Detalle adicional</h2>
-      </header>
-
-      <div class="detalle-texto">
-        <div>
-          <span class="detalle-label"> Descripción </span>
-
-          <p>
-            {{ movimiento.descripcion }}
-          </p>
-        </div>
-
-        <div>
-          <span class="detalle-label"> Observación </span>
-
-          <p>
-            {{ movimiento.observacion || "Sin observaciones." }}
-          </p>
-        </div>
-      </div>
-    </article>
-
-    <article class="tarjeta-detalle">
-      <header class="tarjeta-header">
-        <h2>Información de registro</h2>
-
-        <p>Datos de control y auditoría.</p>
-      </header>
-
-      <div class="detalle-grid">
-        <div class="detalle-item">
-          <span class="detalle-label"> Registrado por </span>
-
-          <strong>
-            {{ movimiento.usuarioRegistro }}
-          </strong>
-        </div>
-
-        <div class="detalle-item">
-          <span class="detalle-label"> Fecha de registro </span>
-
-          <strong>
-            {{ formatearFechaHora(movimiento.fechaRegistro) }}
-          </strong>
-        </div>
-
-        <div class="detalle-item">
-          <span class="detalle-label"> Origen del registro </span>
-
-          <strong>
-            {{ etiquetaOrigen(movimiento.origenRegistro) }}
-          </strong>
-        </div>
-      </div>
-    </article>
-
-    <footer class="pagina-footer">
-      <a routerLink="/movimientos" class="boton-secundario">
-        Volver a movimientos
-      </a>
-
-      @if (puedeEditar(movimiento)) {
-        <a
-          [routerLink]="['/movimientos', movimiento.id, 'editar']"
-          class="boton-principal"
-        >
-          Editar movimiento
-        </a>
-      }
-    </footer>
-  } @else {
-    <div class="movimiento-no-encontrado">
-      <div class="no-encontrado-icono">
-        <lucide-icon [img]="iconos.noEncontrado" [size]="22" [strokeWidth]="1.8" />
-      </div>
-
-      <h2>Movimiento no encontrado</h2>
-
-      <p>El movimiento solicitado no existe.</p>
-
-      <a routerLink="/movimientos"> Volver a movimientos </a>
-    </div>
   }
+
 </section>

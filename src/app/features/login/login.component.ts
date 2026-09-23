@@ -5,7 +5,7 @@ import {
   ReactiveFormsModule,
   Validators,
 } from '@angular/forms';
-import { Router } from '@angular/router';
+import { Router,  RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import {
   ArrowRight,
@@ -13,6 +13,7 @@ import {
   Check,
   Eye,
   EyeOff,
+  LoaderCircle,
   LockKeyhole,
   LucideAngularModule,
   Mail,
@@ -27,6 +28,7 @@ import { AuthService } from '../../core/auth/auth.service';
     CommonModule,
     ReactiveFormsModule,
     LucideAngularModule,
+    RouterLink,
   ],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
@@ -40,6 +42,7 @@ export class LoginComponent implements OnInit {
     mostrar: Eye,
     ocultar: EyeOff,
     ingresar: ArrowRight,
+    cargando: LoaderCircle,
   };
 
   private readonly formBuilder = inject(FormBuilder);
@@ -47,7 +50,6 @@ export class LoginComponent implements OnInit {
   private readonly router = inject(Router);
 
   isSubmitting = false;
-  authError = '';
 
   mostrarContrasena = false;
 
@@ -68,13 +70,16 @@ export class LoginComponent implements OnInit {
       ],
     ],
 
-    remember: [true],
   });
 
   ngOnInit(): void {
 
     if (this.authService.isAuthenticated()) {
-      void this.router.navigateByUrl('/inicio');
+      void this.router.navigateByUrl(
+        this.authService.requiereCambioPassword()
+          ? '/cuenta/cambiar-password'
+          : '/inicio',
+      );
     }
 
   }
@@ -93,7 +98,6 @@ export class LoginComponent implements OnInit {
     }
 
     this.isSubmitting = true;
-    this.authError = '';
 
     const {
       email,
@@ -111,21 +115,40 @@ export class LoginComponent implements OnInit {
 
         next: () => {
 
-          void this.router.navigateByUrl('/inicio');
+          void this.router.navigateByUrl(
+            this.authService.requiereCambioPassword()
+              ? '/cuenta/cambiar-password'
+              : '/inicio',
+          );
 
         },
 
         error: (error) => {
-
-          this.authError =
+          const mensaje =
             error instanceof Error
               ? error.message
               : 'No se pudo iniciar sesión. Verifica tus credenciales.';
 
+          void this.mostrarErrorAutenticacion(mensaje);
         },
 
       });
 
+  }
+
+  private async mostrarErrorAutenticacion(mensaje: string): Promise<void> {
+    const { default: Swal } = await import('sweetalert2');
+
+    await Swal.fire({
+      icon: 'error',
+      title: 'No pudimos iniciar sesión',
+      text: mensaje,
+      confirmButtonText: 'Entendido',
+      confirmButtonColor: '#2563eb',
+      heightAuto: false,
+      allowOutsideClick: true,
+      allowEscapeKey: true,
+    });
   }
 
   hasError(

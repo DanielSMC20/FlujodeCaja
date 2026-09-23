@@ -1,8 +1,9 @@
 import { Routes } from '@angular/router';
-
+import { gestionMovimientosGuard } from './core/guards/gestion-movimientos.guard';
 import { EstructuraPrincipalComponent } from './estructura/estructura-principal/estructura-principal.component';
 import { LoginComponent } from './features/login/login.component';
 import { authGuard } from './core/guards/auth.guard';
+import { administradorGuard } from './core/guards/administrador.guard';
 import { configuracionInicialGuard } from './core/guards/configuracion-inicial.guard';
 
 export const routes: Routes = [
@@ -16,6 +17,20 @@ export const routes: Routes = [
     redirectTo: 'login',
   },
   {
+  path: 'recuperar-password',
+  loadComponent: () =>
+    import('./features/recuperar-password/recuperar-password.component').then(
+      (component) => component.RecuperarPasswordComponent,
+    ),
+},
+{
+  path: 'restablecer-password',
+  loadComponent: () =>
+    import('./features/restablecer-password/restablecer-password.component').then(
+      (component) => component.RestablecerPasswordComponent,
+    ),
+},
+  {
     path: 'configuracion-inicial',
     canActivate: [authGuard],
     loadComponent: () =>
@@ -24,10 +39,18 @@ export const routes: Routes = [
       ),
   },
   {
+    path: 'cuenta/cambiar-password',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./features/cambiar-password/cambiar-password.component').then(
+        (component) => component.CambiarPasswordComponent,
+      ),
+  },
+  {
     path: '',
     component: EstructuraPrincipalComponent,
     canActivate: [authGuard, configuracionInicialGuard],
-    canActivateChild: [authGuard, configuracionInicialGuard],
+    canActivateChild: [authGuard],
     children: [
       {
         path: 'inicio',
@@ -36,6 +59,7 @@ export const routes: Routes = [
             (component) => component.PanelPrincipalComponent,
           ),
       },
+      
       {
         path: 'movimientos',
         children: [
@@ -48,6 +72,7 @@ export const routes: Routes = [
           },
           {
             path: 'nuevo',
+            canActivate: [gestionMovimientosGuard],
             loadComponent: () =>
               import('./modulos/movimientos/paginas/formulario-movimiento/formulario-movimiento.component').then(
                 (component) => component.FormularioMovimientoComponent,
@@ -55,6 +80,7 @@ export const routes: Routes = [
           },
           {
             path: 'egresos-masivos',
+            canActivate: [gestionMovimientosGuard],
             loadComponent: () =>
               import('./modulos/movimientos/paginas/carga-masiva-movimientos/carga-masiva-movimientos.component').then(
                 (component) => component.CargaMasivaMovimientosComponent,
@@ -69,6 +95,7 @@ export const routes: Routes = [
           },
           {
             path: ':id/editar',
+            canActivate: [gestionMovimientosGuard],
             loadComponent: () =>
               import('./modulos/movimientos/paginas/formulario-movimiento/formulario-movimiento.component').then(
                 (component) => component.FormularioMovimientoComponent,
@@ -92,25 +119,47 @@ export const routes: Routes = [
       },
       {
         path: 'categorias',
+        canActivate: [administradorGuard],
         loadComponent: () =>
           import('./modulos/categorias/paginas/lista-categorias/lista-categorias.component').then(
             (component) => component.ListaCategoriasComponent,
           ),
       },
+
+      {
+  path:
+    'configuracion/usuarios',
+
+  canActivate: [
+    administradorGuard,
+  ],
+
+  loadComponent: () =>
+    import(
+      './modulos/configuracion/paginas/usuarios/usuarios.component'
+    ).then(
+      (component) =>
+        component.UsuariosComponent,
+    ),
+},
       {
         path: 'configuracion/usuarios/nuevo',
+        canActivate: [administradorGuard],
         loadComponent: () =>
           import('./modulos/configuracion/paginas/crear-cuenta-empresa/crear-cuenta-empresa.component').then(
             (component) => component.CrearCuentaEmpresaComponent,
           ),
       },
+
       {
         path: 'configuracion',
+        canActivate: [administradorGuard],
         loadComponent: () =>
           import('./modulos/configuracion/paginas/configuracion/configuracion.component').then(
             (component) => component.ConfiguracionComponent,
           ),
       },
+
     ],
   },
   {

@@ -1,379 +1,156 @@
 <section class="pagina-flujo">
-
   <header class="pagina-header">
-
     <div>
-
-      <span class="pagina-etiqueta">
-        Flujo de caja
-      </span>
-
-      <h1>
-        Control diario de ingresos y egresos
-      </h1>
-
+      <span class="pagina-etiqueta">Flujo de caja</span>
+      <h1>Control diario real y proyectado</h1>
       <p>
-        Analiza cuánto dinero ingresó y cuánto salió de tu empresa durante el periodo seleccionado.
+       El saldo disponible muestra el dinero que la empresa tiene actualmente. El saldo estimado muestra cuánto quedaría después de pagar todos los egresos pendientes
       </p>
-
     </div>
-
   </header>
 
-
   <article class="tarjeta filtros">
-
-    <form
-      class="filtros-formulario"
-      [formGroup]="formulario"
-      (ngSubmit)="aplicarFiltros()"
-    >
-
+    <form class="filtros-formulario" [formGroup]="formulario" (ngSubmit)="aplicarFiltros()">
       <div class="campo">
-
-        <label for="fechaDesde">
-          Desde
-        </label>
-
-        <input
-          id="fechaDesde"
-          type="date"
-          formControlName="fechaDesde"
-        />
-
+        <label for="fechaDesde">Desde</label>
+        <input id="fechaDesde" type="date" formControlName="fechaDesde" [min]="fechaApertura" />
       </div>
 
-
       <div class="campo">
-
-        <label for="fechaHasta">
-          Hasta
-        </label>
-
-        <input
-          id="fechaHasta"
-          type="date"
-          formControlName="fechaHasta"
-        />
-
+        <label for="fechaHasta">Hasta</label>
+        <input id="fechaHasta" type="date" formControlName="fechaHasta" [min]="fechaApertura" />
       </div>
-
 
       <div class="acciones-filtro">
-
-        <button
-          type="button"
-          class="boton-secundario"
-          (click)="limpiarFiltros()"
-        >
-          Limpiar
-        </button>
-
-
-        <button
-          type="submit"
-          class="boton-principal"
-        >
-          Aplicar filtros
-        </button>
-
+        <button type="button" class="boton-secundario" (click)="limpiarFiltros()">Limpiar</button>
+        <button type="submit" class="boton-principal">Aplicar filtros</button>
       </div>
-
     </form>
 
+    @if (errorFiltro) {
+      <p class="mensaje-error">{{ errorFiltro }}</p>
+    }
   </article>
+@if (cargandoFlujo) {
+  <div class="estado-vacio">
+    <strong>
+      Cargando flujo de caja...
+    </strong>
 
-
-  @if (
-    flujoCaja$ | async;
-    as flujoCaja
-  ) {
-
+    <p>
+      Consultando el periodo seleccionado.
+    </p>
+  </div>
+}
+  @if (flujoCaja$ | async; as flujoCaja) {
     <div class="resumen-grid">
-
       <article class="indicador">
-
-        <span class="indicador-label">
-          Ingresos
-        </span>
-
-        <strong class="valor-ingreso">
-          {{
-            flujoCaja.resumen.totalIngresos
-              | monedaSol
-          }}
-        </strong>
-
-        <small>
-          En el periodo seleccionado
-        </small>
-
+        <span class="indicador-label">Saldo al iniciar el periodo</span>
+        <strong class="valor-neutro">{{ flujoCaja.resumen.saldoInicialReal | monedaSol }}</strong>
+        <small>Incluye la apertura y los días anteriores</small>
       </article>
 
-
       <article class="indicador">
-
-        <span class="indicador-label">
-          Egresos
-        </span>
-
-        <strong class="valor-egreso">
-          {{
-            flujoCaja.resumen.totalEgresos
-              | monedaSol
-          }}
-        </strong>
-
-        <small>
-          En el periodo seleccionado
-        </small>
-
+        <span class="indicador-label">Ingresos</span>
+        <strong class="valor-ingreso">{{ flujoCaja.resumen.totalIngresos | monedaSol }}</strong>
+        <small>Ventas por Efectivo y POS</small>
       </article>
 
+      <article class="indicador">
+        <span class="indicador-label">Egresos pagados</span>
+        <strong class="valor-egreso">{{ flujoCaja.resumen.totalEgresosPagados | monedaSol }}</strong>
+        <small>Salidas que ya afectaron la caja</small>
+      </article>
 
       <article class="indicador">
+        <span class="indicador-label">Egresos proyectados</span>
+        <strong class="valor-proyectado">{{ flujoCaja.resumen.totalEgresosProyectados | monedaSol }}</strong>
+        <small>Compromisos todavía pendientes</small>
+      </article>
 
-        <span class="indicador-label">
-          Neto del periodo
-        </span>
-
+      <article class="indicador">
+        <span class="indicador-label">Saldo disponible (real)</span>
         <strong
-          [class.valor-ingreso]="
-            flujoCaja.resumen.neto >= 0
-          "
-          [class.valor-egreso]="
-            flujoCaja.resumen.neto < 0
-          "
+          [class.valor-ingreso]="flujoCaja.resumen.saldoFinalReal >= 0"
+          [class.valor-egreso]="flujoCaja.resumen.saldoFinalReal < 0"
         >
-
-          {{
-            flujoCaja.resumen.neto
-              | monedaSol
-          }}
-
+          {{ flujoCaja.resumen.saldoFinalReal | monedaSol }}
         </strong>
-
-        <small>
-          Ingresos menos egresos
-        </small>
-
+        <small>Solo considera egresos pagados</small>
       </article>
-
 
       <article class="indicador">
-
-        <span class="indicador-label">
-          Movimientos
-        </span>
-
-        <strong class="valor-neutro">
-          {{
-            flujoCaja.resumen
-              .cantidadMovimientos
-          }}
+        <span class="indicador-label">Saldo estimado (proyectado)</span>
+        <strong
+          [class.valor-ingreso]="flujoCaja.resumen.saldoFinalProyectado >= 0"
+          [class.valor-egreso]="flujoCaja.resumen.saldoFinalProyectado < 0"
+        >
+          {{ flujoCaja.resumen.saldoFinalProyectado | monedaSol }}
         </strong>
-
-        <small>
-          {{
-            flujoCaja.resumen
-              .diasConMovimiento
-          }}
-          días con movimientos
-        </small>
-
+        <small>Incluye también los egresos pendientes</small>
       </article>
-
     </div>
 
-
     <article class="tarjeta">
-
       <header class="tabla-header">
-
         <div>
-
-          <h2>
-            Resumen diario
-          </h2>
-
-          <p>
-            Ingresos y egresos agrupados por fecha.
-          </p>
-
+          <h2>Resumen diario</h2>
+          <p> Revisa cuánto ingresó, cuánto se pagó y cuánto quedaría disponible después de considerar los pagos pendientes.</p>
         </div>
-
       </header>
 
-
-      @if (
-        flujoCaja.filas.length > 0
-      ) {
-
+      @if (flujoCaja.filas.length > 0) {
         <div class="tabla-contenedor">
-
           <table>
-
             <thead>
-
               <tr>
-
-                <th>
-                  Fecha
-                </th>
-
-                <th>
-                  Movimientos
-                </th>
-
-                <th class="texto-derecha">
-                  Ingresos
-                </th>
-
-                <th class="texto-derecha">
-                  Egresos
-                </th>
-
-                <th class="texto-derecha">
-                  Neto del día
-                </th>
-
+                <th>Fecha</th>
+                <th class="texto-derecha">Ingresos</th>
+                <th class="texto-derecha">Pagados</th>
+                <th class="texto-derecha">Proyectados</th>
+                <th class="texto-derecha">Cambio real del día</th>
+                <th class="texto-derecha">Cambio estimado del día</th>
+                <th class="texto-derecha">Saldo real</th>
+                <th class="texto-derecha">Saldo proyectado</th>
               </tr>
-
             </thead>
-
-
             <tbody>
-
-              @for (
-                fila of flujoCaja.filas;
-                track fila.fecha
-              ) {
-
+              @for (fila of flujoCaja.filas; track fila.fecha) {
                 <tr>
-
-                  <td>
-
-                    <strong class="fecha">
-                      {{
-                        formatearFecha(
-                          fila.fecha
-                        )
-                      }}
-                    </strong>
-
-                  </td>
-
-
-                  <td>
-
-                    <span class="cantidad">
-                      {{
-                        fila.cantidadMovimientos
-                      }}
-                    </span>
-
-                  </td>
-
-
-                  <td class="texto-derecha ingreso">
-
-                    @if (
-                      fila.ingresos > 0
-                    ) {
-
-                      + {{
-                        fila.ingresos
-                          | monedaSol
-                      }}
-
-                    } @else {
-
-                      <span class="sin-monto">
-                        —
-                      </span>
-
-                    }
-
-                  </td>
-
-
-                  <td class="texto-derecha egreso">
-
-                    @if (
-                      fila.egresos > 0
-                    ) {
-
-                      - {{
-                        fila.egresos
-                          | monedaSol
-                      }}
-
-                    } @else {
-
-                      <span class="sin-monto">
-                        —
-                      </span>
-
-                    }
-
-                  </td>
-
-
+                  <td><strong class="fecha">{{ formatearFecha(fila.fecha) }}</strong></td>
+                  <td class="texto-derecha ingreso">{{ fila.ingresos | monedaSol }}</td>
+                  <td class="texto-derecha egreso">{{ fila.egresosPagados | monedaSol }}</td>
+                  <td class="texto-derecha proyectado">{{ fila.egresosProyectados | monedaSol }}</td>
                   <td
                     class="texto-derecha neto"
-                    [class.neto-positivo]="
-                      fila.neto > 0
-                    "
-                    [class.neto-negativo]="
-                      fila.neto < 0
-                    "
-                    [class.neto-cero]="
-                      fila.neto === 0
-                    "
+                    [class.neto-positivo]="fila.flujoReal > 0"
+                    [class.neto-negativo]="fila.flujoReal < 0"
                   >
-
-                    {{
-                      fila.neto
-                        | monedaSol
-                    }}
-
+                    {{ fila.flujoReal | monedaSol }}
                   </td>
-
+                  <td
+                    class="texto-derecha neto"
+                    [class.neto-positivo]="fila.flujoProyectado > 0"
+                    [class.neto-negativo]="fila.flujoProyectado < 0"
+                  >
+                    {{ fila.flujoProyectado | monedaSol }}
+                  </td>
+                  <td class="texto-derecha monto-destacado">{{ fila.saldoReal | monedaSol }}</td>
+                  <td class="texto-derecha monto-destacado">{{ fila.saldoProyectado | monedaSol }}</td>
                 </tr>
-
               }
-
             </tbody>
-
           </table>
-
         </div>
-
       } @else {
-
         <div class="estado-vacio">
-
           <div class="estado-vacio-icono">
-
-            <lucide-icon [img]="ChartNoAxesCombined" aria-hidden="true"></lucide-icon>
-
+            <lucide-icon [img]="ChartNoAxesCombined" aria-hidden="true" />
           </div>
-
-
-          <strong>
-            No hay movimientos
-          </strong>
-
-          <p>
-            No se encontraron ingresos o egresos para el periodo seleccionado.
-          </p>
-
+          <strong>Sin movimientos en el periodo</strong>
+          <p>El saldo de apertura seguirá disponible aunque todavía no existan movimientos.</p>
         </div>
-
       }
-
     </article>
-
   }
-
 </section>

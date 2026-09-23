@@ -152,7 +152,7 @@ export class CategoriaService {
 
         return categoria
           ? of(categoria)
-          : throwError(() => new Error('La categoría no existe.'));
+          : throwError(() => new Error('El clasificador no existe.'));
       }),
     );
   }
@@ -215,6 +215,6 @@ export class CategoriaService {
       return 'No se pudo conectar con el servidor.';
     }
 
-    return 'No se pudo procesar la categoría.';
+    return 'No se pudo procesar el clasificador.';
   }
 }

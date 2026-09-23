@@ -162,7 +162,7 @@
 .resumen-grid {
   display: grid;
 
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
 
   gap: 0.8rem;
 }
@@ -217,8 +217,25 @@
   color: #dc2626;
 }
 
+.valor-proyectado,
+.proyectado {
+  color: #b45309;
+}
+
 .valor-neutro {
   color: #2563eb;
+}
+
+.monto-destacado {
+  color: #0f172a;
+  font-weight: 700;
+}
+
+.mensaje-error {
+  margin: 0.75rem 0 0;
+  color: #b91c1c;
+  font-size: 0.72rem;
+  font-weight: 600;
 }
 
 .tabla-header {

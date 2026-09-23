@@ -154,6 +154,9 @@ export interface ActualizarMovimientoRequest {
 
   hashXml?: string;
 }
+export interface AnularMovimientoRequest {
+  motivo: string;
+}
 
 
 export interface PagarMovimientoRequest {

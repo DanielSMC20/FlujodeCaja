@@ -1,120 +1,107 @@
-import { Injectable } from '@angular/core';
+import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import { Injectable, inject } from '@angular/core';
+import { Observable, catchError, map, throwError } from 'rxjs';
 
-import { Observable, map } from 'rxjs';
+import { API_CONFIG } from '../../core/config/api.config';
+import { ResultadoFlujoCaja } from '../modelos/flujo-caja.model';
 
-import {
-  FlujoCajaPorDia,
-  ResultadoFlujoCaja,
-} from '../modelos/flujo-caja.model';
+interface FlujoCajaBackendResponse {
+  resumen: {
+    fechaDesde: string | null;
+    fechaHasta: string | null;
+    saldoInicialReal: number;
+    saldoInicialProyectado: number;
+    totalIngresos: number;
+    totalEgresosPagados: number;
+    totalEgresosProyectados: number;
+    saldoFinalReal: number;
+    saldoFinalProyectado: number;
+  };
+  detalle: Array<{
+    fecha: string;
+    ingresos: number;
+    egresosPagados: number;
+    egresosProyectados: number;
+    flujoReal: number;
+    flujoProyectado: number;
+    saldoReal: number;
+    saldoProyectado: number;
+  }>;
+}
 
-import { Movimiento } from '../modelos/movimiento';
+interface ApiErrorResponse {
+  message?: string;
+}
 
-import { MovimientoService } from './movimiento.service';
-
-@Injectable({
-  providedIn: 'root',
-})
+@Injectable({ providedIn: 'root' })
 export class FlujoCajaService {
-  constructor(private readonly movimientoService: MovimientoService) {}
+  private readonly http = inject(HttpClient);
 
   obtenerFlujoCaja(
     fechaDesde?: string,
     fechaHasta?: string,
   ): Observable<ResultadoFlujoCaja> {
-    return this.movimientoService.listarMovimientos().pipe(
-      map((movimientos) => {
-        const movimientosFiltrados = this.filtrarMovimientos(
-          movimientos,
-          fechaDesde,
-          fechaHasta,
-        );
+    let params = new HttpParams();
 
-        const filas = this.agruparPorDia(movimientosFiltrados);
+    if (fechaDesde) {
+      params = params.set('fechaDesde', fechaDesde);
+    }
 
-        const totalIngresos = movimientosFiltrados
-          .filter((movimiento) => movimiento.tipoMovimiento === 1)
-          .reduce((total, movimiento) => total + movimiento.monto, 0);
+    if (fechaHasta) {
+      params = params.set('fechaHasta', fechaHasta);
+    }
 
-        const totalEgresos = movimientosFiltrados
-          .filter((movimiento) => movimiento.tipoMovimiento === 2)
-          .reduce((total, movimiento) => total + movimiento.monto, 0);
-
-        return {
+    return this.http
+      .get<FlujoCajaBackendResponse>(`${API_CONFIG.baseUrl}/flujo-caja`, {
+        params,
+      })
+      .pipe(
+        map((response) => ({
           resumen: {
-            totalIngresos,
-
-            totalEgresos,
-
-            neto: totalIngresos - totalEgresos,
-
-            cantidadMovimientos: movimientosFiltrados.length,
-
-            diasConMovimiento: filas.length,
+            fechaDesde: response.resumen.fechaDesde,
+            fechaHasta: response.resumen.fechaHasta,
+            saldoInicialReal: Number(response.resumen.saldoInicialReal ?? 0),
+            saldoInicialProyectado: Number(
+              response.resumen.saldoInicialProyectado ?? 0,
+            ),
+            totalIngresos: Number(response.resumen.totalIngresos ?? 0),
+            totalEgresosPagados: Number(
+              response.resumen.totalEgresosPagados ?? 0,
+            ),
+            totalEgresosProyectados: Number(
+              response.resumen.totalEgresosProyectados ?? 0,
+            ),
+            saldoFinalReal: Number(response.resumen.saldoFinalReal ?? 0),
+            saldoFinalProyectado: Number(
+              response.resumen.saldoFinalProyectado ?? 0,
+            ),
           },
-
-          filas,
-        };
-      }),
-    );
+          filas: (response.detalle ?? []).map((fila) => ({
+            fecha: fila.fecha,
+            ingresos: Number(fila.ingresos ?? 0),
+            egresosPagados: Number(fila.egresosPagados ?? 0),
+            egresosProyectados: Number(fila.egresosProyectados ?? 0),
+            flujoReal: Number(fila.flujoReal ?? 0),
+            flujoProyectado: Number(fila.flujoProyectado ?? 0),
+            saldoReal: Number(fila.saldoReal ?? 0),
+            saldoProyectado: Number(fila.saldoProyectado ?? 0),
+          })),
+        })),
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.obtenerMensajeError(error))),
+        ),
+      );
   }
 
-  private filtrarMovimientos(
-    movimientos: Movimiento[],
-    fechaDesde?: string,
-    fechaHasta?: string,
-  ): Movimiento[] {
-    return movimientos.filter((movimiento) => {
-      if (movimiento.tipoMovimiento === 2 && movimiento.bCancelado === 0) {
-        return false;
-      }
+  private obtenerMensajeError(error: HttpErrorResponse): string {
+    const mensaje = (error.error as ApiErrorResponse | null)?.message;
 
-      if (fechaDesde && movimiento.fechaMovimiento < fechaDesde) {
-        return false;
-      }
+    if (mensaje) {
+      return mensaje;
+    }
 
-      if (fechaHasta && movimiento.fechaMovimiento > fechaHasta) {
-        return false;
-      }
-
-      return true;
-    });
-  }
-
-  private agruparPorDia(movimientos: Movimiento[]): FlujoCajaPorDia[] {
-    const agrupado = new Map<string, FlujoCajaPorDia>();
-
-    movimientos.forEach((movimiento) => {
-      const fecha = movimiento.fechaMovimiento;
-
-      const filaActual = agrupado.get(fecha) ?? {
-        fecha,
-
-        cantidadMovimientos: 0,
-
-        ingresos: 0,
-
-        egresos: 0,
-
-        neto: 0,
-      };
-
-      filaActual.cantidadMovimientos++;
-
-      if (movimiento.tipoMovimiento === 1) {
-        filaActual.ingresos += movimiento.monto;
-      }
-
-      if (movimiento.tipoMovimiento === 2) {
-        filaActual.egresos += movimiento.monto;
-      }
-
-      filaActual.neto = filaActual.ingresos - filaActual.egresos;
-
-      agrupado.set(fecha, filaActual);
-    });
-
-    return [...agrupado.values()].sort((a, b) =>
-      a.fecha.localeCompare(b.fecha),
-    );
+    return error.status === 0
+      ? 'No se pudo conectar con el servidor.'
+      : 'No se pudo obtener el flujo de caja.';
   }
 }

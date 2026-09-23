@@ -19,14 +19,19 @@ export class ComprobanteXmlService {
       return throwError(() => new Error('El archivo XML está vacío.'));
     }
 
-    return from(archivo.text()).pipe(
-      map((contenido) => this.leerXml(contenido, archivo.name)),
+    return from(
+      Promise.all([archivo.text(), this.calcularHashSha256(archivo)]),
+    ).pipe(
+      map(([contenido, hashXml]) =>
+        this.leerXml(contenido, archivo.name, hashXml),
+      ),
     );
   }
 
   private leerXml(
     contenido: string,
     nombreArchivo: string,
+    hashXml: string,
   ): ComprobanteXmlProcesado {
     const contenidoLimpio = this.normalizarContenidoXml(contenido);
 
@@ -70,32 +75,22 @@ export class ComprobanteXmlService {
     const descripcion = this.obtenerDescripcion(documento);
 
     const resultado: ComprobanteXmlProcesado = {
-      nombreArchivo,
+  nombreArchivo,
+  hashXml,
 
-      tipoComprobante: tipoComprobante.valor,
-
-      tipoComprobanteTexto: tipoComprobante.texto,
-
-      fechaEmision: fechaEmision || undefined,
-
-      serie: serie || undefined,
-
-      numero: numero || undefined,
-
-      moneda: this.obtenerMoneda(codigoMoneda),
-
-      codigoMoneda: codigoMoneda || undefined,
-
-      importeTotal,
-
-      documentoEmisor: emisor.documento || undefined,
-
-      razonSocialEmisor: emisor.razonSocial || undefined,
-
-      descripcion: descripcion || undefined,
-
-      camposEncontrados: 0,
-    };
+  tipoComprobante: tipoComprobante.valor,
+  tipoComprobanteTexto: tipoComprobante.texto,
+  fechaEmision: fechaEmision || undefined,
+  serie: serie || undefined,
+  numero: numero || undefined,
+  moneda: this.obtenerMoneda(codigoMoneda),
+  codigoMoneda: codigoMoneda || undefined,
+  importeTotal,
+  documentoEmisor: emisor.documento || undefined,
+  razonSocialEmisor: emisor.razonSocial || undefined,
+  descripcion: descripcion || undefined,
+  camposEncontrados: 0,
+};
 
     resultado.camposEncontrados = this.contarCamposEncontrados(resultado);
 
@@ -598,4 +593,20 @@ export class ComprobanteXmlService {
       (valor) => valor !== undefined && valor !== null && valor !== '',
     ).length;
   }
+  private async calcularHashSha256(
+  archivo: File,
+): Promise<string> {
+  const contenido = await archivo.arrayBuffer();
+
+  const hashBuffer = await crypto.subtle.digest(
+    'SHA-256',
+    contenido,
+  );
+
+  return Array.from(new Uint8Array(hashBuffer))
+    .map((byte) =>
+      byte.toString(16).padStart(2, '0'),
+    )
+    .join('');
+}
 }

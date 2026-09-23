@@ -46,6 +46,9 @@ interface LoginBackendResponse {
 interface ApiErrorResponse {
   message?: string;
 }
+interface MensajeAuthResponse {
+  mensaje: string;
+}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -55,8 +58,9 @@ export class AuthService {
   private readonly sesionUsuarioService = inject(SesionUsuarioService);
 
   private readonly tokenStorageKey = 'fc_access_token_v2';
-    private readonly expiryStorageKey = 'fc_expires_at_v2';
-      private readonly emailStorageKey = 'fc_user_email_v2';
+  private readonly expiryStorageKey = 'fc_expires_at_v2';
+  private readonly emailStorageKey = 'fc_user_email_v2';
+  private readonly passwordChangeStorageKey = 'fc_password_change_required_v2';
 
   private readonly inactivityWindowMs = 8 * 60 * 60 * 1000;
   private readonly monitorIntervalMs = 15 * 1000;
@@ -69,6 +73,11 @@ export class AuthService {
 
   private readonly userEmailSubject = new BehaviorSubject<string>('');
   readonly userEmail$ = this.userEmailSubject.asObservable();
+
+  private readonly passwordChangeRequiredSubject =
+    new BehaviorSubject<boolean>(false);
+  readonly passwordChangeRequired$ =
+    this.passwordChangeRequiredSubject.asObservable();
 
   private monitorSubscription?: Subscription;
 
@@ -122,7 +131,12 @@ export class AuthService {
 
           this.sesionEmpresaService.establecerEmpresa(empresa);
           this.sesionUsuarioService.establecerUsuario(usuario);
-          this.setSession(response.accessToken, expiresAt, response.usuario.correo);
+          this.setSession(
+            response.accessToken,
+            expiresAt,
+            response.usuario.correo,
+            response.debeCambiarPassword === true,
+          );
         }),
         map(() => void 0),
         catchError((error: HttpErrorResponse) =>
@@ -130,6 +144,64 @@ export class AuthService {
         ),
       );
   }
+  solicitarRecuperacionPassword(
+  correo: string,
+): Observable<string> {
+
+  return this.http
+    .post<MensajeAuthResponse>(
+      `${API_CONFIG.baseUrl}/auth/forgot-password`,
+      {
+        correo: correo.trim().toLowerCase(),
+      },
+    )
+    .pipe(
+      map((response) => response.mensaje),
+      catchError((error: HttpErrorResponse) =>
+        throwError(
+          () =>
+            new Error(
+              this.obtenerMensajeRecuperacion(
+                error,
+                'No se pudo procesar la solicitud de recuperación.',
+              ),
+            ),
+        ),
+      ),
+    );
+}
+
+
+restablecerPassword(
+  token: string,
+  nuevaPassword: string,
+  confirmarPassword: string,
+): Observable<string> {
+
+  return this.http
+    .post<MensajeAuthResponse>(
+      `${API_CONFIG.baseUrl}/auth/reset-password`,
+      {
+        token,
+        nuevaPassword,
+        confirmarPassword,
+      },
+    )
+    .pipe(
+      map((response) => response.mensaje),
+      catchError((error: HttpErrorResponse) =>
+        throwError(
+          () =>
+            new Error(
+              this.obtenerMensajeRecuperacion(
+                error,
+                'No se pudo restablecer la contraseña.',
+              ),
+            ),
+        ),
+      ),
+    );
+}
 
   logout(redirectToLogin = true): void {
     this.clearSession();
@@ -158,6 +230,29 @@ export class AuthService {
     return this.hasValidSession();
   }
 
+  requiereCambioPassword(): boolean {
+    return this.passwordChangeRequiredSubject.value;
+  }
+
+  marcarPasswordActualizado(): void {
+    localStorage.setItem(this.passwordChangeStorageKey, 'false');
+    this.passwordChangeRequiredSubject.next(false);
+  }
+
+  actualizarTokenRenovado(token: string): void {
+    if (!token) {
+      return;
+    }
+
+    localStorage.setItem(this.tokenStorageKey, token);
+
+    const expiracion = this.obtenerExpiracionJwt(token);
+    if (expiracion) {
+      localStorage.setItem(this.expiryStorageKey, String(expiracion));
+      this.expiresAtSubject.next(expiracion);
+    }
+  }
+
   markBackendHit(): void {
     if (!this.isAuthenticated()) {
       return;
@@ -173,24 +268,36 @@ export class AuthService {
     }
   }
 
-  private setSession(token: string, expiresAt: number, email: string): void {
+  private setSession(
+    token: string,
+    expiresAt: number,
+    email: string,
+    debeCambiarPassword: boolean,
+  ): void {
     localStorage.setItem(this.tokenStorageKey, token);
     localStorage.setItem(this.expiryStorageKey, expiresAt.toString());
     localStorage.setItem(this.emailStorageKey, email);
+    localStorage.setItem(
+      this.passwordChangeStorageKey,
+      String(debeCambiarPassword),
+    );
 
     this.authenticatedSubject.next(true);
     this.expiresAtSubject.next(expiresAt);
     this.userEmailSubject.next(email);
+    this.passwordChangeRequiredSubject.next(debeCambiarPassword);
   }
 
   private clearSession(): void {
     localStorage.removeItem(this.tokenStorageKey);
     localStorage.removeItem(this.expiryStorageKey);
     localStorage.removeItem(this.emailStorageKey);
+    localStorage.removeItem(this.passwordChangeStorageKey);
 
     this.authenticatedSubject.next(false);
     this.expiresAtSubject.next(null);
     this.userEmailSubject.next('');
+    this.passwordChangeRequiredSubject.next(false);
   }
 
   private restoreSession(): void {
@@ -202,6 +309,9 @@ export class AuthService {
     this.authenticatedSubject.next(true);
     this.expiresAtSubject.next(Number(localStorage.getItem(this.expiryStorageKey)));
     this.userEmailSubject.next(localStorage.getItem(this.emailStorageKey) ?? '');
+    this.passwordChangeRequiredSubject.next(
+      localStorage.getItem(this.passwordChangeStorageKey) === 'true',
+    );
   }
 
   private hasValidSession(): boolean {
@@ -242,11 +352,46 @@ export class AuthService {
 
     return 'No se pudo iniciar sesión.';
   }
+  private obtenerMensajeRecuperacion(
+  error: HttpErrorResponse,
+  mensajePorDefecto: string,
+): string {
+
+  const apiError =
+    error.error as ApiErrorResponse | null;
+
+  if (apiError?.message) {
+    return apiError.message;
+  }
+
+  if (error.status === 0) {
+    return 'No se pudo conectar con el servidor.';
+  }
+
+  return mensajePorDefecto;
+}
 
   private formatearRol(rol: string): string {
     return rol
       .replace(/_/g, ' ')
       .toLowerCase()
       .replace(/(^|\s)\S/g, (letra) => letra.toUpperCase());
+  }
+
+  private obtenerExpiracionJwt(token: string): number | null {
+    try {
+      const payload = token.split('.')[1];
+      if (!payload) return null;
+
+      const base64SinRelleno = payload.replace(/-/g, '+').replace(/_/g, '/');
+      const base64 = base64SinRelleno.padEnd(
+        base64SinRelleno.length + ((4 - (base64SinRelleno.length % 4)) % 4),
+        '=',
+      );
+      const datos = JSON.parse(atob(base64)) as { exp?: number };
+      return datos.exp ? datos.exp * 1000 : null;
+    } catch {
+      return null;
+    }
   }
 }

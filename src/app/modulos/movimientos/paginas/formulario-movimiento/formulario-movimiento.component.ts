@@ -7,14 +7,14 @@ import {
   DestroyRef,
   inject,
 } from '@angular/core';
-
+import { SesionUsuarioService } from '../../../../nucleo/servicios/sesion-usuario.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { finalize, startWith, switchMap } from 'rxjs';
+import { finalize, shareReplay, startWith, switchMap, take, tap } from 'rxjs';
 import {
   ArrowDown,
   ArrowLeft,
@@ -38,6 +38,7 @@ import { ComprobanteXmlService } from '../../../../nucleo/servicios/comprobante-
 import { ConstanteService } from '../../../../nucleo/servicios/constante.service';
 
 import { MovimientoService } from '../../../../nucleo/servicios/movimiento.service';
+import { ConfiguracionFinancieraService } from '../../../../nucleo/servicios/configuracion-financiera.service';
 
 type CampoMovimiento =
   | 'tipoMovimiento'
@@ -104,15 +105,32 @@ export class FormularioMovimientoComponent {
 
   private readonly movimientoService = inject(MovimientoService);
 
+  private readonly configuracionFinancieraService = inject(
+    ConfiguracionFinancieraService,
+  );
+  private readonly sesionUsuarioService =
+  inject(SesionUsuarioService);
+
+get puedeConfirmarPagos(): boolean {
+  return this.sesionUsuarioService.puedeConfirmarPagos;
+}
+
   private readonly comprobanteXmlService = inject(ComprobanteXmlService);
 
   readonly constanteService = inject(ConstanteService);
+  readonly mediosPago$ =
+  this.constanteService.obtenerConstante(200);
+
+readonly tiposComprobante$ =
+  this.constanteService.obtenerConstante(300);
 
   /* ======================================================
      ESTADO GENERAL
      ====================================================== */
 
   readonly fechaActual = this.obtenerFechaActual();
+
+  fechaApertura = this.fechaActual;
 
   movimientoId: number | null = null;
 
@@ -135,6 +153,8 @@ export class FormularioMovimientoComponent {
   xmlProcesado = false;
 
   nombreArchivoXml = '';
+  hashArchivoXml = '';
+
 
   camposCompletadosXml = 0;
 
@@ -187,8 +207,25 @@ export class FormularioMovimientoComponent {
       startWith(this.formulario.controls.tipoMovimiento.value),
 
       switchMap((tipoMovimiento) =>
-        this.categoriaService.listarCategoriasPorTipo(tipoMovimiento),
+        this.categoriaService.listarCategoriasPorTipo(tipoMovimiento).pipe(
+          tap((categorias) => {
+            if (tipoMovimiento !== 1) {
+              return;
+            }
+
+            const ventas = categorias.find(
+              (categoria) => categoria.nombre.trim().toLowerCase() === 'ventas',
+            );
+
+            if (ventas) {
+              this.formulario.controls.categoriaId.setValue(ventas.id, {
+                emitEvent: false,
+              });
+            }
+          }),
+        ),
       ),
+      shareReplay({ bufferSize: 1, refCount: true }),
     );
 
   /* ======================================================
@@ -196,6 +233,12 @@ export class FormularioMovimientoComponent {
      ====================================================== */
 
   constructor() {
+    this.cargarFechaApertura();
+
+    // Mantiene cargado el clasificador interno "Ventas" aunque el selector
+    // permanezca oculto para los ingresos.
+    this.categorias$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
+
     /* ------------------------------------------------------
        CAMBIO INGRESO / EGRESO
        ------------------------------------------------------ */
@@ -204,7 +247,7 @@ export class FormularioMovimientoComponent {
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((tipoMovimiento) => {
         /*
-            La categoría anterior puede
+            El clasificador anterior puede
             pertenecer al otro tipo.
           */
 
@@ -217,6 +260,23 @@ export class FormularioMovimientoComponent {
 
         if (tipoMovimiento === 1) {
           this.limpiarDatosXml();
+          this.formulario.controls.bCancelado.setValue(1, {
+            emitEvent: false,
+          });
+          this.formulario.controls.medioPago.setValue(1, {
+            emitEvent: false,
+          });
+        } else {
+          this.formulario.controls.bCancelado.setValue(0, {
+            emitEvent: false,
+          });
+          this.formulario.controls.medioPago.setValue(9, {
+            emitEvent: false,
+          });
+          this.formulario.controls.fechaPago.clearValidators();
+          this.formulario.controls.fechaPago.updateValueAndValidity({
+            emitEvent: false,
+          });
         }
 
         this.changeDetectorRef.markForCheck();
@@ -253,6 +313,18 @@ export class FormularioMovimientoComponent {
           this.formulario.controls.fechaComprobante.setValue('', {
             emitEvent: false,
           });
+
+          this.formulario.controls.documentoEmisor.setValue('', {
+            emitEvent: false,
+          });
+
+          this.formulario.controls.razonSocialEmisor.setValue('', {
+            emitEvent: false,
+          });
+
+          if (this.xmlProcesado) {
+            this.quitarXml();
+          }
         } else {
           numeroControl.setValidators([
             Validators.required,
@@ -334,6 +406,49 @@ export class FormularioMovimientoComponent {
     return this.formulario.controls.bCancelado.value;
   }
 
+  get esIngresoSeleccionado(): boolean {
+    return this.tipoMovimientoSeleccionado === 1;
+  }
+
+  get esEgresoSeleccionado(): boolean {
+    return this.tipoMovimientoSeleccionado === 2;
+  }
+
+  get esEgresoPagadoSeleccionado(): boolean {
+    return this.esEgresoSeleccionado && this.estadoEgresoSeleccionado === 1;
+  }
+
+  get mostrarMedioPago(): boolean {
+    return this.esIngresoSeleccionado || this.esEgresoPagadoSeleccionado;
+  }
+
+  get tieneComprobanteSeleccionado(): boolean {
+    return (
+      this.esEgresoSeleccionado &&
+      this.formulario.controls.tipoComprobante.value !== 5
+    );
+  }
+
+  get tituloSeccionPago(): string {
+    if (this.esIngresoSeleccionado) {
+      return 'Medio de ingreso';
+    }
+
+    return this.esEgresoPagadoSeleccionado
+      ? 'Pago y comprobante'
+      : 'Comprobante del egreso';
+  }
+
+  get descripcionSeccionPago(): string {
+    if (this.esIngresoSeleccionado) {
+      return 'Indica si el ingreso diario corresponde a efectivo o POS.';
+    }
+
+    return this.esEgresoPagadoSeleccionado
+      ? 'Registra la forma de pago y el documento de sustento, si existe.'
+      : 'Puedes asociar un comprobante aunque el pago todavía esté pendiente.';
+  }
+
   get esEgresoProyectadoEnEdicion(): boolean {
     return (
       this.modoEdicion &&
@@ -344,9 +459,41 @@ export class FormularioMovimientoComponent {
 
   get mostrarFechaPago(): boolean {
     return (
-      this.esEgresoProyectadoEnEdicion &&
-      this.estadoEgresoSeleccionado === 1
+      this.esEgresoProyectadoEnEdicion && this.estadoEgresoSeleccionado === 1
     );
+  }
+
+  get mostrarSelectorEstadoEgreso(): boolean {
+    return (
+      this.tipoMovimientoSeleccionado === 2 &&
+      (!this.modoEdicion || this.esEgresoProyectadoEnEdicion)
+    );
+  }
+
+  get fechaMaximaMovimiento(): string | null {
+    if (
+      this.esEgresoSeleccionado &&
+      (this.estadoEgresoSeleccionado === 0 || this.esEgresoProyectadoEnEdicion)
+    ) {
+      return null;
+    }
+
+    return this.fechaActual;
+  }
+
+  get etiquetaFechaMovimiento(): string {
+    if (this.esEgresoProyectadoEnEdicion) {
+      return 'Fecha proyectada';
+    }
+
+    if (
+      this.tipoMovimientoSeleccionado === 2 &&
+      this.estadoEgresoSeleccionado === 0
+    ) {
+      return 'Fecha proyectada';
+    }
+
+    return this.tipoMovimientoSeleccionado === 2 ? 'Fecha de pago' : 'Fecha';
   }
 
   /* ======================================================
@@ -354,7 +501,7 @@ export class FormularioMovimientoComponent {
      ====================================================== */
 
   get mostrarNumeroComprobante(): boolean {
-    return this.formulario.controls.tipoComprobante.value !== 5;
+    return this.tieneComprobanteSeleccionado;
   }
 
   /* ======================================================
@@ -373,8 +520,19 @@ export class FormularioMovimientoComponent {
     this.formulario.controls.tipoMovimiento.setValue(tipoMovimiento);
   }
 
-  seleccionarEstadoEgreso(estado: FlagCancelado): void {
-    if (!this.esEgresoProyectadoEnEdicion) {
+  seleccionarEstadoEgreso(
+    estado: FlagCancelado,
+  ): void {
+
+    if (!this.mostrarSelectorEstadoEgreso) {
+      return;
+    }
+
+    if (
+      this.esEgresoProyectadoEnEdicion &&
+      estado === 1 &&
+      !this.puedeConfirmarPagos
+    ) {
       return;
     }
 
@@ -385,11 +543,16 @@ export class FormularioMovimientoComponent {
     if (estado === 1) {
       fechaPagoControl.setValidators([Validators.required]);
 
+      if (this.formulario.controls.medioPago.value === 9) {
+        this.formulario.controls.medioPago.setValue(1);
+      }
+
       if (!fechaPagoControl.value) {
         fechaPagoControl.setValue(this.fechaActual);
       }
     } else {
       fechaPagoControl.clearValidators();
+      this.formulario.controls.medioPago.setValue(9);
     }
 
     fechaPagoControl.updateValueAndValidity();
@@ -438,6 +601,8 @@ export class FormularioMovimientoComponent {
     this.xmlProcesado = false;
 
     this.nombreArchivoXml = '';
+    this.hashArchivoXml = '';
+
 
     this.camposCompletadosXml = 0;
 
@@ -456,7 +621,19 @@ export class FormularioMovimientoComponent {
       )
       .subscribe({
         next: (resultado) => {
+          if (
+            resultado.codigoMoneda &&
+            resultado.codigoMoneda.trim().toUpperCase() !== 'PEN'
+          ) {
+            this.errorXml =
+              'El sistema trabaja únicamente en soles. El XML seleccionado no está expresado en PEN.';
+            this.xmlProcesado = false;
+            return;
+          }
+
           this.nombreArchivoXml = resultado.nombreArchivo;
+          this.hashArchivoXml = resultado.hashXml;
+
 
           this.camposCompletadosXml = resultado.camposEncontrados;
 
@@ -502,9 +679,7 @@ export class FormularioMovimientoComponent {
                MONEDA
                ------------------------------------------ */
 
-          if (resultado.moneda !== undefined) {
-            this.formulario.controls.moneda.setValue(resultado.moneda);
-          }
+          this.formulario.controls.moneda.setValue(1);
 
           /* ------------------------------------------
                IMPORTE
@@ -553,6 +728,8 @@ export class FormularioMovimientoComponent {
           this.xmlProcesado = false;
 
           this.nombreArchivoXml = '';
+          this.hashArchivoXml = '';
+
 
           this.camposCompletadosXml = 0;
 
@@ -591,6 +768,8 @@ export class FormularioMovimientoComponent {
     this.xmlProcesado = false;
 
     this.nombreArchivoXml = '';
+      this.hashArchivoXml = '';
+
 
     this.camposCompletadosXml = 0;
 
@@ -605,6 +784,8 @@ export class FormularioMovimientoComponent {
     this.xmlProcesado = false;
 
     this.nombreArchivoXml = '';
+      this.hashArchivoXml = '';
+
 
     this.camposCompletadosXml = 0;
 
@@ -632,6 +813,32 @@ export class FormularioMovimientoComponent {
   guardar(): void {
     this.errorGuardado = '';
 
+    const fechaMovimiento = this.formulario.controls.fechaMovimiento.value;
+
+    if (fechaMovimiento < this.fechaApertura) {
+      this.errorGuardado = `No puedes registrar movimientos anteriores a la apertura (${this.formatearFechaCorta(this.fechaApertura)}).`;
+      return;
+    }
+
+    if (
+      this.fechaMaximaMovimiento &&
+      fechaMovimiento > this.fechaMaximaMovimiento
+    ) {
+      this.errorGuardado =
+        'Los ingresos y egresos pagados no pueden registrarse con una fecha futura.';
+      return;
+    }
+
+    if (
+      this.mostrarFechaPago &&
+      (this.formulario.controls.fechaPago.value < this.fechaApertura ||
+        this.formulario.controls.fechaPago.value > this.fechaActual)
+    ) {
+      this.errorGuardado =
+        'La fecha de pago debe estar comprendida entre la apertura y el día actual.';
+      return;
+    }
+
     if (
       this.formulario.invalid ||
       this.guardando ||
@@ -655,18 +862,20 @@ export class FormularioMovimientoComponent {
     const marcarComoPagado =
       this.esEgresoProyectadoEnEdicion && datos.bCancelado === 1;
 
+    const esEgreso = tipoMovimiento === 2;
+    const egresoPagado = esEgreso && datos.bCancelado === 1;
+    const tieneComprobante = esEgreso && datos.tipoComprobante !== 5;
+
     const request: RegistrarMovimientoRequest = {
       tipoMovimiento,
 
       fechaMovimiento: datos.fechaMovimiento,
 
       fechaProyectada:
-        tipoMovimiento === 2 && this.modoEdicion
-          ? datos.fechaMovimiento
-          : undefined,
+        esEgreso && !egresoPagado ? datos.fechaMovimiento : undefined,
 
       fechaPago:
-        tipoMovimiento === 2 && !this.modoEdicion
+        esEgreso && egresoPagado && !this.modoEdicion
           ? datos.fechaMovimiento
           : undefined,
 
@@ -676,48 +885,66 @@ export class FormularioMovimientoComponent {
 
       monto: Number(datos.monto),
 
-      medioPago: datos.medioPago,
+      medioPago:
+        this.esIngresoSeleccionado || egresoPagado ? datos.medioPago : 9,
 
-      moneda: datos.moneda,
+      moneda: 1,
 
-      tipoComprobante: datos.tipoComprobante,
+      tipoComprobante: esEgreso ? datos.tipoComprobante : 5,
 
-      fechaComprobante: datos.fechaComprobante || undefined,
+      fechaComprobante:
+        tieneComprobante && datos.fechaComprobante
+          ? datos.fechaComprobante
+          : undefined,
 
-      serieComprobante: datos.serieComprobante.trim() || undefined,
+      serieComprobante: tieneComprobante
+        ? datos.serieComprobante.trim() || undefined
+        : undefined,
 
-      numeroComprobante: datos.numeroComprobante.trim() || undefined,
+      numeroComprobante: tieneComprobante
+        ? datos.numeroComprobante.trim() || undefined
+        : undefined,
 
-      documentoEmisor: datos.documentoEmisor.trim() || undefined,
+      documentoEmisor: tieneComprobante
+        ? datos.documentoEmisor.trim() || undefined
+        : undefined,
 
-      razonSocialEmisor: datos.razonSocialEmisor.trim() || undefined,
+      razonSocialEmisor: tieneComprobante
+        ? datos.razonSocialEmisor.trim() || undefined
+        : undefined,
 
       observacion: datos.observacion.trim() || undefined,
 
-      archivoXmlNombre: this.xmlProcesado ? this.nombreArchivoXml : undefined,
+      archivoXmlNombre:
+        tieneComprobante && this.xmlProcesado
+          ? this.nombreArchivoXml
+          : undefined,
+
+          hashXml:
+  tieneComprobante && this.xmlProcesado
+    ? this.hashArchivoXml
+    : undefined,
 
       /*
           1 = Registro manual
           2 = Registro asistido por XML
         */
 
-      origenRegistro: this.xmlProcesado ? 2 : 1,
+      origenRegistro: tieneComprobante && this.xmlProcesado ? 2 : 1,
 
       /*
-          Los egresos individuales se
-          registran actualmente como
-          egresos ya pagados/cancelados.
-
           0 = Proyectado
-          1 = Cancelado/Pagado
+          1 = Pagado
+
+          Durante la edición se conserva el estado original.
+          El cambio a pagado se ejecuta mediante su endpoint específico.
         */
 
-      bCancelado:
-        tipoMovimiento === 2
-          ? this.modoEdicion
-            ? (this.estadoEgresoOriginal ?? 1)
-            : 1
-          : undefined,
+      bCancelado: esEgreso
+        ? this.modoEdicion
+          ? (this.estadoEgresoOriginal ?? 1)
+          : datos.bCancelado
+        : undefined,
     };
 
     const actualizacion$ =
@@ -808,7 +1035,7 @@ export class FormularioMovimientoComponent {
           /*
               Primero establecemos el tipo.
 
-              Esto actualiza las categorías
+              Esto actualiza los clasificadores
               correspondientes al movimiento.
             */
 
@@ -863,11 +1090,15 @@ export class FormularioMovimientoComponent {
             this.nombreArchivoXml =
               movimiento.archivoXmlNombre ?? 'Comprobante XML';
 
+  this.hashArchivoXml = movimiento.hashXml ?? '';
+
             this.camposCompletadosXml = 0;
           } else {
             this.xmlProcesado = false;
 
             this.nombreArchivoXml = '';
+              this.hashArchivoXml = '';
+
 
             this.camposCompletadosXml = 0;
           }
@@ -951,5 +1182,25 @@ export class FormularioMovimientoComponent {
     const dia = String(fecha.getDate()).padStart(2, '0');
 
     return `${anio}-${mes}-${dia}`;
+  }
+
+  private cargarFechaApertura(): void {
+    this.configuracionFinancieraService
+      .obtenerConfiguracion()
+      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (configuracion) => {
+          if (configuracion?.fechaSaldoInicial) {
+            this.fechaApertura = configuracion.fechaSaldoInicial;
+          }
+
+          this.changeDetectorRef.markForCheck();
+        },
+      });
+  }
+
+  private formatearFechaCorta(fecha: string): string {
+    const [anio, mes, dia] = fecha.split('-');
+    return anio && mes && dia ? `${dia}/${mes}/${anio}` : fecha;
   }
 }

@@ -1,17 +1,26 @@
-import { HttpInterceptorFn } from '@angular/common/http';
+import {
+  HttpErrorResponse,
+  HttpInterceptorFn,
+  HttpResponse,
+} from '@angular/common/http';
+
 import { inject } from '@angular/core';
+
+import { catchError, tap, throwError } from 'rxjs';
 
 import { AuthService } from '../auth/auth.service';
 
-const API_PREFIX = '/api';
+import { API_CONFIG } from '../config/api.config';
 
 function isBackendRequest(url: string): boolean {
-  return url.startsWith(API_PREFIX) || /^https?:\/\//i.test(url);
+  return url.startsWith('/api/') || url.startsWith(API_CONFIG.baseUrl);
 }
 
 export const authInterceptor: HttpInterceptorFn = (request, next) => {
   const authService = inject(AuthService);
+
   const token = authService.getToken();
+
   const backendRequest = isBackendRequest(request.url);
 
   if (backendRequest) {
@@ -24,9 +33,27 @@ export const authInterceptor: HttpInterceptorFn = (request, next) => {
 
   const authRequest = request.clone({
     setHeaders: {
-      Authorization: `Bearer ${token}`
-    }
+      Authorization: `Bearer ${token}`,
+    },
   });
 
-  return next(authRequest);
+  return next(authRequest).pipe(
+    tap((event) => {
+      if (event instanceof HttpResponse) {
+        const tokenRenovado = event.headers.get('X-Access-Token');
+
+        if (tokenRenovado) {
+          authService.actualizarTokenRenovado(tokenRenovado);
+        }
+      }
+    }),
+
+    catchError((error: HttpErrorResponse) => {
+      if (error.status === 401) {
+        authService.logout(true);
+      }
+
+      return throwError(() => error);
+    }),
+  );
 };

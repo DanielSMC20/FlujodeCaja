@@ -28,12 +28,15 @@
     "ag-grid-community": "^35.3.1",
     "chart.js": "^4.5.1",
     "date-fns": "^4.4.0",
+    "jspdf": "^4.2.1",
+    "jspdf-autotable": "^5.0.8",
     "lucide-angular": "^1.0.0",
     "ngx-toastr": "^19.1.0",
     "rxjs": "~7.8.0",
     "sweetalert2": "^11.26.25",
     "tslib": "^2.3.0",
     "xlsx": "^0.18.5",
+    "xlsx-js-style": "^1.2.0",
     "zone.js": "~0.14.10"
   },
   "devDependencies": {

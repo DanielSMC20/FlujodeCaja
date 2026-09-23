@@ -34,6 +34,10 @@ export class ConfiguracionComponent {
   readonly empresaActual$ = this.sesionEmpresaService.empresaActual$;
   readonly usuarioActual$ = this.sesionUsuarioService.usuarioActual$;
 
+  get esAdministrador(): boolean {
+    return this.sesionUsuarioService.esAdministrador;
+  }
+
   readonly iconos = {
     empresa: Building2,
     verificada: BadgeCheck,

@@ -56,17 +56,10 @@ export class ConfiguracionInicialComponent implements OnInit {
     saldoInicial: [0, [Validators.required, Validators.min(0)]],
     fechaSaldoInicial: [this.fechaInicio, [Validators.required]],
     moneda: [1, [Validators.required]],
-    ingresos: this.formBuilder.array([
-      this.crearControlClasificador('Ventas'),
-    ]),
-    egresos: this.formBuilder.array([
-      this.crearControlClasificador('Compras'),
-    ]),
+ egresos: this.formBuilder.array([
+  this.crearControlClasificador(''),
+]),
   });
-
-  get ingresos(): FormArray {
-    return this.formulario.controls.ingresos;
-  }
 
   get egresos(): FormArray {
     return this.formulario.controls.egresos;
@@ -81,7 +74,7 @@ export class ConfiguracionInicialComponent implements OnInit {
       next: ({ configuracion, ingresos, egresos }) => {
         if (
           configuracion?.configuracionInicialCompletada === true &&
-          ingresos.length > 0 &&
+          this.existeClasificadorVentas(ingresos) &&
           egresos.length > 0
         ) {
           void this.router.navigateByUrl('/inicio');
@@ -94,19 +87,16 @@ export class ConfiguracionInicialComponent implements OnInit {
     });
   }
 
-  agregarClasificador(tipoMovimiento: 1 | 2): void {
-    const lista = tipoMovimiento === 1 ? this.ingresos : this.egresos;
-    lista.push(this.crearControlClasificador(''));
+  agregarClasificador(): void {
+    this.egresos.push(this.crearControlClasificador(''));
   }
 
-  eliminarClasificador(tipoMovimiento: 1 | 2, indice: number): void {
-    const lista = tipoMovimiento === 1 ? this.ingresos : this.egresos;
-
-    if (lista.length <= 1) {
+  eliminarClasificador(indice: number): void {
+    if (this.egresos.length <= 1) {
       return;
     }
 
-    lista.removeAt(indice);
+    this.egresos.removeAt(indice);
   }
 
   guardarConfiguracion(): void {
@@ -118,16 +108,15 @@ export class ConfiguracionInicialComponent implements OnInit {
     }
 
     const datos = this.formulario.getRawValue();
-    const nombresIngreso = this.normalizarClasificadores(datos.ingresos);
     const nombresEgreso = this.normalizarClasificadores(datos.egresos);
 
-    if (nombresIngreso.length === 0 || nombresEgreso.length === 0) {
+    if (nombresEgreso.length === 0) {
       this.errorGuardado =
-        'Registra al menos un clasificador de ingreso y uno de egreso.';
+        'Registra al menos un clasificador de egreso.';
       return;
     }
 
-    if (this.tieneDuplicados(nombresIngreso) || this.tieneDuplicados(nombresEgreso)) {
+    if (this.tieneDuplicados(nombresEgreso)) {
       this.errorGuardado =
         'No repitas nombres dentro del mismo tipo de clasificador.';
       return;
@@ -136,11 +125,11 @@ export class ConfiguracionInicialComponent implements OnInit {
     this.guardando = true;
 
     const categorias = [
-      ...nombresIngreso.map((nombre) => ({
-        nombre,
+      {
+        nombre: 'Ventas',
         tipoMovimiento: 1,
-        descripcion: 'Clasificador definido durante la configuración inicial.',
-      })),
+        descripcion: 'Clasificador interno para los ingresos diarios por Efectivo y POS.',
+      },
       ...nombresEgreso.map((nombre) => ({
         nombre,
         tipoMovimiento: 2,
@@ -217,6 +206,14 @@ export class ConfiguracionInicialComponent implements OnInit {
   private tieneDuplicados(valores: string[]): boolean {
     const normalizados = valores.map((valor) => valor.toLowerCase());
     return new Set(normalizados).size !== normalizados.length;
+  }
+
+  private existeClasificadorVentas(
+    categorias: Array<{ nombre: string }>,
+  ): boolean {
+    return categorias.some(
+      (categoria) => categoria.nombre.trim().toLowerCase() === 'ventas',
+    );
   }
 
   private obtenerFechaLocalActual(): string {

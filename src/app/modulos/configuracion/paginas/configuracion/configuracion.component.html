@@ -30,13 +30,13 @@
         <p>{{ empresa.razonSocial }}</p>
 
         <div class="empresa-metadatos">
-          <span>RUC {{ empresa.ruc ?? 'pendiente de sincronizar' }}</span>
+          <span>RUC {{ empresa.ruc ?? 'No registrado' }}</span>
           <span>{{ empresa.monedaBaseAbreviatura }}</span>
           <span>{{ empresa.zonaHoraria }}</span>
         </div>
       </div>
 
-      <span class="modo-lectura">Datos de sesión</span>
+      <span class="modo-lectura">Solo lectura</span>
     </article>
 
     <div class="configuracion-grid">
@@ -54,7 +54,7 @@
         <dl class="lista-datos">
           <div>
             <dt>RUC</dt>
-            <dd>{{ empresa.ruc ?? 'Pendiente de sincronizar' }}</dd>
+            <dd>{{ empresa.ruc ?? 'No registrado' }}</dd>
           </div>
           <div>
             <dt>Estado</dt>
@@ -73,14 +73,6 @@
             <dd>{{ empresa.nombreComercial }}</dd>
           </div>
         </dl>
-
-        <div class="nota-integracion">
-          <lucide-icon [img]="iconos.correcto" [size]="18" [strokeWidth]="2" />
-          <p>
-            Estos datos deben llegar desde el contexto devuelto por el inicio de sesión.
-            La edición se habilitará cuando exista el endpoint de actualización de empresa.
-          </p>
-        </div>
       </article>
 
       <article class="tarjeta preferencias-operativas">
@@ -118,8 +110,8 @@
         </div>
 
         <p class="preferencias-ayuda">
-          La moneda filtra Dashboard, Flujo de caja y Reportes. Las monedas no deben
-          sumarse entre sí.
+          El flujo de caja de esta versión opera únicamente en soles (PEN), de acuerdo
+          con el alcance definido para la empresa.
         </p>
       </article>
     </div>
@@ -155,20 +147,6 @@
               <dt><lucide-icon [img]="iconos.correo" [size]="16" /> Correo</dt>
               <dd>{{ usuario.correo }}</dd>
             </div>
-            <div>
-              <dt><lucide-icon [img]="iconos.verificada" [size]="16" /> Verificación</dt>
-              <dd>{{ usuario.correoVerificado ? 'Correo verificado' : 'Correo no verificado' }}</dd>
-            </div>
-            <div>
-              <dt><lucide-icon [img]="iconos.ultimoAcceso" [size]="16" /> Último acceso</dt>
-              <dd>
-                {{
-                  usuario.ultimoAcceso
-                    ? (usuario.ultimoAcceso | date: 'dd/MM/yyyy, HH:mm')
-                    : 'Sin registro sincronizado'
-                }}
-              </dd>
-            </div>
           </dl>
         </article>
 
@@ -189,8 +167,8 @@
                 <lucide-icon [img]="iconos.categorias" [size]="20" [strokeWidth]="1.9" />
               </span>
               <span class="acceso-contenido">
-                <strong>Categorías de movimientos</strong>
-                <small>Administra categorías de ingreso y egreso por empresa.</small>
+                <strong>Clasificadores de egresos</strong>
+                <small>Organiza los egresos según los criterios definidos por el gerente.</small>
               </span>
               <lucide-icon
                 class="acceso-flecha"
@@ -200,22 +178,32 @@
               />
             </a>
 
-            <a routerLink="/configuracion/usuarios/nuevo" class="acceso-item">
-              <span class="acceso-icono acceso-icono-violeta">
-                <lucide-icon [img]="iconos.usuarios" [size]="20" [strokeWidth]="1.9" />
-              </span>
-              <span class="acceso-contenido">
-                <strong>Crear cuenta de usuario</strong>
-                <small>Agrega un nuevo acceso para esta empresa.</small>
-              </span>
-              <span class="badge-pendiente">Nuevo</span>
-              <lucide-icon
-                class="acceso-flecha"
-                [img]="iconos.siguiente"
-                [size]="18"
-                [strokeWidth]="2"
-              />
-            </a>
+            @if (esAdministrador) {
+<a
+  routerLink="/configuracion/usuarios"
+  class="acceso-item"
+>
+                <span class="acceso-icono acceso-icono-violeta">
+                  <lucide-icon [img]="iconos.usuarios" [size]="20" [strokeWidth]="1.9" />
+                </span>
+                <span class="acceso-contenido">
+                  <strong>
+  Administrar usuarios
+</strong>
+
+<small>
+  Lista, edita, activa, desactiva y restablece accesos de la empresa.
+</small>
+                </span>
+                <span class="badge-pendiente">Administrador</span>
+                <lucide-icon
+                  class="acceso-flecha"
+                  [img]="iconos.siguiente"
+                  [size]="18"
+                  [strokeWidth]="2"
+                />
+              </a>
+            }
           </div>
         </article>
       </div>

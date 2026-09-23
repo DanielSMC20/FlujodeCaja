@@ -28,6 +28,7 @@
     </div>
 
     <div class="acciones-enlaces">
+      @if (puedeGestionarMovimientos) {
       <a routerLink="/movimientos/nuevo" class="accion-rapida accion-principal">
         <span class="accion-icono">
           <lucide-icon [img]="iconos.nuevo" [size]="18" [strokeWidth]="2" />
@@ -47,7 +48,7 @@
           <small>Cargar desde una plantilla Excel</small>
         </span>
       </a>
-
+    }
       <a routerLink="/movimientos" class="accion-rapida">
         <span class="accion-icono">
           <lucide-icon
@@ -61,6 +62,7 @@
           <small>Buscar, filtrar y revisar registros</small>
         </span>
       </a>
+    
     </div>
   </section>
 
@@ -69,36 +71,33 @@
       <app-tarjeta-indicador
         titulo="Ingresos del periodo"
         [valor]="resumen.ingresosMes | monedaSol"
-        textoSecundario="Comparado con el periodo anterior"
-        [variacion]="formatearVariacion(resumen.variacionIngresos)"
+        textoSecundario="Ventas registradas por Efectivo y POS"
         tono="success"
         icono="ingresos"
       />
 
       <app-tarjeta-indicador
-        titulo="Egresos del periodo"
+        titulo="Egresos pagados"
         [valor]="resumen.egresosMes | monedaSol"
-        textoSecundario="Solo egresos que afectan la caja"
-        [variacion]="formatearVariacion(resumen.variacionEgresos)"
+        textoSecundario="Salidas que ya afectaron la caja"
         tono="danger"
         icono="egresos"
       />
 
       <app-tarjeta-indicador
-        titulo="Neto del periodo"
-        [valor]="resumen.ingresosMes - resumen.egresosMes | monedaSol"
-        textoSecundario="Ingresos menos egresos"
-        [tono]="resumen.ingresosMes - resumen.egresosMes >= 0 ? 'info' : 'danger'"
+        titulo="Saldo real"
+        [valor]="resumen.saldoAcumulado | monedaSol"
+        textoSecundario="Incluye el saldo de apertura"
+        [tono]="resumen.saldoAcumulado >= 0 ? 'info' : 'danger'"
         icono="saldo"
       />
 
       <app-tarjeta-indicador
-        titulo="Movimientos"
-        [valor]="resumen.movimientosMes.toString()"
-        textoSecundario="Registrados en el periodo"
-        [variacion]="formatearVariacionCantidad(resumen.variacionMovimientosHoy)"
+        titulo="Saldo proyectado"
+        [valor]="resumen.saldoProyectado | monedaSol"
+        [textoSecundario]="'Pendiente: ' + (resumen.egresosProyectados | monedaSol)"
         tono="accent"
-        icono="movimientos"
+        icono="saldo"
       />
     </div>
   }

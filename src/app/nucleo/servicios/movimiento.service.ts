@@ -4,10 +4,11 @@ import { Observable, catchError, map, throwError } from 'rxjs';
 
 import { API_CONFIG } from '../../core/config/api.config';
 import { MovimientoResumen } from '../modelos/dashboard.model';
-import {
+import {AnularMovimientoRequest,
   CancelarEgresoRequest,
   Movimiento,
   RegistrarMovimientoRequest,
+  
 } from '../modelos/movimiento';
 import { CategoriaService } from './categoria.service';
 import { SesionEmpresaService } from './sesion-empresa.service';
@@ -42,6 +43,9 @@ interface MovimientoBackendResponse {
   razonSocialEmisor?: string | null;
   archivoXmlNombre?: string | null;
   hashXml?: string | null;
+  usuarioRegistroId?: number | null;
+  usuarioRegistro?: string | null;
+  fechaRegistro?: string | null;
 }
 
 interface ApiErrorResponse {
@@ -87,6 +91,7 @@ export class MovimientoService {
         }),
       );
   }
+  
 
   registrarMovimiento(
     request: RegistrarMovimientoRequest,
@@ -156,6 +161,25 @@ export class MovimientoService {
         ),
       );
   }
+anularMovimiento(
+  movimientoId: number,
+  request: AnularMovimientoRequest,
+): Observable<void> {
+  return this.http
+    .patch<void>(
+      `${API_CONFIG.baseUrl}/movimientos/${movimientoId}/anular`,
+      {
+        motivo: request.motivo.trim(),
+      },
+    )
+    .pipe(
+      catchError((error: HttpErrorResponse) =>
+        throwError(
+          () => new Error(this.obtenerMensajeError(error)),
+        ),
+      ),
+    );
+}
 
   obtenerUltimosMovimientos(): Observable<MovimientoResumen[]> {
     return this.listarMovimientos().pipe(
@@ -205,21 +229,21 @@ export class MovimientoService {
   }
 
   private construirPayloadRegistro(request: RegistrarMovimientoRequest) {
-    const cancelado =
+    const cancelado: boolean | null =
       request.tipoMovimiento === 2
         ? request.cancelado ?? request.bCancelado === 1
-        : true;
+        : null;
 
     return {
       tipoMovimiento: request.tipoMovimiento,
       categoriaId: request.categoriaId,
       fechaMovimiento: request.fechaMovimiento || null,
       fechaProyectada:
-        request.tipoMovimiento === 2 && !cancelado
+        request.tipoMovimiento === 2 && cancelado === false
           ? request.fechaProyectada || request.fechaMovimiento || null
           : request.fechaProyectada || null,
       fechaPago:
-        request.tipoMovimiento === 2 && cancelado
+        request.tipoMovimiento === 2 && cancelado === true
           ? request.fechaPago || request.fechaMovimiento || null
           : request.fechaPago || null,
       cancelado,
@@ -274,8 +298,11 @@ export class MovimientoService {
       razonSocialEmisor: response.razonSocialEmisor ?? null,
       archivoXmlNombre: response.archivoXmlNombre ?? null,
       hashXml: response.hashXml ?? null,
+      usuarioRegistro: response.usuarioRegistro ?? null,
+      fechaRegistro: response.fechaRegistro ?? null,
     };
   }
+  
 
   private obtenerMensajeError(error: HttpErrorResponse): string {
     const apiError = error.error as ApiErrorResponse | null;

@@ -13,27 +13,28 @@
     <!-- ========================================== -->
     <!-- ACCIONES DE CABECERA -->
     <!-- ========================================== -->
+    @if (puedeGestionarMovimientos) {
+      <div class="flex items-center gap-3">
+        <!-- IMPORTAR EGRESOS -->
 
-    <div class="flex items-center gap-3">
-      <!-- IMPORTAR EGRESOS -->
+        <a
+          routerLink="/movimientos/egresos-masivos"
+          class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
+        >
+          <lucide-icon [img]="iconos.importar" [size]="16" [strokeWidth]="2" />
 
-      <a
-        routerLink="/movimientos/egresos-masivos"
-        class="inline-flex h-10 items-center justify-center gap-2 rounded-xl border border-slate-300 bg-white px-4 text-sm font-medium text-slate-700 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-700"
-      >
-        <lucide-icon [img]="iconos.importar" [size]="16" [strokeWidth]="2" />
+          Importar egresos
+        </a>
 
-        Importar egresos
-      </a>
+        <!-- NUEVO MOVIMIENTO -->
 
-      <!-- NUEVO MOVIMIENTO -->
+        <a routerLink="/movimientos/nuevo" class="boton-nuevo">
+          <lucide-icon [img]="iconos.nuevo" [size]="17" [strokeWidth]="2" />
 
-      <a routerLink="/movimientos/nuevo" class="boton-nuevo">
-        <lucide-icon [img]="iconos.nuevo" [size]="17" [strokeWidth]="2" />
-
-        Nuevo movimiento
-      </a>
-    </div>
+          Nuevo movimiento
+        </a>
+      </div>
+    }
   </header>
 
   <!-- ================================================== -->
@@ -86,7 +87,7 @@
           id="busqueda"
           type="text"
           formControlName="busqueda"
-          placeholder="Descripción o categoría"
+          placeholder="Descripción o clasificador"
         />
       </div>
     </div>
@@ -99,9 +100,13 @@
       <select id="medioPago" formControlName="medioPago">
         <option [ngValue]="0">Todos</option>
 
-        <option [ngValue]="1">Efectivo</option>
-
-        <option [ngValue]="2">Tarjeta / POS</option>
+        @for (medio of mediosPago$ | async; track medio.nValor) {
+          @if (medio.nValor === 1 || medio.nValor === 2) {
+            <option [ngValue]="medio.nValor">
+              {{ medio.cDescripcion }}
+            </option>
+          }
+        }
       </select>
     </div>
 
@@ -120,6 +125,13 @@
   <!-- RESULTADOS -->
   <!-- ================================================== -->
 
+  @if (cargandoMovimientos) {
+    <div class="estado-vacio">
+      <h3>Cargando movimientos...</h3>
+
+      <p>Consultando la información registrada.</p>
+    </div>
+  }
   @if (movimientos$ | async; as movimientos) {
     <article class="tarjeta-listado">
       <!-- Cabecera del listado -->
@@ -208,7 +220,9 @@
                         movimiento.tipoMovimiento === 2 &&
                         movimiento.bCancelado !== 0
                       "
-                      [class.estado-confirmado]="movimiento.tipoMovimiento === 1"
+                      [class.estado-confirmado]="
+                        movimiento.tipoMovimiento === 1
+                      "
                     >
                       {{ etiquetaEstado(movimiento) }}
                     </span>
@@ -236,29 +250,78 @@
 
                   <td class="texto-derecha">
                     <div class="acciones">
-                      <!-- Ver -->
-
+                      <!-- VER -->
                       <a
                         class="boton-accion"
                         [routerLink]="['/movimientos', movimiento.id]"
                         title="Ver movimiento"
+                        aria-label="Ver movimiento"
                       >
-                        <lucide-icon [img]="iconos.ver" [size]="15" [strokeWidth]="1.9" />
+                        <lucide-icon
+                          [img]="iconos.ver"
+                          [size]="15"
+                          [strokeWidth]="1.9"
+                        />
                       </a>
 
-                      <!-- Editar -->
-
-                      @if (
-                        movimiento.tipoMovimiento === 1 ||
-                        movimiento.bCancelado === 0
-                      ) {
+                      <!-- EDITAR -->
+                      @if (puedeEditarMovimiento(movimiento)) {
                         <a
                           class="boton-accion"
-                          [routerLink]="['/movimientos', movimiento.id, 'editar']"
+                          [routerLink]="[
+                            '/movimientos',
+                            movimiento.id,
+                            'editar',
+                          ]"
                           title="Editar movimiento"
+                          aria-label="Editar movimiento"
                         >
-                          <lucide-icon [img]="iconos.editar" [size]="15" [strokeWidth]="1.9" />
+                          <lucide-icon
+                            [img]="iconos.editar"
+                            [size]="15"
+                            [strokeWidth]="1.9"
+                          />
                         </a>
+                      }
+
+                      <!-- MÁS ACCIONES -->
+                      @if (puedeAnularMovimiento(movimiento)) {
+                        <div class="menu-acciones-contenedor">
+                          <button
+                            type="button"
+                            class="boton-accion"
+                            title="Más acciones"
+                            aria-label="Más acciones"
+                            [attr.aria-expanded]="
+                              menuAccionesAbiertoId === movimiento.id
+                            "
+                            (click)="alternarMenuAcciones(movimiento.id)"
+                          >
+                            <lucide-icon
+                              [img]="iconos.mas"
+                              [size]="16"
+                              [strokeWidth]="1.9"
+                            />
+                          </button>
+
+                          @if (menuAccionesAbiertoId === movimiento.id) {
+                            <div class="menu-acciones">
+                              <button
+                                type="button"
+                                class="menu-accion menu-accion-peligro"
+                                (click)="anularMovimiento(movimiento)"
+                              >
+                                <lucide-icon
+                                  [img]="iconos.anular"
+                                  [size]="15"
+                                  [strokeWidth]="1.9"
+                                />
+
+                                <span> Anular movimiento </span>
+                              </button>
+                            </div>
+                          }
+                        </div>
                       }
                     </div>
                   </td>

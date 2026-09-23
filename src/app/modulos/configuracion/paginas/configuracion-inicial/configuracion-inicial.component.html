@@ -5,42 +5,58 @@
         <span class="marca-icono">
           <lucide-icon [img]="iconos.marca" [size]="22" [strokeWidth]="2" />
         </span>
+
         <div>
           <strong>Flujo Claro</strong>
           <small>Configuración inicial</small>
         </div>
       </div>
 
-      <span class="paso">Primer ingreso</span>
+      <span class="paso"> Primer ingreso </span>
     </header>
 
     <div class="presentacion">
-      <span class="etiqueta">Bienvenido, {{ empresa.nombreComercial }}</span>
+      <span class="etiqueta"> Bienvenido, {{ empresa.nombreComercial }} </span>
+
       <h1>Preparemos tu flujo de caja</h1>
+
       <p>
-        Antes de registrar movimientos necesitamos conocer con cuánto inicia tu caja
-        y cómo deseas clasificar tus ingresos y egresos.
+        Antes de registrar movimientos necesitamos conocer con cuánto inicia tu
+        caja y cuáles son los clasificadores de egreso que utiliza tu empresa.
       </p>
     </div>
 
     <form [formGroup]="formulario" (ngSubmit)="guardarConfiguracion()">
+      <!-- =====================================================
+           PASO 1 - SALDO INICIAL
+           ===================================================== -->
+
       <article class="tarjeta">
         <header class="tarjeta-header">
           <span class="tarjeta-icono">
             <lucide-icon [img]="iconos.saldo" [size]="22" [strokeWidth]="1.9" />
           </span>
+
           <div>
             <span>Paso 1</span>
+
             <h2>Saldo inicial de caja</h2>
+
             <p>Este monto será el punto de partida de tu flujo de caja.</p>
           </div>
         </header>
 
         <div class="saldo-grid">
+          <!-- SALDO INICIAL -->
           <label class="campo campo-principal">
-            <span>Saldo inicial <b>*</b></span>
+            <span>
+              Saldo inicial
+              <b>*</b>
+            </span>
+
             <div class="entrada-monto">
               <span>S/</span>
+
               <input
                 type="number"
                 min="0"
@@ -49,84 +65,121 @@
                 placeholder="0.00"
               />
             </div>
-            <small>Ingresa el dinero disponible al comenzar a usar el sistema.</small>
+
+            <small>
+              Ingresa el dinero disponible al comenzar a usar el sistema.
+            </small>
           </label>
 
+          <!-- FECHA -->
           <label class="campo">
-            <span>Fecha de inicio</span>
+            <span> Fecha de inicio </span>
+
             <input type="date" formControlName="fechaSaldoInicial" readonly />
-            <small>El inicio corresponde al día en que comienzas a utilizar el sistema.</small>
+
+            <small>
+              El inicio corresponde al día en que comienzas a utilizar el
+              sistema.
+            </small>
           </label>
 
+          <!-- MONEDA -->
           <label class="campo">
-            <span>Moneda</span>
+            <span> Moneda </span>
+
             <div class="moneda-bloqueada">
-              <lucide-icon [img]="iconos.moneda" [size]="18" [strokeWidth]="2" />
+              <lucide-icon
+                [img]="iconos.moneda"
+                [size]="18"
+                [strokeWidth]="2"
+              />
+
               Soles (PEN)
             </div>
           </label>
         </div>
       </article>
 
+      <!-- =====================================================
+           PASO 2 - CANALES Y CLASIFICADORES
+           ===================================================== -->
+
       <article class="tarjeta">
         <header class="tarjeta-header">
           <span class="tarjeta-icono tarjeta-icono-violeta">
-            <lucide-icon [img]="iconos.categorias" [size]="22" [strokeWidth]="1.9" />
+            <lucide-icon
+              [img]="iconos.categorias"
+              [size]="22"
+              [strokeWidth]="1.9"
+            />
           </span>
+
           <div>
-            <span>Paso 2</span>
-            <h2>Tus clasificadores</h2>
+            <span> Paso 2 </span>
+
+            <h2>Canales de ingreso y clasificadores de egreso</h2>
+
             <p>
-              Define las categorías que utilizarás para ordenar tus ingresos y egresos.
-              Podrás crear más o desactivarlas después.
+              Los ingresos se registrarán mediante Efectivo o POS. Agrega los
+              clasificadores que utilizarás para organizar los egresos de tu
+              empresa.
             </p>
           </div>
         </header>
 
         <div class="clasificadores-grid">
+          <!-- =================================================
+               INGRESOS
+               ================================================= -->
+
           <section class="grupo-clasificador grupo-ingreso">
             <div class="grupo-header">
               <div>
-                <span class="badge badge-ingreso">Ingresos</span>
-                <h3>¿De dónde entra el dinero?</h3>
+                <span class="badge badge-ingreso"> Ingresos </span>
+
+                <h3>Canales de ingreso</h3>
+
+                <p class="grupo-descripcion">
+  Canales disponibles para registrar los ingresos.
+                </p>
               </div>
-              <button type="button" class="boton-agregar" (click)="agregarClasificador(1)">
-                <lucide-icon [img]="iconos.agregar" [size]="16" />
-                Agregar
-              </button>
             </div>
 
-            <div class="lista-clasificadores" formArrayName="ingresos">
-              @for (control of ingresos.controls; track $index) {
-                <div class="fila-clasificador">
-                  <input
-                    type="text"
-                    maxlength="80"
-                    [formControlName]="$index"
-                    placeholder="Ej. Ventas"
-                  />
-                  <button
-                    type="button"
-                    class="boton-eliminar"
-                    [disabled]="ingresos.length <= 1"
-                    (click)="eliminarClasificador(1, $index)"
-                    aria-label="Eliminar clasificador de ingreso"
-                  >
-                    <lucide-icon [img]="iconos.eliminar" [size]="16" />
-                  </button>
-                </div>
-              }
+            <div class="lista-clasificadores">
+              <div class="fila-clasificador">
+                <input value="Ventas · Efectivo" readonly />
+              </div>
+
+              <div class="fila-clasificador">
+                <input value="Ventas · POS" readonly />
+              </div>
             </div>
           </section>
+
+          <!-- =================================================
+               EGRESOS
+               ================================================= -->
 
           <section class="grupo-clasificador grupo-egreso">
             <div class="grupo-header">
               <div>
-                <span class="badge badge-egreso">Egresos</span>
-                <h3>¿En qué sale el dinero?</h3>
+                <span class="badge badge-egreso"> Egresos </span>
+
+                <h3>Clasificadores de egreso</h3>
+
+                <p class="grupo-descripcion">
+  Define las categorías que utilizarás para clasificar los egresos.
+
+                </p>
               </div>
-              <button type="button" class="boton-agregar" (click)="agregarClasificador(2)">
+
+              <button
+                type="button"
+                class="boton-agregar"
+                (click)="agregarClasificador()"
+              >
                 <lucide-icon [img]="iconos.agregar" [size]="16" />
+
                 Agregar
               </button>
             </div>
@@ -140,11 +193,12 @@
                     [formControlName]="$index"
                     placeholder="Ej. Proveedores"
                   />
+
                   <button
                     type="button"
                     class="boton-eliminar"
                     [disabled]="egresos.length <= 1"
-                    (click)="eliminarClasificador(2, $index)"
+                    (click)="eliminarClasificador($index)"
                     aria-label="Eliminar clasificador de egreso"
                   >
                     <lucide-icon [img]="iconos.eliminar" [size]="16" />
@@ -156,23 +210,36 @@
         </div>
       </article>
 
+      <!-- =====================================================
+           RESUMEN
+           ===================================================== -->
+
       <div class="resumen">
         <div>
           <lucide-icon [img]="iconos.correcto" [size]="19" [strokeWidth]="2" />
+
           <p>
-            El saldo inicial se registrará una sola vez. Los clasificadores sí podrán
-            administrarse posteriormente desde <strong>Categorías</strong>.
+            El saldo inicial se registrará una sola vez. Los clasificadores de
+            egreso podrán administrarse posteriormente desde
+            <strong>Clasificadores</strong>.
           </p>
         </div>
 
         <button type="submit" class="boton-continuar" [disabled]="guardando">
-          {{ guardando ? 'Guardando...' : 'Guardar y entrar al sistema' }}
+          {{ guardando ? "Guardando..." : "Guardar y entrar al sistema" }}
+
           <lucide-icon [img]="iconos.continuar" [size]="18" [strokeWidth]="2" />
         </button>
       </div>
 
+      <!-- =====================================================
+           ERROR
+           ===================================================== -->
+
       @if (errorGuardado) {
-        <div class="mensaje-error">{{ errorGuardado }}</div>
+        <div class="mensaje-error">
+          {{ errorGuardado }}
+        </div>
       }
     </form>
   </div>

@@ -2,7 +2,7 @@
   <header class="tarjeta-header">
     <div>
       <h2>Últimos movimientos</h2>
-      <p>Actividad reciente de Boulevard</p>
+      <p>Actividad reciente de la empresa</p>
     </div>
 
     <a routerLink="/movimientos" class="ver-todos">
@@ -18,7 +18,7 @@
           <tr>
             <th>Fecha</th>
             <th>Movimiento</th>
-            <th>Categoría</th>
+            <th>Clasificador</th>
             <th>Estado</th>
             <th>Origen</th>
             <th class="monto-columna">Monto</th>
@@ -47,7 +47,6 @@
                   </span>
                   <span class="movimiento-info">
                     <strong>{{ movimiento.descripcion }}</strong>
-                    <small>{{ movimiento.medioPago }}</small>
                   </span>
                 </div>
               </td>
@@ -60,7 +59,6 @@
                   {{ movimiento.estado }}
                 </span>
               </td>
-              <td><span class="origen">{{ movimiento.origen }}</span></td>
               <td
                 class="monto"
                 [class.monto-ingreso]="esIngreso(movimiento.tipoMovimiento)"

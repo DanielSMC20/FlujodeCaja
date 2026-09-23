@@ -98,7 +98,7 @@ export class CrearCuentaEmpresaComponent {
         '',
         [Validators.required, Validators.email, Validators.maxLength(254)],
       ],
-      rolId: [3, [Validators.required]],
+rolId: [0, [Validators.required, Validators.min(1)]],
       password: [
         '',
         [
@@ -167,7 +167,7 @@ export class CrearCuentaEmpresaComponent {
       nombres: '',
       apellidos: '',
       correo: '',
-      rolId: 3,
+      rolId: 0,
       password: '',
       confirmarPassword: '',
     });

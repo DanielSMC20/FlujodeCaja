@@ -3,18 +3,18 @@
     <div>
       <span class="pagina-etiqueta"> Gestión </span>
 
-      <h1>Categorías</h1>
+      <h1>Clasificadores de egresos</h1>
 
       <p>
-        Organiza los ingresos y egresos de tu empresa mediante categorías
-        personalizadas.
+        Organiza los egresos de tu empresa con los mismos clasificadores que
+        utilizabas en el flujo de caja de Excel.
       </p>
     </div>
 
     <button type="button" class="boton-principal" (click)="nuevaCategoria()">
       <lucide-icon [img]="Plus" aria-hidden="true"></lucide-icon>
 
-      Nueva categoría
+      Nuevo clasificador
     </button>
   </header>
 
@@ -29,8 +29,8 @@
           <p>
             {{
               modoEdicion
-                ? "Actualiza la información de la categoría."
-                : "Crea una categoría para clasificar tus movimientos."
+                ? "Actualiza la información del clasificador."
+                : "Crea un clasificador para ordenar los egresos."
             }}
           </p>
         </div>
@@ -61,7 +61,7 @@
             type="text"
             formControlName="nombre"
             maxlength="80"
-            placeholder="Ej. Venta en tienda"
+            placeholder="Ej. Proveedor"
           />
 
           @if (
@@ -72,24 +72,7 @@
           }
         </div>
 
-        <div class="campo">
-          <label for="tipoMovimiento">
-            Tipo de movimiento
-            <span>*</span>
-          </label>
-
-          <select id="tipoMovimiento" formControlName="tipoMovimiento">
-            <option [ngValue]="1">Ingreso</option>
-
-            <option [ngValue]="2">Egreso</option>
-          </select>
-
-          @if (modoEdicion) {
-            <small class="ayuda">
-              El tipo no puede modificarse después de crear la categoría.
-            </small>
-          }
-        </div>
+        <input type="hidden" formControlName="tipoMovimiento" />
 
         <div class="campo campo-descripcion">
           <label for="descripcion"> Descripción </label>
@@ -118,7 +101,7 @@
                 ? "Guardando..."
                 : modoEdicion
                   ? "Guardar cambios"
-                  : "Crear categoría"
+                  : "Crear clasificador"
             }}
           </button>
         </div>
@@ -136,11 +119,11 @@
     <article class="tarjeta">
       <header class="tabla-header">
         <div>
-          <h2>Categorías registradas</h2>
+          <h2>Clasificadores registrados</h2>
 
           <p>
             {{ categorias.length }}
-            categorías disponibles.
+            clasificadores disponibles.
           </p>
         </div>
       </header>
@@ -151,8 +134,6 @@
             <thead>
               <tr>
                 <th>Nombre</th>
-
-                <th>Tipo</th>
 
                 <th>Descripción</th>
 
@@ -169,16 +150,6 @@
                     <strong class="categoria-nombre">
                       {{ categoria.nombre }}
                     </strong>
-                  </td>
-
-                  <td>
-                    <span
-                      class="badge"
-                      [class.badge-ingreso]="categoria.tipoMovimiento === 1"
-                      [class.badge-egreso]="categoria.tipoMovimiento === 2"
-                    >
-                      {{ etiquetaTipo(categoria.tipoMovimiento) }}
-                    </span>
                   </td>
 
                   <td class="descripcion">

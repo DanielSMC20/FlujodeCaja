@@ -49,7 +49,7 @@ export class ListaCategoriasComponent {
 
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-  readonly categorias$ = this.categoriaService.listarCategorias();
+  readonly categorias$ = this.categoriaService.listarCategoriasPorTipo(2);
 
   mostrarFormulario = false;
 
@@ -62,7 +62,7 @@ export class ListaCategoriasComponent {
   readonly formulario = this.formBuilder.nonNullable.group({
     nombre: ['', [Validators.required, Validators.maxLength(80)]],
 
-    tipoMovimiento: [1, [Validators.required]],
+    tipoMovimiento: [2, [Validators.required]],
 
     descripcion: ['', [Validators.maxLength(200)]],
   });
@@ -72,7 +72,7 @@ export class ListaCategoriasComponent {
   }
 
   get tituloFormulario(): string {
-    return this.modoEdicion ? 'Editar categoría' : 'Nueva categoría';
+    return this.modoEdicion ? 'Editar clasificador' : 'Nuevo clasificador';
   }
 
   nuevaCategoria(): void {
@@ -83,7 +83,7 @@ export class ListaCategoriasComponent {
     this.formulario.reset({
       nombre: '',
 
-      tipoMovimiento: 1,
+      tipoMovimiento: 2,
 
       descripcion: '',
     });
@@ -184,7 +184,7 @@ export class ListaCategoriasComponent {
           this.errorGuardado =
             error instanceof Error
               ? error.message
-              : 'No se pudo guardar la categoría.';
+              : 'No se pudo guardar el clasificador.';
 
           this.changeDetectorRef.markForCheck();
         },

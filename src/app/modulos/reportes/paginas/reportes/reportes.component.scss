@@ -56,9 +56,7 @@
 .filtros-grid {
   display: grid;
 
-  grid-template-columns:
-    repeat(4, minmax(0, 1fr))
-    auto;
+  grid-template-columns: repeat(5, minmax(135px, 1fr)) auto;
 
   align-items: end;
 
@@ -151,10 +149,20 @@
 
 .resumen-grid {
   display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 0.85rem;
+}
 
-  grid-template-columns: repeat(4, minmax(0, 1fr));
+.indicador small {
+  display: block;
+  margin-top: 0.4rem;
+  color: #94a3b8;
+  font-size: 0.66rem;
+  line-height: 1.35;
+}
 
-  gap: 0.8rem;
+.indicador strong.proyectado {
+  color: #d97706;
 }
 
 .indicador {
@@ -193,6 +201,10 @@
 
 .egreso {
   color: #dc2626 !important;
+}
+
+.proyectado {
+  color: #b45309 !important;
 }
 
 .movimientos {
@@ -240,15 +252,39 @@
   border: 1px solid #dbe3ed;
   border-radius: 8px;
 
-  background: #f8fafc;
+  background: #ffffff;
 
-  color: #94a3b8;
+  color: #475569;
 
   font-family: inherit;
   font-size: 0.63rem;
   font-weight: 700;
 
-  cursor: not-allowed;
+  cursor: pointer;
+}
+
+.exportaciones button:hover {
+  border-color: #93c5fd;
+  color: #1d4ed8;
+  background: #eff6ff;
+}
+
+.badge-proyectado {
+  background: #fffbeb !important;
+  color: #b45309 !important;
+}
+
+@media print {
+  .pagina-header,
+  .filtros,
+  .exportaciones {
+    display: none !important;
+  }
+
+  .tarjeta,
+  .indicador {
+    box-shadow: none;
+  }
 }
 
 .tabla-contenedor {
@@ -427,4 +463,256 @@ tbody tr:hover {
     align-items: flex-start;
     flex-direction: column;
   }
+}
+.actualizacion-automatica {
+  display: inline-flex;
+  align-items: center;
+
+  min-height: 40px;
+  padding: 0 0.75rem;
+
+  border-radius: 9px;
+
+  background: #ecfdf5;
+  color: #15803d;
+
+  font-size: 0.64rem;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+.cabecera-impresion,
+.pie-impresion {
+  display: none;
+}
+
+@page {
+  size: A4 landscape;
+  margin: 12mm;
+}
+
+@media print {
+  :host {
+    display: block;
+
+    color: #0f172a;
+
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  .pagina-header,
+  .filtros,
+  .exportaciones {
+    display: none !important;
+  }
+
+  .cabecera-impresion {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+
+    gap: 2rem;
+
+    padding-bottom: 1rem;
+    margin-bottom: 1rem;
+
+    border-bottom: 2px solid #2563eb;
+  }
+
+  .cabecera-empresa span {
+    color: #2563eb;
+
+    font-size: 8pt;
+    font-weight: 700;
+
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .cabecera-empresa h1 {
+    margin: 0.3rem 0;
+
+    color: #0f172a;
+
+    font-size: 18pt;
+  }
+
+  .cabecera-empresa p {
+    margin: 0.15rem 0;
+
+    color: #475569;
+
+    font-size: 9pt;
+  }
+
+  .cabecera-periodo {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+
+    gap: 0.25rem;
+
+    text-align: right;
+  }
+
+  .cabecera-periodo span,
+  .cabecera-periodo small {
+    color: #64748b;
+
+    font-size: 8pt;
+  }
+
+  .cabecera-periodo strong {
+    color: #1e293b;
+
+    font-size: 10pt;
+  }
+
+  .pagina-reportes {
+    gap: 0.75rem;
+  }
+
+  .resumen-grid {
+    grid-template-columns:
+      repeat(5, minmax(0, 1fr));
+
+    gap: 0.35rem;
+  }
+
+  .indicador {
+    padding: 0.65rem;
+
+    border-radius: 6px;
+
+    break-inside: avoid;
+  }
+
+  .indicador span {
+    font-size: 7pt;
+  }
+
+  .indicador strong {
+    font-size: 11pt;
+  }
+
+  .reporte-tabla {
+    padding: 0;
+
+    border: 0;
+
+    box-shadow: none;
+  }
+
+  .tabla-header {
+    margin: 0.6rem 0;
+  }
+
+  .tabla-contenedor {
+    overflow: visible;
+
+    border-radius: 0;
+  }
+
+  table {
+    font-size: 8pt;
+  }
+
+  thead {
+    display: table-header-group;
+
+    background: #eaf1ff !important;
+  }
+
+  th {
+    padding: 0.45rem;
+
+    color: #1e3a8a !important;
+
+    font-size: 7pt;
+  }
+
+  td {
+    padding: 0.45rem;
+
+    font-size: 7.5pt;
+  }
+
+  tr {
+    break-inside: avoid;
+  }
+
+  .pie-impresion {
+    display: flex;
+    justify-content: space-between;
+
+    margin-top: 1rem;
+    padding-top: 0.6rem;
+
+    border-top: 1px solid #cbd5e1;
+
+    color: #64748b;
+
+    font-size: 7pt;
+  }
+}
+@media (max-width: 1200px) {
+  .resumen-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .resumen-grid {
+    grid-template-columns: 1fr;
+  }
+}
+.estado-carga {
+  padding: 0.8rem 1rem;
+
+  border: 1px solid #dbeafe;
+  border-radius: 10px;
+
+  background: #eff6ff;
+
+  color: #1d4ed8;
+
+  font-size: 0.7rem;
+  font-weight: 700;
+}
+
+.campo-checkbox .checkbox-control {
+  min-height: 40px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.5rem;
+
+  cursor: pointer;
+}
+
+.campo-checkbox .checkbox-control input {
+  width: 16px;
+  height: 16px;
+}
+
+.motivo-anulacion {
+  display: block;
+
+  margin-top: 0.2rem;
+
+  max-width: 220px;
+
+  color: #64748b;
+
+  font-size: 0.62rem;
+
+  line-height: 1.35;
+}
+
+.exportaciones button:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
 }

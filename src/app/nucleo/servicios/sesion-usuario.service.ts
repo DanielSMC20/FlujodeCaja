@@ -43,6 +43,64 @@ export class SesionUsuarioService {
     return this.usuarioActualSubject.value.roles[0]?.nombre ?? 'Sin rol asignado';
   }
 
+  tieneRol(codigo: string): boolean {
+    const codigoNormalizado = codigo.trim().toUpperCase();
+
+    return this.usuarioActualSubject.value.roles.some(
+      (rol) => rol.codigo.trim().toUpperCase() === codigoNormalizado,
+    );
+  }
+
+  get esAdministrador(): boolean {
+    return this.tieneRol('ADMINISTRADOR');
+  }
+  get esContador(): boolean {
+  return this.tieneRol('CONTADOR');
+}
+
+get esOperador(): boolean {
+  return this.tieneRol('OPERADOR');
+}
+
+get esConsulta(): boolean {
+  return this.tieneRol('CONSULTA');
+}
+
+get puedeGestionarMovimientos(): boolean {
+  return (
+    this.esAdministrador ||
+    this.esContador ||
+    this.esOperador
+  );
+}
+
+get puedeConfirmarPagos(): boolean {
+  return (
+    this.esAdministrador ||
+    this.esContador||
+    this.esOperador
+  );
+}
+
+get puedeGestionarClasificadores(): boolean {
+  return this.esAdministrador;
+}
+
+get puedeAdministrarUsuarios(): boolean {
+  return this.esAdministrador;
+}
+
+get puedeVerConfiguracion(): boolean {
+  return this.esAdministrador;
+}
+get puedeAnularMovimientos(): boolean {
+  return (
+    this.esAdministrador ||
+    this.esContador
+  );
+}
+
+
   establecerUsuario(usuario: UsuarioSesion): void {
     localStorage.setItem(this.storageKey, JSON.stringify(usuario));
     this.usuarioActualSubject.next({
