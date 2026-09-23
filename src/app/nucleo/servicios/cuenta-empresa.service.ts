@@ -179,47 +179,38 @@ export class CuentaEmpresaService {
   }
 
 
-  listarUsuarios(
-    soloActivos = false,
-  ): Observable<UsuarioEmpresa[]> {
+listarUsuarios(): Observable<UsuarioEmpresa[]> {
 
-    return this.http
-      .get<UsuarioBackendResponse[]>(
-        `${API_CONFIG.baseUrl}/usuarios`,
-        {
-          params: {
-            soloActivos:
-              String(soloActivos),
-          },
-        },
-      )
-      .pipe(
-        map((usuarios) =>
-          usuarios.map(
-            (usuario) =>
-              this.mapearUsuario(
-                usuario,
-              ),
-          ),
-        ),
-
-        catchError(
-          (
-            error:
-              HttpErrorResponse,
-          ) =>
-            throwError(
-              () =>
-                new Error(
-                  this.obtenerMensajeError(
-                    error,
-                  ),
-                ),
+  return this.http
+    .get<UsuarioBackendResponse[]>(
+      `${API_CONFIG.baseUrl}/usuarios`,
+    )
+    .pipe(
+      map((usuarios) =>
+        usuarios.map(
+          (usuario) =>
+            this.mapearUsuario(
+              usuario,
             ),
         ),
-      );
-  }
+      ),
 
+      catchError(
+        (
+          error:
+            HttpErrorResponse,
+        ) =>
+          throwError(
+            () =>
+              new Error(
+                this.obtenerMensajeError(
+                  error,
+                ),
+              ),
+          ),
+      ),
+    );
+}
 
   actualizarUsuario(
     usuarioId: number,
