@@ -1,46 +1,95 @@
 <section class="pagina-usuarios">
+
   <header class="pagina-header">
-    <div>
-      <span class="pagina-etiqueta"> Administración </span>
+    <div class="pagina-titulo">
+      <span class="pagina-etiqueta">
+        Administración
+      </span>
 
       <h1>Usuarios de la empresa</h1>
 
-      <p>Administra accesos, roles y estado de las cuentas de usuario.</p>
+      <p>
+        Gestiona las cuentas, roles y permisos de acceso de tu organización.
+      </p>
     </div>
 
-    <a routerLink="/configuracion/usuarios/nuevo" class="boton-principal">
-      <lucide-icon [img]="Plus" [size]="16" />
+    <a
+      routerLink="/configuracion/usuarios/nuevo"
+      class="boton-principal"
+    >
+      <lucide-icon
+        [img]="Plus"
+        [size]="17"
+      />
 
       Nuevo usuario
     </a>
   </header>
 
   @if (usuarioEditando) {
-    <article class="tarjeta formulario-tarjeta">
-      <h2>Editar usuario</h2>
+    <article class="panel-edicion">
 
-      <p class="correo">
-        {{ usuarioEditando.correo }}
-      </p>
+      <div class="panel-edicion__header">
+        <div>
+          <span class="panel-edicion__etiqueta">
+            Edición de cuenta
+          </span>
 
-      <form [formGroup]="formulario" (ngSubmit)="guardar()" class="formulario">
+          <h2>
+            {{ usuarioEditando.nombres }}
+            {{ usuarioEditando.apellidos }}
+          </h2>
+
+          <p>
+            {{ usuarioEditando.correo }}
+          </p>
+        </div>
+      </div>
+
+      <form
+        [formGroup]="formulario"
+        (ngSubmit)="guardar()"
+        class="formulario"
+      >
+
         <div class="campo">
-          <label> Nombres </label>
+          <label for="nombres">
+            Nombres
+          </label>
 
-          <input formControlName="nombres" maxlength="100" />
+          <input
+            id="nombres"
+            formControlName="nombres"
+            maxlength="100"
+            placeholder="Ingrese los nombres"
+          />
         </div>
 
         <div class="campo">
-          <label> Apellidos </label>
+          <label for="apellidos">
+            Apellidos
+          </label>
 
-          <input formControlName="apellidos" maxlength="150" />
+          <input
+            id="apellidos"
+            formControlName="apellidos"
+            maxlength="150"
+            placeholder="Ingrese los apellidos"
+          />
         </div>
 
         <div class="campo">
-          <label> Rol </label>
+          <label for="rolId">
+            Rol asignado
+          </label>
 
-          <select formControlName="rolId">
-            <option [ngValue]="0">Seleccionar</option>
+          <select
+            id="rolId"
+            formControlName="rolId"
+          >
+            <option [ngValue]="0">
+              Seleccionar rol
+            </option>
 
             @for (rol of roles$ | async; track rol.id) {
               <option [ngValue]="rol.id">
@@ -51,101 +100,251 @@
         </div>
 
         <div class="acciones-formulario">
-          <button type="button" class="boton-secundario" (click)="cancelar()">
+
+          <button
+            type="button"
+            class="boton-secundario"
+            (click)="cancelar()"
+          >
             Cancelar
           </button>
 
-          <button type="submit" class="boton-principal" [disabled]="guardando">
+          <button
+            type="submit"
+            class="boton-principal"
+            [disabled]="guardando"
+          >
             {{ guardando ? "Guardando..." : "Guardar cambios" }}
           </button>
+
         </div>
       </form>
+
     </article>
   }
 
   @if (usuarios$ | async; as usuarios) {
-    <article class="tarjeta">
+
+    <article class="panel-usuarios">
+
       <header class="tabla-header">
+
         <div>
-          <h2>Usuarios registrados</h2>
+          <span class="tabla-etiqueta">
+            Gestión de accesos
+          </span>
+
+          <h2>
+            Usuarios registrados
+          </h2>
 
           <p>
             {{ usuarios.length }}
-            cuentas encontradas.
+            {{ usuarios.length === 1 ? "cuenta encontrada" : "cuentas encontradas" }}
           </p>
         </div>
+
+        <div class="resumen-usuarios">
+
+          <div class="resumen-item">
+            <span class="resumen-numero">
+              {{ usuarios.length }}
+            </span>
+
+            <span class="resumen-label">
+              Total
+            </span>
+          </div>
+
+        </div>
+
       </header>
 
       @if (usuarios.length > 0) {
+
         <div class="tabla-contenedor">
+
           <table>
+
             <thead>
               <tr>
                 <th>Usuario</th>
-                <th>Correo</th>
+                <th>Correo electrónico</th>
                 <th>Rol</th>
                 <th>Estado</th>
-                <th>Acciones</th>
+                <th class="columna-acciones">
+                  Acciones
+                </th>
               </tr>
             </thead>
 
             <tbody>
+
               @for (usuario of usuarios; track usuario.id) {
-                <tr [class.inactivo]="!usuario.activa">
+
+                <tr
+                  [class.fila-inactiva]="!usuario.activa"
+                >
+
                   <td>
-                    <strong>
-                      {{ usuario.nombres }}
-                      {{ usuario.apellidos }}
-                    </strong>
+
+                    <div class="usuario-info">
+
+                      <div
+                        class="usuario-avatar"
+                        [class.avatar-inactivo]="!usuario.activa"
+                      >
+                        {{ usuario.nombres.charAt(0) }}
+                        {{ usuario.apellidos.charAt(0) }}
+                      </div>
+
+                      <div class="usuario-datos">
+
+                        <strong>
+                          {{ usuario.nombres }}
+                          {{ usuario.apellidos }}
+                        </strong>
+
+                        @if (esUsuarioActual(usuario)) {
+                          <span class="marca-cuenta">
+                            Tu cuenta
+                          </span>
+                        }
+
+                      </div>
+
+                    </div>
+
                   </td>
 
                   <td>
-                    {{ usuario.correo }}
-                  </td>
-
-                  <td>
-                    {{ usuario.rol.nombre }}
-                  </td>
-
-                  <td>
-                    <span class="estado" [class.estado-activo]="usuario.activa">
-                      {{ usuario.activa ? "Activo" : "Inactivo" }}
+                    <span class="correo-usuario">
+                      {{ usuario.correo }}
                     </span>
                   </td>
 
                   <td>
+
+                    <span
+                      class="rol-badge"
+                      [class.rol-administrador]="usuario.rol.nombre === 'Administrador'"
+                      [class.rol-contador]="usuario.rol.nombre === 'Contador interno'"
+                      [class.rol-operador]="usuario.rol.nombre === 'Operador'"
+                      [class.rol-consulta]="usuario.rol.nombre === 'Consulta'"
+                    >
+                      {{ usuario.rol.nombre }}
+                    </span>
+
+                  </td>
+
+                  <td>
+
+                    <span
+                      class="estado-badge"
+                      [class.estado-activo]="usuario.activa"
+                      [class.estado-inactivo]="!usuario.activa"
+                    >
+                      <span class="estado-punto"></span>
+
+                      {{ usuario.activa ? "Activo" : "Inactivo" }}
+                    </span>
+
+                  </td>
+
+                  <td>
+
                     <div class="acciones">
+
                       @if (!esUsuarioActual(usuario)) {
-                        <button type="button" (click)="editar(usuario)">
+                        <button
+                          type="button"
+                          class="accion accion-editar"
+                          (click)="editar(usuario)"
+                        >
                           Editar
                         </button>
                       }
 
-                      <button type="button" (click)="resetPassword(usuario)">
+                      <button
+                        type="button"
+                        class="accion"
+                        (click)="resetPassword(usuario)"
+                      >
                         Restablecer contraseña
                       </button>
 
                       @if (!esUsuarioActual(usuario)) {
-                        <button type="button" (click)="cambiarEstado(usuario)">
+
+                        <button
+                          type="button"
+                          class="accion"
+                          [class.accion-peligro]="usuario.activa"
+                          [class.accion-activar]="!usuario.activa"
+                          (click)="cambiarEstado(usuario)"
+                        >
                           {{ usuario.activa ? "Desactivar" : "Activar" }}
                         </button>
-                      } @else {
-                        <span class="usuario-actual"> Tu cuenta </span>
-                      }
-                    </div>
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
-        </div>
-      } @else {
-        <div class="estado-vacio">
-          <lucide-icon [img]="Users" [size]="24" />
 
-          <strong> No hay usuarios registrados. </strong>
+                      } @else {
+
+                        <span class="usuario-actual">
+                          Cuenta actual
+                        </span>
+
+                      }
+
+                    </div>
+
+                  </td>
+
+                </tr>
+
+              }
+
+            </tbody>
+
+          </table>
+
         </div>
+
+      } @else {
+
+        <div class="estado-vacio">
+
+          <div class="estado-vacio__icono">
+            <lucide-icon
+              [img]="Users"
+              [size]="28"
+            />
+          </div>
+
+          <h3>
+            Aún no hay usuarios registrados
+          </h3>
+
+          <p>
+            Crea una cuenta para permitir que otras personas accedan al sistema
+            según el rol que les corresponda.
+          </p>
+
+          <a
+            routerLink="/configuracion/usuarios/nuevo"
+            class="boton-principal"
+          >
+            <lucide-icon
+              [img]="Plus"
+              [size]="16"
+            />
+
+            Crear primer usuario
+          </a>
+
+        </div>
+
       }
+
     </article>
+
   }
+
 </section>
