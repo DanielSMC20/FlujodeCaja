@@ -5,23 +5,50 @@ import {
   ChangeDetectorRef,
   Component,
   DestroyRef,
+  HostListener,
   inject,
 } from '@angular/core';
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 
 import { RouterLink } from '@angular/router';
 
-import { BehaviorSubject, finalize, switchMap } from 'rxjs';
+import {
+  BehaviorSubject,
+  finalize,
+  switchMap,
+} from 'rxjs';
 
-import { LucideAngularModule, Plus, Users } from 'lucide-angular';
+import {
+  Ellipsis,
+  KeyRound,
+  LucideAngularModule,
+  Pencil,
+  Plus,
+  UserRoundCheck,
+  UserRoundX,
+  Users,
+  X,
+} from 'lucide-angular';
 
-import { UsuarioEmpresa } from '../../../../nucleo/modelos/cuenta-empresa.model';
-import { SesionUsuarioService } from '../../../../nucleo/servicios/sesion-usuario.service';
+import {
+  UsuarioEmpresa,
+} from '../../../../nucleo/modelos/cuenta-empresa.model';
 
-import { CuentaEmpresaService } from '../../../../nucleo/servicios/cuenta-empresa.service';
+import {
+  CuentaEmpresaService,
+} from '../../../../nucleo/servicios/cuenta-empresa.service';
+
+import {
+  SesionUsuarioService,
+} from '../../../../nucleo/servicios/sesion-usuario.service';
+
 
 @Component({
   selector: 'app-usuarios',
@@ -43,248 +70,1015 @@ import { CuentaEmpresaService } from '../../../../nucleo/servicios/cuenta-empres
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class UsuariosComponent {
+
+  /* =======================================================
+     ICONOS
+     ======================================================= */
+
   readonly Plus = Plus;
 
   readonly Users = Users;
 
-  private readonly service = inject(CuentaEmpresaService);
+  readonly Ellipsis = Ellipsis;
 
-  private readonly fb = inject(FormBuilder);
+  readonly Pencil = Pencil;
 
-  private readonly cdr = inject(ChangeDetectorRef);
+  readonly KeyRound = KeyRound;
 
-  private readonly destroyRef = inject(DestroyRef);
+  readonly UserRoundX = UserRoundX;
 
-  private readonly sesionUsuarioService = inject(SesionUsuarioService);
+  readonly UserRoundCheck = UserRoundCheck;
 
-  private readonly recargar$ = new BehaviorSubject<void>(undefined);
+  readonly X = X;
 
-  readonly usuarios$ = this.recargar$.pipe(
-    switchMap(() => this.service.listarUsuarios()),
-  );
 
-  readonly roles$ = this.service.listarRoles();
+  /* =======================================================
+     SERVICIOS
+     ======================================================= */
 
-  usuarioEditando: UsuarioEmpresa | null = null;
+  private readonly service =
+    inject(CuentaEmpresaService);
+
+  private readonly fb =
+    inject(FormBuilder);
+
+  private readonly cdr =
+    inject(ChangeDetectorRef);
+
+  private readonly destroyRef =
+    inject(DestroyRef);
+
+  private readonly sesionUsuarioService =
+    inject(SesionUsuarioService);
+
+
+  /* =======================================================
+     RECARGA
+     ======================================================= */
+
+  private readonly recargar$ =
+    new BehaviorSubject<void>(undefined);
+
+
+  /* =======================================================
+     DATOS
+     ======================================================= */
+
+  readonly usuarios$ =
+    this.recargar$.pipe(
+
+      switchMap(() =>
+        this.service.listarUsuarios()
+      ),
+
+    );
+
+
+  readonly roles$ =
+    this.service.listarRoles();
+
+
+  /* =======================================================
+     EDICIÓN
+     ======================================================= */
+
+  usuarioEditando:
+    UsuarioEmpresa | null = null;
+
 
   guardando = false;
 
-  readonly formulario = this.fb.nonNullable.group({
-    nombres: ['', [Validators.required, Validators.maxLength(100)]],
 
-    apellidos: ['', [Validators.required, Validators.maxLength(150)]],
+  /* =======================================================
+     MENÚ DE ACCIONES
+     ======================================================= */
 
-    rolId: [0, [Validators.required, Validators.min(1)]],
-  });
+  usuarioMenuAcciones:
+    UsuarioEmpresa | null = null;
 
-  editar(usuario: UsuarioEmpresa): void {
-    this.usuarioEditando = usuario;
 
-    this.formulario.setValue({
-      nombres: usuario.nombres,
+  menuPosicion = {
+    top: 0,
+    left: 0,
+  };
 
-      apellidos: usuario.apellidos,
 
-      rolId: usuario.rol.id,
+  /* =======================================================
+     FORMULARIO
+     ======================================================= */
+
+  readonly formulario =
+    this.fb.nonNullable.group({
+
+      nombres: [
+        '',
+        [
+          Validators.required,
+          Validators.maxLength(100),
+        ],
+      ],
+
+      apellidos: [
+        '',
+        [
+          Validators.required,
+          Validators.maxLength(150),
+        ],
+      ],
+
+      rolId: [
+        0,
+        [
+          Validators.required,
+          Validators.min(1),
+        ],
+      ],
+
     });
+
+
+  /* =======================================================
+     ABRIR MENÚ
+     ======================================================= */
+
+  abrirMenuAcciones(
+    event: MouseEvent,
+    usuario: UsuarioEmpresa,
+  ): void {
+
+    event.preventDefault();
+
+    event.stopPropagation();
+
+
+    const boton =
+      event.currentTarget as HTMLElement;
+
+
+    const rect =
+      boton.getBoundingClientRect();
+
+
+    const anchoMenu = 230;
+
+    const separacion = 6;
+
+    const margenPantalla = 12;
+
+
+    /*
+     * El menú de un usuario normal tiene aproximadamente
+     * tres opciones.
+     *
+     * El usuario actual solamente muestra la opción
+     * de restablecer contraseña.
+     */
+
+    const altoMenu =
+      this.esUsuarioActual(usuario)
+        ? 52
+        : 132;
+
+
+    /* =====================================================
+       POSICIÓN HORIZONTAL
+       ===================================================== */
+
+    let left =
+      rect.right - anchoMenu;
+
+
+    /*
+     * Evitar que salga por el lado izquierdo.
+     */
+
+    if (left < margenPantalla) {
+
+      left =
+        margenPantalla;
+
+    }
+
+
+    /*
+     * Evitar que salga por el lado derecho.
+     */
+
+    const limiteDerecho =
+      window.innerWidth -
+      anchoMenu -
+      margenPantalla;
+
+
+    if (left > limiteDerecho) {
+
+      left =
+        limiteDerecho;
+
+    }
+
+
+    /* =====================================================
+       POSICIÓN VERTICAL
+       ===================================================== */
+
+    let top =
+      rect.bottom +
+      separacion;
+
+
+    /*
+     * Si abajo no hay espacio suficiente,
+     * abrir el menú hacia arriba.
+     */
+
+    const espacioInferior =
+      window.innerHeight -
+      rect.bottom;
+
+
+    if (
+      espacioInferior <
+      altoMenu + separacion + margenPantalla
+    ) {
+
+      top =
+        rect.top -
+        altoMenu -
+        separacion;
+
+    }
+
+
+    /*
+     * Protección para pantallas pequeñas.
+     */
+
+    if (top < margenPantalla) {
+
+      top =
+        margenPantalla;
+
+    }
+
+
+    /* =====================================================
+       ASIGNAR POSICIÓN
+       ===================================================== */
+
+    this.menuPosicion = {
+      top,
+      left,
+    };
+
+
+    this.usuarioMenuAcciones =
+      usuario;
+
+
+    this.cdr.markForCheck();
   }
 
+
+  /* =======================================================
+     CERRAR MENÚ
+     ======================================================= */
+
+  cerrarMenuAcciones(): void {
+
+    this.usuarioMenuAcciones =
+      null;
+
+
+    this.cdr.markForCheck();
+  }
+
+
+  /* =======================================================
+     EDITAR DESDE MENÚ
+     ======================================================= */
+
+  editarDesdeMenu(): void {
+
+    if (!this.usuarioMenuAcciones) {
+
+      return;
+
+    }
+
+
+    const usuario =
+      this.usuarioMenuAcciones;
+
+
+    this.cerrarMenuAcciones();
+
+
+    this.editar(usuario);
+  }
+
+
+  /* =======================================================
+     PASSWORD DESDE MENÚ
+     ======================================================= */
+
+  resetPasswordDesdeMenu(): void {
+
+    if (!this.usuarioMenuAcciones) {
+
+      return;
+
+    }
+
+
+    const usuario =
+      this.usuarioMenuAcciones;
+
+
+    this.cerrarMenuAcciones();
+
+
+    void this.resetPassword(usuario);
+  }
+
+
+  /* =======================================================
+     CAMBIAR ESTADO DESDE MENÚ
+     ======================================================= */
+
+  cambiarEstadoDesdeMenu(): void {
+
+    if (!this.usuarioMenuAcciones) {
+
+      return;
+
+    }
+
+
+    const usuario =
+      this.usuarioMenuAcciones;
+
+
+    this.cerrarMenuAcciones();
+
+
+    void this.cambiarEstado(usuario);
+  }
+
+
+  /* =======================================================
+     EDITAR
+     ======================================================= */
+
+  editar(
+    usuario: UsuarioEmpresa,
+  ): void {
+
+    this.usuarioEditando =
+      usuario;
+
+
+    this.formulario.setValue({
+
+      nombres:
+        usuario.nombres,
+
+      apellidos:
+        usuario.apellidos,
+
+      rolId:
+        usuario.rol.id,
+
+    });
+
+
+    this.cdr.markForCheck();
+  }
+
+
+  /* =======================================================
+     CANCELAR EDICIÓN
+     ======================================================= */
+
   cancelar(): void {
-    this.usuarioEditando = null;
+
+    this.usuarioEditando =
+      null;
+
 
     this.formulario.reset({
+
       nombres: '',
 
       apellidos: '',
 
       rolId: 0,
+
     });
+
+
+    this.cdr.markForCheck();
   }
 
+
+  /* =======================================================
+     CERRAR MODAL AL HACER CLICK EN EL FONDO
+     ======================================================= */
+
+  cerrarModalDesdeFondo(
+    event: MouseEvent,
+  ): void {
+
+    /*
+     * Solo cerrar si el usuario hizo click directamente
+     * sobre el fondo.
+     *
+     * Los clicks dentro del modal no lo cerrarán.
+     */
+
+    if (
+      event.target !==
+      event.currentTarget
+    ) {
+
+      return;
+
+    }
+
+
+    if (this.guardando) {
+
+      return;
+
+    }
+
+
+    this.cancelar();
+  }
+
+
+  /* =======================================================
+     GUARDAR
+     ======================================================= */
+
   guardar(): void {
-    if (!this.usuarioEditando || this.formulario.invalid || this.guardando) {
+
+    if (
+      !this.usuarioEditando ||
+      this.formulario.invalid ||
+      this.guardando
+    ) {
+
       this.formulario.markAllAsTouched();
 
       return;
+
     }
 
-    const datos = this.formulario.getRawValue();
 
-    this.guardando = true;
+    const formulario =
+      this.formulario.getRawValue();
+
+
+    /*
+     * Normalizamos strings antes de enviarlos.
+     */
+
+    const datos = {
+
+      nombres:
+        formulario.nombres.trim(),
+
+      apellidos:
+        formulario.apellidos.trim(),
+
+      rolId:
+        formulario.rolId,
+
+    };
+
+
+    /*
+     * Evitar enviar nombres vacíos compuestos
+     * únicamente por espacios.
+     */
+
+    if (
+      !datos.nombres ||
+      !datos.apellidos
+    ) {
+
+      this.formulario.markAllAsTouched();
+
+      return;
+
+    }
+
+
+    this.guardando =
+      true;
+
+
+    const usuarioId =
+      this.usuarioEditando.id;
+
 
     this.service
-      .actualizarUsuario(this.usuarioEditando.id, datos)
+      .actualizarUsuario(
+        usuarioId,
+        datos,
+      )
       .pipe(
+
         finalize(() => {
-          this.guardando = false;
+
+          this.guardando =
+            false;
+
 
           this.cdr.markForCheck();
+
         }),
 
-        takeUntilDestroyed(this.destroyRef),
+        takeUntilDestroyed(
+          this.destroyRef
+        ),
+
       )
       .subscribe({
+
         next: async () => {
+
           this.cancelar();
 
+
           this.recargar$.next();
 
-          const { default: Swal } = await import('sweetalert2');
+
+          const {
+            default: Swal,
+          } =
+            await import(
+              'sweetalert2'
+            );
+
 
           await Swal.fire({
+
             icon: 'success',
 
-            title: 'Usuario actualizado',
+            title:
+              'Usuario actualizado',
 
-            confirmButtonText: 'Aceptar',
+            text:
+              'Los cambios fueron guardados correctamente.',
 
-            heightAuto: false,
+            confirmButtonText:
+              'Aceptar',
+
+            heightAuto:
+              false,
+
           });
+
         },
+
 
         error: async (error) => {
-          const { default: Swal } = await import('sweetalert2');
+
+          const {
+            default: Swal,
+          } =
+            await import(
+              'sweetalert2'
+            );
+
 
           await Swal.fire({
+
             icon: 'error',
 
-            title: 'No se pudo actualizar',
+            title:
+              'No se pudo actualizar',
 
-            text: error instanceof Error ? error.message : 'Ocurrió un error.',
+            text:
+              error instanceof Error
+                ? error.message
+                : 'Ocurrió un error al actualizar el usuario.',
 
-            confirmButtonText: 'Aceptar',
+            confirmButtonText:
+              'Aceptar',
 
-            heightAuto: false,
+            heightAuto:
+              false,
+
           });
+
         },
+
       });
   }
 
-  async cambiarEstado(usuario: UsuarioEmpresa): Promise<void> {
-    const { default: Swal } = await import('sweetalert2');
 
-    const accion = usuario.activa ? 'desactivar' : 'activar';
+  /* =======================================================
+     CAMBIAR ESTADO
+     ======================================================= */
 
-    const resultado = await Swal.fire({
-      icon: 'question',
+  async cambiarEstado(
+    usuario: UsuarioEmpresa,
+  ): Promise<void> {
 
-      title: usuario.activa ? 'Desactivar usuario' : 'Activar usuario',
+    /*
+     * Protección adicional desde frontend.
+     */
 
-      text:
-        `¿Deseas ${accion} el acceso de ` +
-        `${usuario.nombres} ${usuario.apellidos}?`,
+    if (
+      this.esUsuarioActual(usuario)
+    ) {
 
-      showCancelButton: true,
-
-      confirmButtonText: usuario.activa ? 'Desactivar' : 'Activar',
-
-      cancelButtonText: 'Cancelar',
-
-      heightAuto: false,
-    });
-
-    if (!resultado.isConfirmed) {
       return;
+
     }
 
+
+    const {
+      default: Swal,
+    } =
+      await import(
+        'sweetalert2'
+      );
+
+
+    const activar =
+      !usuario.activa;
+
+
+    const accion =
+      activar
+        ? 'activar'
+        : 'desactivar';
+
+
+    const resultado =
+      await Swal.fire({
+
+        icon: 'question',
+
+        title:
+          activar
+            ? 'Activar usuario'
+            : 'Desactivar usuario',
+
+        text:
+          `¿Deseas ${accion} el acceso de ` +
+          `${usuario.nombres} ${usuario.apellidos}?`,
+
+        showCancelButton:
+          true,
+
+        confirmButtonText:
+          activar
+            ? 'Activar'
+            : 'Desactivar',
+
+        cancelButtonText:
+          'Cancelar',
+
+        reverseButtons:
+          true,
+
+        focusCancel:
+          true,
+
+        heightAuto:
+          false,
+
+      });
+
+
+    if (
+      !resultado.isConfirmed
+    ) {
+
+      return;
+
+    }
+
+
     this.service
-      .cambiarEstadoUsuario(usuario.id, !usuario.activa)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .cambiarEstadoUsuario(
+        usuario.id,
+        activar,
+      )
+      .pipe(
+
+        takeUntilDestroyed(
+          this.destroyRef
+        ),
+
+      )
       .subscribe({
+
         next: () => {
+
           this.recargar$.next();
+
         },
+
 
         error: (error) => {
+
           void Swal.fire({
+
             icon: 'error',
 
-            title: 'No se pudo cambiar el estado',
+            title:
+              'No se pudo cambiar el estado',
 
-            text: error instanceof Error ? error.message : 'Ocurrió un error.',
+            text:
+              error instanceof Error
+                ? error.message
+                : 'Ocurrió un error al cambiar el estado del usuario.',
 
-            heightAuto: false,
+            confirmButtonText:
+              'Aceptar',
+
+            heightAuto:
+              false,
+
           });
+
         },
+
       });
   }
 
-  async resetPassword(usuario: UsuarioEmpresa): Promise<void> {
-    const { default: Swal } = await import('sweetalert2');
 
-    const resultado = await Swal.fire<string>({
-      title: 'Restablecer contraseña',
+  /* =======================================================
+     RESTABLECER CONTRASEÑA
+     ======================================================= */
 
-      text: `Define una contraseña temporal para ${usuario.correo}.`,
+  async resetPassword(
+    usuario: UsuarioEmpresa,
+  ): Promise<void> {
 
-      input: 'password',
+    const {
+      default: Swal,
+    } =
+      await import(
+        'sweetalert2'
+      );
 
-      inputLabel: 'Nueva contraseña temporal',
 
-      inputAttributes: {
-        minlength: '8',
+    const resultado =
+      await Swal.fire<string>({
 
-        maxlength: '72',
+        title:
+          'Restablecer contraseña',
 
-        autocomplete: 'new-password',
-      },
+        text:
+          `Define una contraseña temporal para ${usuario.correo}.`,
 
-      showCancelButton: true,
+        input:
+          'password',
 
-      confirmButtonText: 'Restablecer',
+        inputLabel:
+          'Nueva contraseña temporal',
 
-      cancelButtonText: 'Cancelar',
+        inputPlaceholder:
+          'Mínimo 8 caracteres',
 
-      heightAuto: false,
+        inputAttributes: {
 
-      inputValidator: (valor) => {
-        if (!valor || valor.length < 8) {
-          return 'La contraseña debe ' + 'tener al menos 8 caracteres.';
-        }
+          minlength:
+            '8',
 
-        return null;
-      },
-    });
+          maxlength:
+            '72',
 
-    if (!resultado.isConfirmed || !resultado.value) {
+          autocomplete:
+            'new-password',
+
+        },
+
+        showCancelButton:
+          true,
+
+        confirmButtonText:
+          'Restablecer',
+
+        cancelButtonText:
+          'Cancelar',
+
+        reverseButtons:
+          true,
+
+        focusCancel:
+          true,
+
+        heightAuto:
+          false,
+
+        inputValidator:
+          (valor) => {
+
+            const password =
+              valor?.trim();
+
+
+            if (!password) {
+
+              return 'Ingresa una contraseña temporal.';
+
+            }
+
+
+            if (
+              password.length < 8
+            ) {
+
+              return 'La contraseña debe tener al menos 8 caracteres.';
+
+            }
+
+
+            if (
+              password.length > 72
+            ) {
+
+              return 'La contraseña no puede superar los 72 caracteres.';
+
+            }
+
+
+            return null;
+
+          },
+
+      });
+
+
+    if (
+      !resultado.isConfirmed ||
+      !resultado.value
+    ) {
+
       return;
+
     }
 
+
+    const nuevaPassword =
+      resultado.value.trim();
+
+
     this.service
-      .restablecerPasswordUsuario(usuario.id, resultado.value)
-      .pipe(takeUntilDestroyed(this.destroyRef))
+      .restablecerPasswordUsuario(
+        usuario.id,
+        nuevaPassword,
+      )
+      .pipe(
+
+        takeUntilDestroyed(
+          this.destroyRef
+        ),
+
+      )
       .subscribe({
-        next: () =>
+
+        next: () => {
+
           void Swal.fire({
-            icon: 'success',
 
-            title: 'Contraseña restablecida',
+            icon:
+              'success',
 
-            text: 'El usuario podrá ingresar con la nueva contraseña temporal.',
+            title:
+              'Contraseña restablecida',
 
-            heightAuto: false,
-          }),
+            text:
+              'El usuario podrá ingresar con la nueva contraseña temporal.',
 
-        error: (error) =>
+            confirmButtonText:
+              'Aceptar',
+
+            heightAuto:
+              false,
+
+          });
+
+        },
+
+
+        error: (error) => {
+
           void Swal.fire({
-            icon: 'error',
 
-            title: 'No se pudo restablecer',
+            icon:
+              'error',
 
-            text: error instanceof Error ? error.message : 'Ocurrió un error.',
+            title:
+              'No se pudo restablecer',
 
-            heightAuto: false,
-          }),
+            text:
+              error instanceof Error
+                ? error.message
+                : 'Ocurrió un error al restablecer la contraseña.',
+
+            confirmButtonText:
+              'Aceptar',
+
+            heightAuto:
+              false,
+
+          });
+
+        },
+
       });
   }
 
-  esUsuarioActual(
-  usuario: UsuarioEmpresa,
-): boolean {
 
-  return (
-    usuario.id ===
-    this.sesionUsuarioService.usuarioActualId
-  );
-}
+  /* =======================================================
+     USUARIO ACTUAL
+     ======================================================= */
+
+  esUsuarioActual(
+    usuario: UsuarioEmpresa,
+  ): boolean {
+
+    return (
+      usuario.id ===
+      this.sesionUsuarioService.usuarioActualId
+    );
+  }
+
+
+  /* =======================================================
+     EVENTOS GLOBALES
+     ======================================================= */
+
+  @HostListener(
+    'document:keydown.escape'
+  )
+  alPresionarEscape(): void {
+
+    /*
+     * Prioridad:
+     *
+     * 1. Cerrar menú.
+     * 2. Cerrar modal.
+     */
+
+    if (
+      this.usuarioMenuAcciones
+    ) {
+
+      this.cerrarMenuAcciones();
+
+      return;
+
+    }
+
+
+    if (
+      this.usuarioEditando &&
+      !this.guardando
+    ) {
+
+      this.cancelar();
+
+    }
+  }
+
+
+  @HostListener(
+    'window:resize'
+  )
+  alCambiarTamanoVentana(): void {
+
+    if (
+      this.usuarioMenuAcciones
+    ) {
+
+      this.cerrarMenuAcciones();
+
+    }
+  }
+
+
+  @HostListener(
+    'window:scroll'
+  )
+  alHacerScroll(): void {
+
+    if (
+      this.usuarioMenuAcciones
+    ) {
+
+      this.cerrarMenuAcciones();
+
+    }
+  }
+
 }
