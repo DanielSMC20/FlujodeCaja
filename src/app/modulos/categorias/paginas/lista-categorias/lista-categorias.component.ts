@@ -25,12 +25,7 @@ import { LucideAngularModule, Plus } from 'lucide-angular';
 
   standalone: true,
 
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    ReactiveFormsModule,
-    LucideAngularModule,
-  ],
+  imports: [CommonModule, AsyncPipe, ReactiveFormsModule, LucideAngularModule],
 
   templateUrl: './lista-categorias.component.html',
 

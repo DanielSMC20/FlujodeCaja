@@ -1,87 +1,58 @@
 <main class="auth-layout">
-
   <!-- =========================================================
        PANEL VISUAL
   ========================================================== -->
   <section class="visual-panel">
-
     <!-- Marca -->
     <header class="visual-brand">
-
       <div class="visual-brand__logo">
-        <lucide-icon
-          [img]="iconos.marca"
-          [size]="23"
-          [strokeWidth]="1.9"
-        />
+        <lucide-icon [img]="iconos.marca" [size]="23" [strokeWidth]="1.9" />
       </div>
 
       <div class="visual-brand__text">
-        <strong>Flujo Claro</strong>
-        <span>Gestión financiera empresarial</span>
+        <strong>Flujo de Caja para Gerentes</strong>
+        <span>Gestión y control financiero empresarial</span>
       </div>
-
     </header>
-
 
     <!-- Contenido principal -->
     <div class="visual-content">
-
       <!-- =====================================================
            MINI DASHBOARD
       ====================================================== -->
       <div class="finance-preview">
-
         <!-- Barra superior -->
         <div class="preview-toolbar">
-
           <div class="preview-dots">
             <span></span>
             <span></span>
             <span></span>
           </div>
 
-          <span class="preview-toolbar__title">
-            Flujo de caja
-          </span>
+          <span class="preview-toolbar__title"> Flujo de caja </span>
 
-          <span class="preview-toolbar__period">
-            Septiembre
-          </span>
-
+          <span class="preview-toolbar__period"> Septiembre </span>
         </div>
 
-
         <div class="preview-body">
-
           <!-- Resumen -->
           <div class="preview-summary">
-
             <div class="preview-summary__main">
+              <span class="preview-caption"> Saldo disponible </span>
 
-              <span class="preview-caption">
-                Saldo disponible
-              </span>
-
-              <strong class="preview-balance">
-                S/ 24,580.00
-              </strong>
-
+              <strong class="preview-balance"> S/ 24,580.00 </strong>
             </div>
 
             <div class="preview-trend">
               <span class="trend-icon">↗</span>
               <span>8.4%</span>
             </div>
-
           </div>
-
 
           <!-- =================================================
                GRÁFICO DE LÍNEAS
           ================================================== -->
           <div class="chart-container">
-
             <svg
               class="cashflow-chart"
               viewBox="0 0 560 190"
@@ -89,57 +60,20 @@
               role="img"
               aria-label="Evolución mensual del flujo de caja"
             >
-
               <defs>
+                <linearGradient id="cashFlowArea" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#17648a" stop-opacity="0.22" />
 
-                <linearGradient
-                  id="cashFlowArea"
-                  x1="0"
-                  y1="0"
-                  x2="0"
-                  y2="1"
-                >
-                  <stop
-                    offset="0%"
-                    stop-color="#17648a"
-                    stop-opacity="0.22"
-                  />
-
-                  <stop
-                    offset="100%"
-                    stop-color="#17648a"
-                    stop-opacity="0"
-                  />
+                  <stop offset="100%" stop-color="#17648a" stop-opacity="0" />
                 </linearGradient>
-
               </defs>
 
-
               <!-- Líneas guía -->
-              <line
-                class="chart-grid"
-                x1="0"
-                y1="35"
-                x2="560"
-                y2="35"
-              />
+              <line class="chart-grid" x1="0" y1="35" x2="560" y2="35" />
 
-              <line
-                class="chart-grid"
-                x1="0"
-                y1="90"
-                x2="560"
-                y2="90"
-              />
+              <line class="chart-grid" x1="0" y1="90" x2="560" y2="90" />
 
-              <line
-                class="chart-grid"
-                x1="0"
-                y1="145"
-                x2="560"
-                y2="145"
-              />
-
+              <line class="chart-grid" x1="0" y1="145" x2="560" y2="145" />
 
               <!-- Área -->
               <path
@@ -160,7 +94,6 @@
                 "
               />
 
-
               <!-- Línea -->
               <path
                 class="chart-line"
@@ -177,26 +110,12 @@
                 "
               />
 
-
               <!-- Punto resaltado -->
-              <circle
-                class="chart-point-halo"
-                cx="560"
-                cy="32"
-                r="9"
-              />
+              <circle class="chart-point-halo" cx="560" cy="32" r="9" />
 
-              <circle
-                class="chart-point"
-                cx="560"
-                cy="32"
-                r="4"
-              />
-
+              <circle class="chart-point" cx="560" cy="32" r="4" />
             </svg>
-
           </div>
-
 
           <!-- Meses -->
           <div class="chart-labels">
@@ -208,142 +127,91 @@
             <span>Sep</span>
           </div>
 
-
           <!-- Métricas inferiores -->
           <div class="preview-metrics">
-
             <div class="metric">
-
-              <div class="metric-icon metric-icon--income">
-                ↑
-              </div>
+              <div class="metric-icon metric-icon--income">↑</div>
 
               <div class="metric-content">
                 <span>Ingresos</span>
                 <strong>S/ 18,420.00</strong>
               </div>
-
             </div>
 
-
             <div class="metric">
-
-              <div class="metric-icon metric-icon--expense">
-                ↓
-              </div>
+              <div class="metric-icon metric-icon--expense">↓</div>
 
               <div class="metric-content">
                 <span>Egresos</span>
                 <strong>S/ 11,860.00</strong>
               </div>
-
             </div>
 
-
             <div class="metric">
-
-              <div class="metric-icon metric-icon--balance">
-                =
-              </div>
+              <div class="metric-icon metric-icon--balance">=</div>
 
               <div class="metric-content">
                 <span>Flujo neto</span>
                 <strong>S/ 6,560.00</strong>
               </div>
-
             </div>
-
           </div>
-
         </div>
-
       </div>
-
 
       <!-- Texto -->
       <div class="visual-message">
-
         <h1>
-          Tus finanzas,
+          Tu flujo de caja,
           <span>bajo control.</span>
         </h1>
 
         <p>
-          Centraliza tus ingresos y egresos, supervisa la liquidez
-          de tu empresa y consulta tu información financiera desde
-          un solo lugar.
+          Registra ingresos y egresos, supervisa la liquidez
+          de tu empresa y consulta información financiera
+          que apoye la toma de decisiones gerenciales.
         </p>
-
       </div>
-
     </div>
-
 
     <!-- Pie -->
     <footer class="visual-footer">
+      <span>© 2026 Flujo de Caja para Gerentes</span>
 
-      <span>© 2026 Flujo Claro</span>
-
-      <span>Gestión financiera empresarial</span>
-
+      <span>Desarrollado por Nexus Tech Peru
+    en colaboración con Priori Soluciones</span>
     </footer>
-
 
     <!-- Curvas decorativas -->
     <div class="visual-curve visual-curve--outer"></div>
     <div class="visual-curve visual-curve--inner"></div>
-
   </section>
-
 
   <!-- =========================================================
        PANEL DE LOGIN
   ========================================================== -->
   <section class="login-panel">
-
     <div class="login-container">
-
       <!-- Logo -->
       <header class="login-brand">
-
         <div class="login-brand__logo">
-
-          <lucide-icon
-            [img]="iconos.marca"
-            [size]="24"
-            [strokeWidth]="1.9"
-          />
-
+          <lucide-icon [img]="iconos.marca" [size]="24" [strokeWidth]="1.9" />
         </div>
 
         <div class="login-brand__text">
+          <strong> FLUJO DE CAJA </strong>
 
-          <strong>
-            FLUJO CLARO
-          </strong>
-
-          <span>
-            Gestión financiera
-          </span>
-
+          <span> PARA GERENTES </span>
         </div>
-
       </header>
-
 
       <!-- Título -->
       <div class="login-heading">
+        <h2>Iniciar sesión</h2>
 
-        <h2>
-          Iniciar sesión
-        </h2>
-
-        <p>
-          Ingresa tus credenciales para acceder a tu cuenta.
-        </p>
-
+        <p>  Ingresa tus credenciales para gestionar los ingresos,
+  egresos y flujo de caja de tu empresa.</p>
       </div>
-
 
       <!-- =====================================================
            FORMULARIO
@@ -354,24 +222,18 @@
         (ngSubmit)="submit()"
         novalidate
       >
-
         <!-- =================================================
              CORREO
         ================================================== -->
         <div class="field-group">
-
-          <label for="email">
-            Correo electrónico
-          </label>
+          <label for="email"> Correo electrónico </label>
 
           <div
             class="input-control"
             [class.input-control--invalid]="
-              hasError('email', 'required') ||
-              hasError('email', 'email')
+              hasError('email', 'required') || hasError('email', 'email')
             "
           >
-
             <lucide-icon
               class="input-prefix"
               [img]="iconos.correo"
@@ -387,42 +249,29 @@
               placeholder="correo@empresa.com"
               [readOnly]="isSubmitting"
               [attr.aria-invalid]="
-                hasError('email', 'required') ||
-                hasError('email', 'email')
+                hasError('email', 'required') || hasError('email', 'email')
               "
             />
-
           </div>
 
-
-          @if (hasError('email', 'required')) {
-
+          @if (hasError("email", "required")) {
             <small class="field-error">
               El correo electrónico es obligatorio.
             </small>
-
           }
 
-
-          @if (hasError('email', 'email')) {
-
+          @if (hasError("email", "email")) {
             <small class="field-error">
               Ingresa un correo electrónico válido.
             </small>
-
           }
-
         </div>
-
 
         <!-- =================================================
              CONTRASEÑA
         ================================================== -->
         <div class="field-group">
-
-          <label for="password">
-            Contraseña
-          </label>
+          <label for="password"> Contraseña </label>
 
           <div
             class="input-control"
@@ -431,7 +280,6 @@
               hasError('password', 'minlength')
             "
           >
-
             <lucide-icon
               class="input-prefix"
               [img]="iconos.clave"
@@ -452,71 +300,45 @@
               "
             />
 
-
             <button
               type="button"
               class="password-toggle"
               (click)="alternarVisibilidadContrasena()"
               [attr.aria-label]="
-                mostrarContrasena
-                  ? 'Ocultar contraseña'
-                  : 'Mostrar contraseña'
+                mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'
               "
             >
-
               @if (!mostrarContrasena) {
-
                 <lucide-icon
                   [img]="iconos.mostrar"
                   [size]="17"
                   [strokeWidth]="1.8"
                 />
-
               } @else {
-
                 <lucide-icon
                   [img]="iconos.ocultar"
                   [size]="17"
                   [strokeWidth]="1.8"
                 />
-
               }
-
             </button>
-
           </div>
 
-
-          @if (hasError('password', 'required')) {
-
-            <small class="field-error">
-              La contraseña es obligatoria.
-            </small>
-
+          @if (hasError("password", "required")) {
+            <small class="field-error"> La contraseña es obligatoria. </small>
           }
 
-
-          @if (hasError('password', 'minlength')) {
-
+          @if (hasError("password", "minlength")) {
             <small class="field-error">
               La contraseña debe tener como mínimo 8 caracteres.
             </small>
-
           }
-
         </div>
 
-
-
         <!-- Recuperación -->
-        <a
-          class="forgot-password"
-          routerLink="/recuperar-password"
-
-        >
+        <a class="forgot-password" routerLink="/recuperar-password">
           ¿Olvidaste tu contraseña?
         </a>
-
 
         <!-- =================================================
              BOTÓN
@@ -527,9 +349,7 @@
           [disabled]="isSubmitting"
           [attr.aria-busy]="isSubmitting"
         >
-
           @if (isSubmitting) {
-
             <lucide-icon
               class="loading-icon"
               [img]="iconos.cargando"
@@ -537,24 +357,12 @@
               [strokeWidth]="2"
             />
 
-            <span>
-              Verificando acceso...
-            </span>
-
+            <span> Verificando acceso... </span>
           } @else {
-
-            <span>
-              Iniciar sesión
-            </span>
-
+            <span> Iniciar sesión </span>
           }
-
         </button>
-
       </form>
-
     </div>
-
   </section>
-
 </main>

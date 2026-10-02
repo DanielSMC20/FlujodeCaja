@@ -1,6 +1,17 @@
 import { CommonModule } from '@angular/common';
-import { ChangeDetectionStrategy, ChangeDetectorRef, Component, OnInit, inject } from '@angular/core';
-import { FormArray, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import {
+  ChangeDetectionStrategy,
+  ChangeDetectorRef,
+  Component,
+  OnInit,
+  inject,
+} from '@angular/core';
+import {
+  FormArray,
+  FormBuilder,
+  ReactiveFormsModule,
+  Validators,
+} from '@angular/forms';
 import { Router } from '@angular/router';
 import { finalize, forkJoin, map, of, switchMap, take } from 'rxjs';
 import {
@@ -30,7 +41,9 @@ import { SesionEmpresaService } from '../../../../nucleo/servicios/sesion-empres
 export class ConfiguracionInicialComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);
   private readonly router = inject(Router);
-  private readonly configuracionService = inject(ConfiguracionFinancieraService);
+  private readonly configuracionService = inject(
+    ConfiguracionFinancieraService,
+  );
   private readonly categoriaService = inject(CategoriaService);
   private readonly sesionEmpresaService = inject(SesionEmpresaService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
@@ -56,9 +69,7 @@ export class ConfiguracionInicialComponent implements OnInit {
     saldoInicial: [0, [Validators.required, Validators.min(0)]],
     fechaSaldoInicial: [this.fechaInicio, [Validators.required]],
     moneda: [1, [Validators.required]],
- egresos: this.formBuilder.array([
-  this.crearControlClasificador(''),
-]),
+    egresos: this.formBuilder.array([this.crearControlClasificador('')]),
   });
 
   get egresos(): FormArray {
@@ -67,7 +78,9 @@ export class ConfiguracionInicialComponent implements OnInit {
 
   ngOnInit(): void {
     forkJoin({
-      configuracion: this.configuracionService.obtenerConfiguracion().pipe(take(1)),
+      configuracion: this.configuracionService
+        .obtenerConfiguracion()
+        .pipe(take(1)),
       ingresos: this.categoriaService.listarCategoriasPorTipo(1).pipe(take(1)),
       egresos: this.categoriaService.listarCategoriasPorTipo(2).pipe(take(1)),
     }).subscribe({
@@ -111,8 +124,7 @@ export class ConfiguracionInicialComponent implements OnInit {
     const nombresEgreso = this.normalizarClasificadores(datos.egresos);
 
     if (nombresEgreso.length === 0) {
-      this.errorGuardado =
-        'Registra al menos un clasificador de egreso.';
+      this.errorGuardado = 'Registra al menos un clasificador de egreso.';
       return;
     }
 
@@ -128,7 +140,8 @@ export class ConfiguracionInicialComponent implements OnInit {
       {
         nombre: 'Ventas',
         tipoMovimiento: 1,
-        descripcion: 'Clasificador interno para los ingresos diarios por Efectivo y POS.',
+        descripcion:
+          'Clasificador interno para los ingresos diarios por Efectivo y POS.',
       },
       ...nombresEgreso.map((nombre) => ({
         nombre,

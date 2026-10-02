@@ -9,10 +9,7 @@ import {
   inject,
 } from '@angular/core';
 
-import {
-  RouterLink,
-  RouterLinkActive,
-} from '@angular/router';
+import { RouterLink, RouterLinkActive } from '@angular/router';
 
 import {
   ArrowLeftRight,
@@ -24,6 +21,7 @@ import {
   Tags,
   LucideAngularModule,
   LucideIconData,
+  ReceiptText,
 } from 'lucide-angular';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -39,12 +37,7 @@ interface OpcionMenu {
   selector: 'app-menu-lateral',
   standalone: true,
 
-  imports: [
-    CommonModule,
-    RouterLink,
-    RouterLinkActive,
-    LucideAngularModule,
-  ],
+  imports: [CommonModule, RouterLink, RouterLinkActive, LucideAngularModule],
 
   templateUrl: './menu-lateral.component.html',
   styleUrl: './menu-lateral.component.scss',
@@ -52,7 +45,6 @@ interface OpcionMenu {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class MenuLateralComponent {
-  
   private readonly sesionUsuarioService = inject(SesionUsuarioService);
 
   get mostrarGestion(): boolean {
@@ -67,10 +59,9 @@ export class MenuLateralComponent {
   @Output()
   cerrarMenu = new EventEmitter<void>();
 
-  readonly nombreProducto = 'Flujo Claro';
+  readonly nombreProducto = 'Flujo de Caja';
 
-  readonly descripcionProducto =
-    'Gestión financiera';
+  readonly descripcionProducto = 'Para Gerentes';
 
   readonly opcionesNavegacion: OpcionMenu[] = [
     {
@@ -93,6 +84,11 @@ export class MenuLateralComponent {
       label: 'Reportes',
       path: '/reportes',
       icon: FileChartColumn,
+    },
+    {
+      label: 'Registro de compras',
+      path: '/reportes/compras',
+      icon: ReceiptText,
     },
   ];
 

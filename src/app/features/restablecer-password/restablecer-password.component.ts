@@ -1,10 +1,6 @@
 import { CommonModule } from '@angular/common';
 
-import {
-  Component,
-  OnInit,
-  inject,
-} from '@angular/core';
+import { Component, OnInit, inject } from '@angular/core';
 
 import {
   AbstractControl,
@@ -15,11 +11,7 @@ import {
   Validators,
 } from '@angular/forms';
 
-import {
-  ActivatedRoute,
-  Router,
-  RouterLink,
-} from '@angular/router';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
 import {
   Eye,
@@ -34,55 +26,33 @@ import { finalize } from 'rxjs';
 
 import { AuthService } from '../../core/auth/auth.service';
 
+const passwordsCoinciden: ValidatorFn = (
+  control: AbstractControl,
+): ValidationErrors | null => {
+  const nueva = control.get('nuevaPassword')?.value;
 
-const passwordsCoinciden: ValidatorFn =
-  (
-    control: AbstractControl,
-  ): ValidationErrors | null => {
+  const confirmar = control.get('confirmarPassword')?.value;
 
-    const nueva =
-      control.get('nuevaPassword')?.value;
-
-    const confirmar =
-      control.get('confirmarPassword')?.value;
-
-    return (
-      nueva &&
-      confirmar &&
-      nueva !== confirmar
-    )
-      ? { passwordsNoCoinciden: true }
-      : null;
-  };
-
+  return nueva && confirmar && nueva !== confirmar
+    ? { passwordsNoCoinciden: true }
+    : null;
+};
 
 @Component({
   selector: 'app-restablecer-password',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    LucideAngularModule,
-    RouterLink,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink],
   templateUrl: './restablecer-password.component.html',
   styleUrl: './restablecer-password.component.scss',
 })
-export class RestablecerPasswordComponent
-  implements OnInit {
+export class RestablecerPasswordComponent implements OnInit {
+  private readonly formBuilder = inject(FormBuilder);
 
-  private readonly formBuilder =
-    inject(FormBuilder);
+  private readonly authService = inject(AuthService);
 
-  private readonly authService =
-    inject(AuthService);
+  private readonly route = inject(ActivatedRoute);
 
-  private readonly route =
-    inject(ActivatedRoute);
-
-  private readonly router =
-    inject(Router);
-
+  private readonly router = inject(Router);
 
   readonly iconos = {
     seguridad: LockKeyhole,
@@ -91,7 +61,6 @@ export class RestablecerPasswordComponent
     ocultar: EyeOff,
     cargando: LoaderCircle,
   };
-
 
   token = '';
 
@@ -105,73 +74,45 @@ export class RestablecerPasswordComponent
 
   mensajeError = '';
 
+  readonly formulario = this.formBuilder.nonNullable.group(
+    {
+      nuevaPassword: [
+        '',
+        [
+          Validators.required,
+          Validators.minLength(8),
+          Validators.maxLength(72),
 
-  readonly formulario =
-    this.formBuilder.nonNullable.group(
-      {
-
-        nuevaPassword: [
-          '',
-          [
-            Validators.required,
-            Validators.minLength(8),
-            Validators.maxLength(72),
-
-            Validators.pattern(
-              /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/,
-            ),
-          ],
+          Validators.pattern(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d).+$/),
         ],
+      ],
 
-        confirmarPassword: [
-          '',
-          [
-            Validators.required,
-          ],
-        ],
+      confirmarPassword: ['', [Validators.required]],
+    },
 
-      },
-
-      {
-        validators: passwordsCoinciden,
-      },
-    );
-
+    {
+      validators: passwordsCoinciden,
+    },
+  );
 
   ngOnInit(): void {
+    this.token = this.route.snapshot.queryParamMap.get('token')?.trim() ?? '';
 
-    this.token =
-      this.route.snapshot.queryParamMap
-        .get('token')
-        ?.trim() ?? '';
-
-    this.tokenValido =
-      this.token.length >= 32;
+    this.tokenValido = this.token.length >= 32;
   }
 
-
   guardar(): void {
-
-    if (
-      !this.tokenValido ||
-      this.formulario.invalid ||
-      this.guardando
-    ) {
-
+    if (!this.tokenValido || this.formulario.invalid || this.guardando) {
       this.formulario.markAllAsTouched();
 
       return;
     }
 
-
-    const datos =
-      this.formulario.getRawValue();
-
+    const datos = this.formulario.getRawValue();
 
     this.guardando = true;
 
     this.mensajeError = '';
-
 
     this.authService
       .restablecerPassword(
@@ -185,11 +126,8 @@ export class RestablecerPasswordComponent
         }),
       )
       .subscribe({
-
         next: async (mensaje) => {
-
-          const { default: Swal } =
-            await import('sweetalert2');
+          const { default: Swal } = await import('sweetalert2');
 
           await Swal.fire({
             icon: 'success',
@@ -200,18 +138,12 @@ export class RestablecerPasswordComponent
             heightAuto: false,
           });
 
-          await this.router.navigateByUrl(
-            '/login',
-          );
+          await this.router.navigateByUrl('/login');
         },
 
         error: (error: Error) => {
-
-          this.mensajeError =
-            error.message;
-
+          this.mensajeError = error.message;
         },
-
       });
   }
 }

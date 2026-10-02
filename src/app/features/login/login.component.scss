@@ -607,14 +607,21 @@
   align-items: center;
   justify-content: space-between;
 
-  gap: 20px;
+  gap: 24px;
 
   color:
-    rgba(255, 255, 255, 0.4);
+    rgba(255, 255, 255, 0.5);
 
   font-size: 9px;
+  line-height: 1.45;
 }
 
+
+.visual-footer span:last-child {
+  max-width: 340px;
+
+  text-align: right;
+}
 
 /* =========================================================
    CURVAS DECORATIVAS

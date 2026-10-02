@@ -548,3 +548,175 @@ a.acceso-item:focus-visible {
     display: none;
   }
 }
+/* =========================================================
+   SALDO DE APERTURA
+   ========================================================= */
+
+.saldo-apertura-consulta {
+  position: relative;
+}
+
+
+.saldo-apertura-consulta .tarjeta-header {
+  align-items: center;
+}
+
+
+.badge-solo-consulta {
+  margin-left: auto;
+
+  padding: 0.28rem 0.52rem;
+
+  border-radius: 999px;
+
+  background: #f1f5f9;
+
+  color: #64748b;
+
+  font-size: 0.61rem;
+  font-weight: 720;
+
+  white-space: nowrap;
+}
+
+
+.saldo-apertura-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      3,
+      minmax(0, 1fr)
+    );
+
+  gap: 0.75rem;
+
+  margin-top: 1rem;
+}
+
+
+.saldo-apertura-item {
+  min-width: 0;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.68rem;
+
+  padding: 0.85rem;
+
+  border: 1px solid #eef2f7;
+  border-radius: 13px;
+
+  background: #fbfdff;
+}
+
+
+.saldo-apertura-icono {
+  width: 39px;
+  height: 39px;
+
+  flex: 0 0 39px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 11px;
+
+  background: #ecfdf5;
+
+  color: #059669;
+}
+
+
+.saldo-apertura-icono-azul {
+  background: #eff6ff;
+
+  color: #2563eb;
+}
+
+
+.saldo-apertura-icono-neutro {
+  background: #f8fafc;
+
+  color: #475569;
+}
+
+
+.saldo-apertura-item > div {
+  min-width: 0;
+}
+
+
+.saldo-apertura-item small {
+  display: block;
+
+  color: #94a3b8;
+
+  font-size: 0.64rem;
+}
+
+
+.saldo-apertura-item strong {
+  display: block;
+
+  margin-top: 0.2rem;
+
+  color: #0f172a;
+
+  font-size: 0.78rem;
+  font-weight: 730;
+}
+
+
+.saldo-apertura-item
+.saldo-apertura-monto {
+  color: #047857;
+
+  font-size: 1rem;
+
+  font-variant-numeric: tabular-nums;
+}
+
+
+.saldo-apertura-nota {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 0.5rem;
+
+  margin-top: 0.75rem;
+
+  padding: 0.72rem 0.8rem;
+
+  border: 1px solid #dbeafe;
+  border-radius: 11px;
+
+  background: #f8fbff;
+
+  color: #2563eb;
+}
+
+
+.saldo-apertura-nota p {
+  margin: 0;
+
+  color: #64748b;
+
+  font-size: 0.66rem;
+  line-height: 1.5;
+}
+
+
+@media (max-width: 760px) {
+
+  .saldo-apertura-grid {
+    grid-template-columns: 1fr;
+  }
+
+
+  .badge-solo-consulta {
+    display: none;
+  }
+
+}

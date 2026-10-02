@@ -77,6 +77,17 @@ export interface ReporteMovimiento {
   estado: string;
 
   observacion?: string | null;
+  fechaComprobante?: string | null;
+
+serieComprobante?: string | null;
+
+numeroComprobante?: string | null;
+
+documentoEmisor?: string | null;
+
+razonSocialEmisor?: string | null;
+
+archivoXmlNombre?: string | null;
 
   activo: boolean;
 

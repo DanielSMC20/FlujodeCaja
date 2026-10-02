@@ -1,14 +1,19 @@
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpParams,
+} from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
 
 import { API_CONFIG } from '../../core/config/api.config';
 import { MovimientoResumen } from '../modelos/dashboard.model';
-import {AnularMovimientoRequest,
+import {
+  AnularMovimientoRequest,
   CancelarEgresoRequest,
+  FiltroMovimientos,
   Movimiento,
   RegistrarMovimientoRequest,
-  
 } from '../modelos/movimiento';
 import { CategoriaService } from './categoria.service';
 import { SesionEmpresaService } from './sesion-empresa.service';
@@ -59,10 +64,35 @@ export class MovimientoService {
   private readonly sesionEmpresaService = inject(SesionEmpresaService);
 
   listarMovimientos(tipoMovimiento?: number): Observable<Movimiento[]> {
-    let params = new HttpParams().set('soloActivos', 'true');
+    return this.listarMovimientosFiltrados({
+      tipoMovimiento,
 
-    if (tipoMovimiento) {
-      params = params.set('tipoMovimiento', String(tipoMovimiento));
+      soloActivos: true,
+    });
+  }
+
+  listarMovimientosFiltrados(
+    filtro: FiltroMovimientos = {},
+  ): Observable<Movimiento[]> {
+    let params = new HttpParams().set(
+      'soloActivos',
+      String(filtro.soloActivos ?? true),
+    );
+
+    if (filtro.tipoMovimiento != null) {
+      params = params.set('tipoMovimiento', String(filtro.tipoMovimiento));
+    }
+
+    if (filtro.fechaDesde?.trim()) {
+      params = params.set('fechaDesde', filtro.fechaDesde.trim());
+    }
+
+    if (filtro.fechaHasta?.trim()) {
+      params = params.set('fechaHasta', filtro.fechaHasta.trim());
+    }
+
+    if (filtro.cancelado != null) {
+      params = params.set('cancelado', String(filtro.cancelado));
     }
 
     return this.http
@@ -70,7 +100,10 @@ export class MovimientoService {
         params,
       })
       .pipe(
-        map((movimientos) => movimientos.map((item) => this.mapearMovimiento(item))),
+        map((movimientos) =>
+          movimientos.map((item) => this.mapearMovimiento(item)),
+        ),
+
         catchError((error: HttpErrorResponse) =>
           throwError(() => new Error(this.obtenerMensajeError(error))),
         ),
@@ -91,7 +124,6 @@ export class MovimientoService {
         }),
       );
   }
-  
 
   registrarMovimiento(
     request: RegistrarMovimientoRequest,
@@ -161,25 +193,20 @@ export class MovimientoService {
         ),
       );
   }
-anularMovimiento(
-  movimientoId: number,
-  request: AnularMovimientoRequest,
-): Observable<void> {
-  return this.http
-    .patch<void>(
-      `${API_CONFIG.baseUrl}/movimientos/${movimientoId}/anular`,
-      {
+  anularMovimiento(
+    movimientoId: number,
+    request: AnularMovimientoRequest,
+  ): Observable<void> {
+    return this.http
+      .patch<void>(`${API_CONFIG.baseUrl}/movimientos/${movimientoId}/anular`, {
         motivo: request.motivo.trim(),
-      },
-    )
-    .pipe(
-      catchError((error: HttpErrorResponse) =>
-        throwError(
-          () => new Error(this.obtenerMensajeError(error)),
+      })
+      .pipe(
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.obtenerMensajeError(error))),
         ),
-      ),
-    );
-}
+      );
+  }
 
   obtenerUltimosMovimientos(): Observable<MovimientoResumen[]> {
     return this.listarMovimientos().pipe(
@@ -225,13 +252,15 @@ anularMovimiento(
   obtenerCategoriasMock(): Observable<string[]> {
     return this.categoriaService
       .listarCategorias()
-      .pipe(map((categorias) => categorias.map((categoria) => categoria.nombre)));
+      .pipe(
+        map((categorias) => categorias.map((categoria) => categoria.nombre)),
+      );
   }
 
   private construirPayloadRegistro(request: RegistrarMovimientoRequest) {
     const cancelado: boolean | null =
       request.tipoMovimiento === 2
-        ? request.cancelado ?? request.bCancelado === 1
+        ? (request.cancelado ?? request.bCancelado === 1)
         : null;
 
     return {
@@ -270,7 +299,8 @@ anularMovimiento(
       id: response.id,
       empresaId: this.sesionEmpresaService.empresaActualId,
       tipoMovimiento: response.tipoMovimiento,
-      tipoMovimientoDescripcion: response.tipoMovimientoDescripcion ?? undefined,
+      tipoMovimientoDescripcion:
+        response.tipoMovimientoDescripcion ?? undefined,
       categoriaId: response.categoriaId,
       categoria: response.categoria,
       fechaMovimiento: response.fechaMovimiento,
@@ -283,12 +313,14 @@ anularMovimiento(
       medioPago: response.medioPago ?? 9,
       medioPagoDescripcion: response.medioPagoDescripcion ?? undefined,
       tipoComprobante: response.tipoComprobante ?? 5,
-      tipoComprobanteDescripcion: response.tipoComprobanteDescripcion ?? undefined,
+      tipoComprobanteDescripcion:
+        response.tipoComprobanteDescripcion ?? undefined,
       moneda: response.moneda ?? 1,
       monedaDescripcion: response.monedaDescripcion ?? undefined,
       monedaAbreviatura: response.monedaAbreviatura ?? undefined,
       origenRegistro: response.origenRegistro ?? 1,
-      origenRegistroDescripcion: response.origenRegistroDescripcion ?? undefined,
+      origenRegistroDescripcion:
+        response.origenRegistroDescripcion ?? undefined,
       observacion: response.observacion ?? null,
       activo: response.activo ?? true,
       fechaComprobante: response.fechaComprobante ?? null,
@@ -302,7 +334,6 @@ anularMovimiento(
       fechaRegistro: response.fechaRegistro ?? null,
     };
   }
-  
 
   private obtenerMensajeError(error: HttpErrorResponse): string {
     const apiError = error.error as ApiErrorResponse | null;

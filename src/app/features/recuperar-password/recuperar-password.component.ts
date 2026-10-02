@@ -1,10 +1,6 @@
 import { CommonModule } from '@angular/common';
 import { Component, inject } from '@angular/core';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import {
   ArrowLeft,
@@ -23,22 +19,14 @@ import { AuthService } from '../../core/auth/auth.service';
 @Component({
   selector: 'app-recuperar-password',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    LucideAngularModule,
-    RouterLink,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink],
   templateUrl: './recuperar-password.component.html',
   styleUrl: './recuperar-password.component.scss',
 })
 export class RecuperarPasswordComponent {
+  private readonly formBuilder = inject(FormBuilder);
 
-  private readonly formBuilder =
-    inject(FormBuilder);
-
-  private readonly authService =
-    inject(AuthService);
+  private readonly authService = inject(AuthService);
 
   readonly iconos = {
     correo: Mail,
@@ -55,25 +43,12 @@ export class RecuperarPasswordComponent {
 
   mensajeError = '';
 
-  readonly formulario =
-    this.formBuilder.nonNullable.group({
-      correo: [
-        '',
-        [
-          Validators.required,
-          Validators.email,
-        ],
-      ],
-    });
-
+  readonly formulario = this.formBuilder.nonNullable.group({
+    correo: ['', [Validators.required, Validators.email]],
+  });
 
   enviar(): void {
-
-    if (
-      this.formulario.invalid ||
-      this.enviando
-    ) {
-
+    if (this.formulario.invalid || this.enviando) {
       this.formulario.markAllAsTouched();
 
       return;
@@ -87,48 +62,31 @@ export class RecuperarPasswordComponent {
 
     this.mensajeError = '';
 
-    const correo =
-      this.formulario.controls.correo.value;
-
+    const correo = this.formulario.controls.correo.value;
 
     this.authService
-      .solicitarRecuperacionPassword(
-        correo,
-      )
+      .solicitarRecuperacionPassword(correo)
       .pipe(
         finalize(() => {
           this.enviando = false;
         }),
       )
       .subscribe({
-
         next: (mensaje) => {
-
           this.enviado = true;
 
           this.mensaje = mensaje;
-
         },
 
         error: (error: Error) => {
-
-          this.mensajeError =
-            error.message;
-
+          this.mensajeError = error.message;
         },
-
       });
   }
 
-
   get correoInvalido(): boolean {
+    const control = this.formulario.controls.correo;
 
-    const control =
-      this.formulario.controls.correo;
-
-    return (
-      control.touched &&
-      control.invalid
-    );
+    return control.touched && control.invalid;
   }
 }

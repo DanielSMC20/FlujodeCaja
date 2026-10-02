@@ -98,7 +98,7 @@ export class CrearCuentaEmpresaComponent {
         '',
         [Validators.required, Validators.email, Validators.maxLength(254)],
       ],
-rolId: [0, [Validators.required, Validators.min(1)]],
+      rolId: [0, [Validators.required, Validators.min(1)]],
       password: [
         '',
         [
@@ -152,7 +152,8 @@ rolId: [0, [Validators.required, Validators.min(1)]],
         },
         error: (error: Error) => {
           this.mensajeError =
-            error.message || 'No fue posible crear la cuenta. Intenta nuevamente.';
+            error.message ||
+            'No fue posible crear la cuenta. Intenta nuevamente.';
           this.changeDetectorRef.markForCheck();
         },
       });

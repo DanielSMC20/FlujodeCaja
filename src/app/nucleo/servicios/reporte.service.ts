@@ -1,4 +1,8 @@
-import { HttpClient, HttpErrorResponse, HttpParams } from '@angular/common/http';
+import {
+  HttpClient,
+  HttpErrorResponse,
+  HttpParams,
+} from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { Observable, catchError, map, throwError } from 'rxjs';
 
@@ -39,6 +43,12 @@ interface ReporteBackendResponse {
     cancelado?: boolean | null;
     estado?: string | null;
     observacion?: string | null;
+    fechaComprobante?: string | null;
+    serieComprobante?: string | null;
+    numeroComprobante?: string | null;
+    documentoEmisor?: string | null;
+    razonSocialEmisor?: string | null;
+    archivoXmlNombre?: string | null;
     activo?: boolean | null;
     fechaAnulacion?: string | null;
     motivoAnulacion?: string | null;
@@ -72,12 +82,18 @@ export class ReporteService {
     if (filtro.origenRegistro) {
       params = params.set('origenRegistro', String(filtro.origenRegistro));
     }
-    params = params.set('incluirAnulados', String(filtro.incluirAnulados ?? false));
+    params = params.set(
+      'incluirAnulados',
+      String(filtro.incluirAnulados ?? false),
+    );
 
     return this.http
-      .get<ReporteBackendResponse>(`${API_CONFIG.baseUrl}/reportes/movimientos`, {
-        params,
-      })
+      .get<ReporteBackendResponse>(
+        `${API_CONFIG.baseUrl}/reportes/movimientos`,
+        {
+          params,
+        },
+      )
       .pipe(
         map((response) => {
           const totalIngresos = Number(response.resumen.totalIngresos ?? 0);
@@ -87,7 +103,9 @@ export class ReporteService {
 
           return {
             resumen: {
-              cantidadRegistros: Number(response.resumen.cantidadRegistros ?? 0),
+              cantidadRegistros: Number(
+                response.resumen.cantidadRegistros ?? 0,
+              ),
               cantidadAnulados: Number(response.resumen.cantidadAnulados ?? 0),
               totalIngresos,
               totalEgresosPagados,
@@ -130,6 +148,12 @@ export class ReporteService {
                     : 'Proyectado'
                   : 'Registrado'),
               observacion: movimiento.observacion ?? null,
+              fechaComprobante: movimiento.fechaComprobante ?? null,
+              serieComprobante: movimiento.serieComprobante ?? null,
+              numeroComprobante: movimiento.numeroComprobante ?? null,
+              documentoEmisor: movimiento.documentoEmisor ?? null,
+              razonSocialEmisor: movimiento.razonSocialEmisor ?? null,
+              archivoXmlNombre: movimiento.archivoXmlNombre ?? null,
               activo: movimiento.activo ?? true,
               fechaAnulacion: movimiento.fechaAnulacion ?? null,
               motivoAnulacion: movimiento.motivoAnulacion ?? null,

@@ -6,13 +6,17 @@ export interface Movimiento {
   empresaId: number;
 
   tipoMovimiento: number;
+
   tipoMovimientoDescripcion?: string;
 
   categoriaId: number;
+
   categoria: string;
 
   fechaMovimiento: string;
+
   fechaProyectada?: string | null;
+
   fechaPago?: string | null;
 
   bCancelado?: FlagCancelado;
@@ -20,22 +24,32 @@ export interface Movimiento {
   cancelado?: boolean | null;
 
   descripcion: string;
+
   monto: number;
 
   medioPago: number;
+
   medioPagoDescripcion?: string;
 
   tipoComprobante: number;
+
   tipoComprobanteDescripcion?: string;
 
   moneda: number;
+
   monedaDescripcion?: string;
+
   monedaAbreviatura?: string;
 
   origenRegistro: number;
+
   origenRegistroDescripcion?: string;
 
   observacion?: string | null;
+
+  /* =============================================
+     COMPROBANTE
+     ============================================= */
 
   fechaComprobante?: string | null;
 
@@ -58,23 +72,27 @@ export interface Movimiento {
   activo?: boolean;
 }
 
+export interface MovimientoDetalle extends Movimiento {}
 
-export interface MovimientoDetalle extends Movimiento {
-  fechaComprobante?: string | null;
+/* =========================================================
+   FILTROS DEL LISTADO
+   ========================================================= */
 
-  serieComprobante?: string | null;
+export interface FiltroMovimientos {
+  tipoMovimiento?: number;
 
-  numeroComprobante?: string | null;
+  fechaDesde?: string;
 
-  documentoEmisor?: string | null;
+  fechaHasta?: string;
 
-  razonSocialEmisor?: string | null;
+  cancelado?: boolean;
 
-  archivoXmlNombre?: string | null;
-
-  hashXml?: string | null;
+  soloActivos?: boolean;
 }
 
+/* =========================================================
+   REGISTRO
+   ========================================================= */
 
 export interface RegistrarMovimientoRequest {
   tipoMovimiento: number;
@@ -120,6 +138,9 @@ export interface RegistrarMovimientoRequest {
   hashXml?: string;
 }
 
+/* =========================================================
+   ACTUALIZACIÓN
+   ========================================================= */
 
 export interface ActualizarMovimientoRequest {
   categoriaId: number;
@@ -154,10 +175,10 @@ export interface ActualizarMovimientoRequest {
 
   hashXml?: string;
 }
+
 export interface AnularMovimientoRequest {
   motivo: string;
 }
-
 
 export interface PagarMovimientoRequest {
   fechaPago: string;
@@ -165,9 +186,4 @@ export interface PagarMovimientoRequest {
 
 export interface CancelarEgresoRequest {
   fechaPago: string;
-}
-
-
-export interface AnularMovimientoRequest {
-  motivo: string;
 }

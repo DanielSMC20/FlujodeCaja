@@ -14,10 +14,13 @@ import {
   Tags,
   UsersRound,
   LucideAngularModule,
+  WalletCards,
+  CalendarDays
 } from 'lucide-angular';
 
 import { SesionEmpresaService } from '../../../../nucleo/servicios/sesion-empresa.service';
 import { SesionUsuarioService } from '../../../../nucleo/servicios/sesion-usuario.service';
+import { ConfiguracionFinancieraService } from '../../../../nucleo/servicios/configuracion-financiera.service';
 
 @Component({
   selector: 'app-configuracion',
@@ -30,9 +33,11 @@ import { SesionUsuarioService } from '../../../../nucleo/servicios/sesion-usuari
 export class ConfiguracionComponent {
   private readonly sesionEmpresaService = inject(SesionEmpresaService);
   private readonly sesionUsuarioService = inject(SesionUsuarioService);
+  private readonly configuracionFinancieraService =  inject(ConfiguracionFinancieraService);
 
   readonly empresaActual$ = this.sesionEmpresaService.empresaActual$;
   readonly usuarioActual$ = this.sesionUsuarioService.usuarioActual$;
+  readonly configuracionFinanciera$ =  this.configuracionFinancieraService.obtenerConfiguracion();
 
   get esAdministrador(): boolean {
     return this.sesionUsuarioService.esAdministrador;
@@ -50,6 +55,8 @@ export class ConfiguracionComponent {
     ultimoAcceso: Clock3,
     siguiente: ChevronRight,
     correcto: CircleCheck,
+    saldoInicial:WalletCards,
+    fechaApertura: CalendarDays,
   };
 
   obtenerIniciales(nombreComercial: string): string {

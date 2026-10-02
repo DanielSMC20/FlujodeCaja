@@ -75,11 +75,14 @@
           <label class="campo">
             <span> Fecha de inicio </span>
 
-            <input type="date" formControlName="fechaSaldoInicial" readonly />
-
+            <input
+              type="date"
+              formControlName="fechaSaldoInicial"
+              [max]="fechaInicio"
+            />
             <small>
-              El inicio corresponde al día en que comienzas a utilizar el
-              sistema.
+              Selecciona la fecha desde la cual comenzará el control del flujo
+              de caja. No puede ser una fecha futura.
             </small>
           </label>
 
@@ -140,7 +143,7 @@
                 <h3>Canales de ingreso</h3>
 
                 <p class="grupo-descripcion">
-  Canales disponibles para registrar los ingresos.
+                  Canales disponibles para registrar los ingresos.
                 </p>
               </div>
             </div>
@@ -168,8 +171,8 @@
                 <h3>Clasificadores de egreso</h3>
 
                 <p class="grupo-descripcion">
-  Define las categorías que utilizarás para clasificar los egresos.
-
+                  Define las categorías que utilizarás para clasificar los
+                  egresos.
                 </p>
               </div>
 
@@ -219,9 +222,9 @@
           <lucide-icon [img]="iconos.correcto" [size]="19" [strokeWidth]="2" />
 
           <p>
-            El saldo inicial se registrará una sola vez. Los clasificadores de
-            egreso podrán administrarse posteriormente desde
-            <strong>Clasificadores</strong>.
+            El saldo inicial y su fecha de apertura se registrarán una sola vez
+            por empresa. Posteriormente podrán consultarse desde
+            <strong>Configuración</strong>, pero no volverán a registrarse.
           </p>
         </div>
 

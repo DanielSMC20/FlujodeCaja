@@ -1,18 +1,37 @@
+/* =========================================================
+   CONTENEDOR GENERAL
+   ========================================================= */
+
 :host {
   display: block;
+
+  width: 100%;
+  min-width: 0;
 }
+
 
 .pagina-flujo {
   width: 100%;
+  min-width: 0;
 
   display: flex;
   flex-direction: column;
 
-  gap: 1.15rem;
+  gap: 1rem;
 }
 
+
+/* =========================================================
+   CABECERA DE LA PÁGINA
+   ========================================================= */
+
+.pagina-header {
+  width: 100%;
+}
+
+
 .pagina-header h1 {
-  margin: 0.3rem 0 0;
+  margin: 0.25rem 0 0;
 
   color: #0f172a;
 
@@ -22,16 +41,18 @@
   letter-spacing: -0.035em;
 }
 
-.pagina-header p {
-  max-width: 700px;
 
-  margin: 0.4rem 0 0;
+.pagina-header p {
+  max-width: 760px;
+
+  margin: 0.35rem 0 0;
 
   color: #64748b;
 
   font-size: 0.78rem;
   line-height: 1.5;
 }
+
 
 .pagina-etiqueta {
   color: #2563eb;
@@ -43,27 +64,45 @@
   text-transform: uppercase;
 }
 
+
+/* =========================================================
+   TARJETAS GENERALES
+   ========================================================= */
+
 .tarjeta {
-  padding: 1.2rem;
+  width: 100%;
+
+  padding: 1.1rem;
 
   border: 1px solid #e2e8f0;
-  border-radius: 16px;
+  border-radius: 14px;
 
   background: #ffffff;
 
-  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.025);
+  box-shadow:
+    0 2px 8px
+    rgba(15, 23, 42, 0.025);
 }
+
+
+/* =========================================================
+   FILTROS
+   ========================================================= */
 
 .filtros {
   padding: 1rem 1.1rem;
 }
 
+
 .filtros-formulario {
+  width: 100%;
+
   display: flex;
   align-items: flex-end;
 
   gap: 0.8rem;
 }
+
 
 .campo {
   width: 185px;
@@ -74,12 +113,14 @@
   gap: 0.35rem;
 }
 
+
 .campo label {
   color: #475569;
 
-  font-size: 0.65rem;
+  font-size: 0.66rem;
   font-weight: 700;
 }
+
 
 .campo input {
   width: 100%;
@@ -88,7 +129,7 @@
   padding: 0 0.7rem;
 
   border: 1px solid #dbe3ed;
-  border-radius: 9px;
+  border-radius: 8px;
 
   outline: none;
 
@@ -97,16 +138,29 @@
   color: #334155;
 
   font-family: inherit;
-  font-size: 0.7rem;
+  font-size: 0.72rem;
+
+  transition:
+    border-color 0.15s ease,
+    box-shadow 0.15s ease,
+    background 0.15s ease;
 }
+
 
 .campo input:focus {
   border-color: #60a5fa;
 
   background: #ffffff;
 
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+  box-shadow:
+    0 0 0 3px
+    rgba(59, 130, 246, 0.08);
 }
+
+
+/* =========================================================
+   BOTONES
+   ========================================================= */
 
 .acciones-filtro {
   display: flex;
@@ -116,6 +170,7 @@
   margin-left: auto;
 }
 
+
 .boton-principal,
 .boton-secundario {
   height: 40px;
@@ -124,16 +179,21 @@
   align-items: center;
   justify-content: center;
 
-  padding: 0 0.85rem;
+  padding: 0 0.9rem;
 
-  border-radius: 9px;
+  border-radius: 8px;
 
   font-family: inherit;
-  font-size: 0.67rem;
+  font-size: 0.68rem;
   font-weight: 700;
 
   cursor: pointer;
+
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
+
 
 .boton-principal {
   border: 1px solid #2563eb;
@@ -143,9 +203,13 @@
   color: #ffffff;
 }
 
+
 .boton-principal:hover {
+  border-color: #1d4ed8;
+
   background: #1d4ed8;
 }
+
 
 .boton-secundario {
   border: 1px solid #dbe3ed;
@@ -155,129 +219,862 @@
   color: #64748b;
 }
 
+
 .boton-secundario:hover {
   background: #f8fafc;
 }
 
+
+.mensaje-error {
+  margin: 0.75rem 0 0;
+
+  color: #b91c1c;
+
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   CARGANDO
+   ========================================================= */
+
+.estado-carga {
+  min-height: 68px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.8rem;
+
+  padding: 0.85rem 1rem;
+
+  border: 1px solid #dbeafe;
+  border-radius: 11px;
+
+  background: #eff6ff;
+}
+
+
+.estado-carga-punto {
+  width: 9px;
+  height: 9px;
+
+  flex: 0 0 9px;
+
+  border-radius: 50%;
+
+  background: #2563eb;
+
+  box-shadow:
+    0 0 0 6px
+    rgba(37, 99, 235, 0.1);
+
+  animation:
+    pulso-carga
+    1.15s
+    ease-in-out
+    infinite;
+}
+
+
+.estado-carga strong {
+  color: #1e3a8a;
+
+  font-size: 0.73rem;
+}
+
+
+.estado-carga p {
+  margin: 0.15rem 0 0;
+
+  color: #64748b;
+
+  font-size: 0.65rem;
+}
+
+
+@keyframes pulso-carga {
+
+  50% {
+    opacity: 0.5;
+
+    transform: scale(0.78);
+  }
+
+}
+
+
+/* =========================================================
+   TARJETAS RESUMEN
+   ========================================================= */
+
 .resumen-grid {
   display: grid;
 
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  grid-template-columns:
+    repeat(
+      auto-fit,
+      minmax(170px, 1fr)
+    );
 
-  gap: 0.8rem;
+  gap: 0.75rem;
 }
 
+
 .indicador {
+  min-width: 0;
+
   display: flex;
   flex-direction: column;
 
-  min-width: 0;
-
-  padding: 1rem 1.1rem;
+  padding: 0.95rem 1rem;
 
   border: 1px solid #e2e8f0;
-  border-radius: 14px;
+  border-radius: 12px;
 
   background: #ffffff;
 
-  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.02);
+  box-shadow:
+    0 2px 8px
+    rgba(15, 23, 42, 0.02);
 }
+
 
 .indicador-label {
   color: #64748b;
 
-  font-size: 0.65rem;
+  font-size: 0.64rem;
   font-weight: 600;
 }
 
-.indicador strong {
-  margin-top: 0.4rem;
 
-  font-size: 1.25rem;
+.indicador strong {
+  margin-top: 0.38rem;
+
+  font-size: 1.2rem;
   font-weight: 700;
 
   letter-spacing: -0.025em;
 
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric:
+    tabular-nums;
 }
+
 
 .indicador small {
   margin-top: 0.25rem;
 
   color: #94a3b8;
 
-  font-size: 0.6rem;
+  font-size: 0.59rem;
+  line-height: 1.35;
 }
 
+
 .valor-ingreso {
-  color: #16a34a;
+  color: #15803d;
 }
+
 
 .valor-egreso {
   color: #dc2626;
 }
+
 
 .valor-proyectado,
 .proyectado {
   color: #b45309;
 }
 
+
 .valor-neutro {
   color: #2563eb;
 }
 
-.monto-destacado {
-  color: #0f172a;
+
+/* =========================================================
+   MATRIZ DEL FLUJO DE CAJA
+   AQUÍ SE REPRODUCE EL ESTILO DEL EXCEL
+   ========================================================= */
+
+.contenedor-flujo-excel {
+  width: 100%;
+  min-width: 0;
+
+  overflow: hidden;
+
+  border: 1px solid #b7b7b7;
+
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   SCROLL
+   ========================================================= */
+
+.matriz-scroll {
+  width: 100%;
+
+  max-height: 74vh;
+
+  overflow: auto;
+
+  background: #ffffff;
+
+  overscroll-behavior: contain;
+
+  scrollbar-width: thin;
+  scrollbar-color:
+    #a3a3a3
+    #eeeeee;
+}
+
+
+.matriz-scroll::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+
+.matriz-scroll::-webkit-scrollbar-track {
+  background: #eeeeee;
+}
+
+
+.matriz-scroll::-webkit-scrollbar-thumb {
+  border: 2px solid #eeeeee;
+
+  border-radius: 8px;
+
+  background: #a3a3a3;
+}
+
+
+/* =========================================================
+   TABLA
+   ========================================================= */
+
+.matriz-flujo {
+  width: max-content;
+  min-width: 100%;
+
+  border-collapse: separate;
+  border-spacing: 0;
+
+  table-layout: fixed;
+
+  color: #000000;
+
+  /*
+   * Cambria se aproxima bastante
+   * al aspecto del Excel de referencia.
+   */
+  font-family:
+    Cambria,
+    Calibri,
+    Arial,
+    sans-serif;
+
+  font-size: 11px;
+  line-height: 1;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+
+/* =========================================================
+   CELDAS
+   ========================================================= */
+
+.matriz-flujo th,
+.matriz-flujo td {
+  min-width: 104px;
+  height: 23px;
+
+  padding:
+    2px
+    5px;
+
+  border-right:
+    1px solid
+    #d9d9d9;
+
+  border-bottom:
+    1px solid
+    #d9d9d9;
+
+  background: #ffffff;
+
+  color: #000000;
+
+  text-align: center;
+  vertical-align: middle;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   CABECERA SUPERIOR
+   ========================================================= */
+
+.matriz-flujo thead th {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 20;
+
+  height: 27px;
+
+  padding:
+    3px
+    5px;
+
+  border-bottom:
+    1px solid
+    #a6a6a6;
+
+  background: #ffffff;
+
+  color: #000000;
+
+  font-size: 11px;
   font-weight: 700;
 }
 
-.mensaje-error {
-  margin: 0.75rem 0 0;
-  color: #b91c1c;
-  font-size: 0.72rem;
+
+/* =========================================================
+   PRIMERA COLUMNA
+   CONCEPTOS FIJOS COMO EXCEL
+   ========================================================= */
+
+.matriz-flujo .matriz-concepto {
+  width: 250px;
+  min-width: 250px;
+  max-width: 250px;
+
+  position: sticky;
+
+  left: 0;
+
+  z-index: 10;
+
+  padding-left: 5px;
+
+  border-right:
+    1px solid
+    #a6a6a6;
+
+  background: #ffffff;
+
+  color: #000000;
+
+  text-align: left;
+
+  font-size: 11px;
+  font-weight: 400;
+
+  overflow: hidden;
+
+  text-overflow: ellipsis;
+}
+
+
+/* =========================================================
+   ESQUINA FECHA
+   ========================================================= */
+
+.matriz-flujo .matriz-esquina {
+  z-index: 30;
+
+  font-weight: 700;
+
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   COLUMNAS DE RESUMEN
+   MES / AÑO
+   ========================================================= */
+
+.matriz-flujo .columna-resumen {
+  min-width: 108px;
+
+  border-left:
+    1px solid
+    #a6a6a6;
+
+  font-weight: 700;
+}
+
+
+.matriz-flujo .columna-anio {
+  min-width: 108px;
+
+  border-left:
+    1px solid
+    #7f7f7f;
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   VALORES NORMALES
+   ========================================================= */
+
+.matriz-flujo tbody td {
   font-weight: 600;
 }
 
-.tabla-header {
-  margin-bottom: 1rem;
+
+/* =========================================================
+   SALDO INICIAL
+   ========================================================= */
+
+.matriz-flujo
+.fila-saldo-inicial
+.matriz-concepto {
+  font-weight: 700;
+
+  text-decoration: underline;
 }
 
-.tabla-header h2 {
-  margin: 0;
 
-  color: #1e293b;
-
-  font-size: 0.9rem;
+.matriz-flujo
+.fila-saldo-inicial
+td {
   font-weight: 700;
 }
 
-.tabla-header p {
-  margin: 0.25rem 0 0;
+
+/* =========================================================
+   INGRESOS
+   VERDE EXACTO APROX. DEL EXCEL
+   ========================================================= */
+
+.matriz-flujo
+.fila-seccion-ingreso
+th,
+.matriz-flujo
+.fila-seccion-ingreso
+td {
+  height: 23px;
+
+  border-bottom:
+    1px solid
+    #70ad47;
+
+  background: #92d050;
+
+  color: #000000;
+
+  font-weight: 700;
+}
+
+
+.matriz-flujo
+.fila-seccion-ingreso
+.matriz-concepto {
+  background: #92d050;
+
+  font-weight: 700;
+
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   EGRESOS
+   NARANJA EXACTO APROX. DEL EXCEL
+   ========================================================= */
+
+.matriz-flujo
+.fila-seccion-egreso
+th,
+.matriz-flujo
+.fila-seccion-egreso
+td {
+  height: 23px;
+
+  border-bottom:
+    1px solid
+    #a64b00;
+
+  background: #c65911;
+
+  color: #000000;
+
+  font-weight: 700;
+}
+
+
+.matriz-flujo
+.fila-seccion-egreso
+.matriz-concepto {
+  background: #c65911;
+
+  color: #000000;
+
+  font-weight: 700;
+
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   SUBTOTALES
+   NEGRO
+   ========================================================= */
+
+.matriz-flujo
+.fila-subtotal
+th,
+.matriz-flujo
+.fila-subtotal
+td {
+  border-right:
+    1px solid
+    #262626;
+
+  border-bottom:
+    1px solid
+    #ffffff;
+
+  background: #000000;
+
+  color: #ffffff;
+
+  font-weight: 700;
+}
+
+
+.matriz-flujo
+.fila-subtotal
+.matriz-concepto {
+  background: #000000;
+
+  color: #ffffff;
+
+  font-weight: 700;
+
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   TOTAL GENERAL INGRESOS / EGRESOS
+   ========================================================= */
+
+.matriz-flujo
+.fila-total
+th,
+.matriz-flujo
+.fila-total
+td {
+  border-right:
+    1px solid
+    #262626;
+
+  border-bottom:
+    1px solid
+    #ffffff;
+
+  background: #000000;
+
+  color: #ffffff;
+
+  font-weight: 700;
+}
+
+
+.matriz-flujo
+.fila-total
+.matriz-concepto {
+  background: #000000;
+
+  color: #ffffff;
+
+  font-weight: 700;
+
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   SALDO FINAL
+   ========================================================= */
+
+.matriz-flujo
+.fila-saldo-final
+th,
+.matriz-flujo
+.fila-saldo-final
+td {
+  border-right:
+    1px solid
+    #262626;
+
+  border-bottom:
+    1px solid
+    #ffffff;
+
+  background: #000000;
+
+  color: #ffffff;
+
+  font-weight: 700;
+}
+
+
+.matriz-flujo
+.fila-saldo-final
+.matriz-concepto {
+  background: #000000;
+
+  color: #ffffff;
+
+  font-weight: 700;
+
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   SALDO OPERATIVO
+   ========================================================= */
+
+.matriz-flujo
+.fila-saldo-operativo
+th,
+.matriz-flujo
+.fila-saldo-operativo
+td {
+  border-right:
+    1px solid
+    #262626;
+
+  background: #000000;
+
+  color: #ffffff;
+
+  font-weight: 700;
+}
+
+
+.matriz-flujo
+.fila-saldo-operativo
+.matriz-concepto {
+  background: #000000;
+
+  color: #ffffff;
+
+  font-weight: 700;
+
+  text-decoration: underline;
+}
+
+
+/* =========================================================
+   SALDO OPERATIVO NEGATIVO
+   ROSADO COMO EXCEL
+   ========================================================= */
+
+.matriz-flujo
+.fila-saldo-operativo
+td.saldo-negativo {
+  border-right:
+    1px solid
+    #f4a6ad;
+
+  background: #ffc7ce;
+
+  color: #9c0006;
+
+  font-weight: 700;
+}
+
+
+/* =========================================================
+   EVITAR EFECTOS MODERNOS SOBRE EL EXCEL
+   ========================================================= */
+
+.matriz-flujo tbody tr {
+  transition: none;
+}
+
+
+.matriz-flujo tbody tr:hover {
+  background: transparent;
+}
+
+
+.matriz-flujo tbody tr:hover td {
+  filter: none;
+}
+
+
+/* =========================================================
+   ESTADO VACÍO DE LA MATRIZ
+   ========================================================= */
+
+.estado-vacio-matriz {
+  min-height: 220px;
+}
+
+
+/* =========================================================
+   RESUMEN DIARIO PLEGABLE
+   ========================================================= */
+
+.detalle-diario {
+  padding: 0;
+
+  overflow: hidden;
+}
+
+
+.detalle-diario > summary {
+  min-height: 70px;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding:
+    0.9rem
+    1.05rem;
+
+  cursor: pointer;
+
+  list-style: none;
+
+  user-select: none;
+}
+
+
+.detalle-diario > summary::-webkit-details-marker {
+  display: none;
+}
+
+
+.detalle-diario > summary strong {
+  display: block;
+
+  color: #1e293b;
+
+  font-size: 0.75rem;
+}
+
+
+.detalle-diario
+> summary
+span:not(.detalle-indicador) {
+  display: block;
+
+  margin-top: 0.18rem;
 
   color: #94a3b8;
 
-  font-size: 0.67rem;
+  font-size: 0.62rem;
 }
+
+
+.detalle-indicador {
+  flex: 0 0 auto;
+
+  padding:
+    0.35rem
+    0.6rem;
+
+  border: 1px solid #dbe3ed;
+  border-radius: 7px;
+
+  background: #f8fafc;
+
+  color: #64748b;
+
+  font-size: 0.61rem;
+  font-weight: 700;
+}
+
+
+.detalle-diario[open]
+.detalle-indicador {
+  color: transparent;
+
+  position: relative;
+}
+
+
+.detalle-diario[open]
+.detalle-indicador::after {
+  content: 'Ocultar';
+
+  position: absolute;
+
+  inset: 0;
+
+  display: grid;
+
+  place-items: center;
+
+  color: #64748b;
+}
+
+
+.detalle-diario-contenido {
+  padding:
+    0
+    1.05rem
+    1.05rem;
+
+  border-top:
+    1px solid
+    #f1f5f9;
+}
+
+
+/* =========================================================
+   TABLA DIARIA ANTERIOR
+   ========================================================= */
 
 .tabla-contenedor {
+  margin-top: 1rem;
+
   overflow-x: auto;
 
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border:
+    1px solid
+    #e2e8f0;
+
+  border-radius: 10px;
 }
 
-table {
+
+.tabla-diaria {
   width: 100%;
 
   border-collapse: collapse;
 }
 
-thead {
+
+.tabla-diaria thead {
   background: #f8fafc;
 }
 
-th {
-  padding: 0.75rem 0.85rem;
+
+.tabla-diaria th {
+  padding:
+    0.72rem
+    0.8rem;
 
   color: #64748b;
 
@@ -289,118 +1086,126 @@ th {
   white-space: nowrap;
 }
 
-td {
-  padding: 0.8rem 0.85rem;
 
-  border-top: 1px solid #f1f5f9;
+.tabla-diaria td {
+  padding:
+    0.78rem
+    0.8rem;
+
+  border-top:
+    1px solid
+    #f1f5f9;
 
   color: #475569;
 
-  font-size: 0.7rem;
+  font-size: 0.69rem;
 
   white-space: nowrap;
 
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric:
+    tabular-nums;
 }
 
-tbody tr:hover {
+
+.tabla-diaria tbody tr:hover {
   background: #fafcff;
 }
 
+
 .texto-derecha {
-  text-align: right;
+  text-align: right !important;
 }
+
 
 .fecha {
   color: #334155;
 
-  font-size: 0.7rem;
+  font-size: 0.69rem;
 }
 
-.cantidad {
-  min-width: 25px;
-  height: 25px;
-
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-
-  padding: 0 0.4rem;
-
-  border-radius: 999px;
-
-  background: #f1f5f9;
-
-  color: #64748b;
-
-  font-size: 0.62rem;
-  font-weight: 700;
-}
 
 .ingreso {
-  color: #16a34a;
+  color: #15803d !important;
 
   font-weight: 600;
 }
+
 
 .egreso {
-  color: #dc2626;
+  color: #dc2626 !important;
 
   font-weight: 600;
 }
+
+
+.proyectado {
+  color: #b45309 !important;
+
+  font-weight: 600;
+}
+
 
 .neto {
   font-weight: 700;
 }
 
+
 .neto-positivo {
-  color: #15803d;
+  color: #15803d !important;
 }
+
 
 .neto-negativo {
-  color: #b91c1c;
+  color: #b91c1c !important;
 }
 
-.neto-cero {
-  color: #64748b;
+
+.monto-destacado {
+  color: #0f172a !important;
+
+  font-weight: 700;
 }
 
-.sin-monto {
-  color: #cbd5e1;
-}
+
+/* =========================================================
+   ESTADOS VACÍOS
+   ========================================================= */
 
 .estado-vacio {
-  min-height: 260px;
+  min-height: 250px;
 
   display: flex;
   flex-direction: column;
-
   align-items: center;
   justify-content: center;
 
   text-align: center;
 }
 
+
 .estado-vacio-icono {
-  width: 48px;
-  height: 48px;
+  width: 46px;
+  height: 46px;
 
   display: grid;
+
   place-items: center;
 
-  margin-bottom: 0.8rem;
+  margin-bottom: 0.75rem;
 
-  border-radius: 13px;
+  border-radius: 12px;
 
   background: #f1f5f9;
 
   color: #94a3b8;
 }
 
+
 .estado-vacio-icono lucide-icon {
   width: 21px;
   height: 21px;
 }
+
 
 .estado-vacio strong {
   color: #475569;
@@ -408,29 +1213,72 @@ tbody tr:hover {
   font-size: 0.78rem;
 }
 
+
 .estado-vacio p {
-  margin: 0.3rem 0 0;
+  max-width: 420px;
+
+  margin:
+    0.3rem
+    0
+    0;
 
   color: #94a3b8;
 
   font-size: 0.67rem;
 }
 
-@media (max-width: 900px) {
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (max-width: 1000px) {
+
   .resumen-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(0, 1fr)
+      );
   }
+
 }
 
+
+@media (max-width: 800px) {
+
+  .resumen-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(0, 1fr)
+      );
+  }
+
+
+  .matriz-flujo
+  .matriz-concepto {
+    width: 220px;
+    min-width: 220px;
+    max-width: 220px;
+  }
+
+}
+
+
 @media (max-width: 650px) {
+
   .filtros-formulario {
     align-items: stretch;
+
     flex-direction: column;
   }
+
 
   .campo {
     width: 100%;
   }
+
 
   .acciones-filtro {
     width: 100%;
@@ -438,12 +1286,56 @@ tbody tr:hover {
     margin-left: 0;
   }
 
+
   .boton-principal,
   .boton-secundario {
     flex: 1;
   }
 
+
   .resumen-grid {
     grid-template-columns: 1fr;
   }
+
+
+  .matriz-flujo {
+    font-size: 10px;
+  }
+
+
+  .matriz-flujo
+  .matriz-concepto {
+    width: 190px;
+    min-width: 190px;
+    max-width: 190px;
+  }
+
+
+  .matriz-flujo th,
+  .matriz-flujo td {
+    min-width: 90px;
+  }
+
+
+  .detalle-diario
+  > summary {
+    align-items: flex-start;
+  }
+
+}
+
+
+/* =========================================================
+   ACCESIBILIDAD
+   ========================================================= */
+
+@media (
+  prefers-reduced-motion:
+  reduce
+) {
+
+  .estado-carga-punto {
+    animation: none;
+  }
+
 }

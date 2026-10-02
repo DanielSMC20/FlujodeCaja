@@ -1,0 +1,262 @@
+<section class="pagina-compras">
+  <header class="pagina-header">
+    <div>
+      <span class="pagina-etiqueta"> Reportes </span>
+
+      <h1>Registro de compras</h1>
+
+      <p>
+        Consulta todos los egresos del periodo con la información del proveedor
+        y comprobante cuando esté disponible.
+      </p>
+    </div>
+  </header>
+
+  <!-- =============================================
+       FILTROS
+       ============================================= -->
+
+  <article class="tarjeta filtros">
+    <form
+      class="filtros-grid"
+      [formGroup]="formulario"
+      (ngSubmit)="aplicarFiltros()"
+    >
+      <div class="campo">
+        <label for="fechaDesde"> Desde </label>
+
+        <input id="fechaDesde" type="date" formControlName="fechaDesde" />
+      </div>
+
+      <div class="campo">
+        <label for="fechaHasta"> Hasta </label>
+
+        <input id="fechaHasta" type="date" formControlName="fechaHasta" />
+      </div>
+
+      <div class="campo">
+        <label for="estado"> Estado </label>
+
+        <select id="estado" formControlName="estado">
+          <option value="todos">Todos</option>
+
+          <option value="pagado">Pagados</option>
+
+          <option value="proyectado">Proyectados</option>
+        </select>
+      </div>
+
+      <div class="acciones-filtros">
+        <button
+          type="button"
+          class="boton-secundario"
+          (click)="limpiarFiltros()"
+        >
+          <lucide-icon [img]="iconos.limpiar" [size]="16" [strokeWidth]="2" />
+
+          Limpiar
+        </button>
+
+        <button type="submit" class="boton-principal">
+          <lucide-icon [img]="iconos.buscar" [size]="16" [strokeWidth]="2" />
+
+          Buscar
+        </button>
+      </div>
+    </form>
+
+    @if (errorFiltro) {
+      <p class="mensaje-error">
+        {{ errorFiltro }}
+      </p>
+    }
+  </article>
+
+  <!-- =============================================
+       CARGA
+       ============================================= -->
+
+  @if (cargando) {
+    <div class="estado-carga">
+      <span class="estado-carga-punto"></span>
+
+      Consultando registro de compras...
+    </div>
+  }
+
+  <!-- =============================================
+       RESULTADO
+       ============================================= -->
+
+  @if (compras$ | async; as compras) {
+    <!-- RESUMEN -->
+
+    <div class="resumen-grid">
+      <article class="indicador">
+        <span> Registros </span>
+
+        <strong class="valor-neutro">
+          {{ compras.length }}
+        </strong>
+
+        <small> Egresos encontrados </small>
+      </article>
+
+      <article class="indicador">
+        <span> Total de compras </span>
+
+        <strong>
+          {{ totalCompras(compras) | monedaSol }}
+        </strong>
+
+        <small> Importe del periodo </small>
+      </article>
+
+      <article class="indicador">
+        <span> Pagadas </span>
+
+        <strong class="valor-pagado">
+          {{ totalPagado(compras) | monedaSol }}
+        </strong>
+
+        <small> Egresos cancelados </small>
+      </article>
+
+      <article class="indicador">
+        <span> Proyectadas </span>
+
+        <strong class="valor-proyectado">
+          {{ totalProyectado(compras) | monedaSol }}
+        </strong>
+
+        <small> Egresos pendientes </small>
+      </article>
+    </div>
+
+    <!-- =========================================
+         TABLA
+         ========================================= -->
+
+    <article class="tarjeta tarjeta-tabla">
+      <header class="tabla-header">
+        <div>
+          <h2>Detalle de compras</h2>
+
+          <p>
+            Los datos del comprobante se muestran cuando fueron registrados.
+          </p>
+        </div>
+
+        <button
+          type="button"
+          class="boton-excel"
+          [disabled]="compras.length === 0 || cargando"
+          (click)="exportarExcel(compras)"
+        >
+          <lucide-icon [img]="iconos.excel" [size]="17" [strokeWidth]="2" />
+
+          Exportar Excel
+        </button>
+      </header>
+
+      @if (compras.length > 0) {
+        <div class="tabla-contenedor">
+          <table>
+            <thead>
+              <tr>
+                <th>Fecha</th>
+
+                <th>Proveedor</th>
+
+                <th>RUC</th>
+
+                <th>Comprobante</th>
+
+                <th>Concepto</th>
+
+                <th class="texto-derecha">Importe</th>
+
+                <th>Estado</th>
+
+                <th>Origen</th>
+              </tr>
+            </thead>
+
+            <tbody>
+              @for (movimiento of compras; track movimiento.id) {
+                <tr>
+                  <td class="fecha">
+                    {{ formatearFecha(movimiento.fechaMovimiento) }}
+                  </td>
+
+                  <td class="proveedor">
+                    {{ obtenerProveedor(movimiento) }}
+                  </td>
+
+                  <td>
+                    {{ obtenerRuc(movimiento) }}
+                  </td>
+
+                  <td>
+                    <div class="comprobante">
+                      <strong>
+                        {{ obtenerComprobante(movimiento) }}
+                      </strong>
+
+                      @if (movimiento.tipoComprobanteDescripcion) {
+                        <small>
+                          {{ movimiento.tipoComprobanteDescripcion }}
+                        </small>
+                      }
+                    </div>
+                  </td>
+
+                  <td class="concepto">
+                    <strong>
+                      {{ obtenerConcepto(movimiento) }}
+                    </strong>
+
+                    <small>
+                      {{ movimiento.categoria }}
+                    </small>
+                  </td>
+
+                  <td class="texto-derecha importe">
+                    {{ movimiento.monto | monedaSol }}
+                  </td>
+
+                  <td>
+                    <span
+                      class="badge-estado"
+                      [ngClass]="claseEstado(movimiento)"
+                    >
+                      {{ obtenerEstado(movimiento) }}
+                    </span>
+                  </td>
+
+                  <td>
+                    {{ obtenerOrigen(movimiento) }}
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else {
+        <div class="estado-vacio">
+          <span class="estado-vacio-icono">
+            <lucide-icon
+              [img]="iconos.compras"
+              [size]="24"
+              [strokeWidth]="1.8"
+            />
+          </span>
+
+          <strong> No existen compras para los filtros seleccionados </strong>
+
+          <p>Modifica el periodo o el estado y vuelve a consultar.</p>
+        </div>
+      }
+    </article>
+  }
+</section>

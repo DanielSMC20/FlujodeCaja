@@ -1,156 +1,353 @@
 <section class="pagina-flujo">
+  <!-- =======================================================
+       CABECERA
+       ======================================================= -->
   <header class="pagina-header">
     <div>
-      <span class="pagina-etiqueta">Flujo de caja</span>
-      <h1>Control diario real y proyectado</h1>
+      <span class="pagina-etiqueta"> Flujo de caja </span>
+
+      <h1>Flujo de caja</h1>
+
       <p>
-       El saldo disponible muestra el dinero que la empresa tiene actualmente. El saldo estimado muestra cuánto quedaría después de pagar todos los egresos pendientes
+        Consulta los ingresos, egresos y saldos de la empresa en una matriz
+        horizontal basada en el formato de control financiero.
       </p>
     </div>
   </header>
 
+  <!-- =======================================================
+       FILTROS
+       ======================================================= -->
   <article class="tarjeta filtros">
-    <form class="filtros-formulario" [formGroup]="formulario" (ngSubmit)="aplicarFiltros()">
+    <form
+      class="filtros-formulario"
+      [formGroup]="formulario"
+      (ngSubmit)="aplicarFiltros()"
+    >
       <div class="campo">
-        <label for="fechaDesde">Desde</label>
-        <input id="fechaDesde" type="date" formControlName="fechaDesde" [min]="fechaApertura" />
+        <label for="fechaDesde"> Desde </label>
+
+        <input
+          id="fechaDesde"
+          type="date"
+          formControlName="fechaDesde"
+          [min]="fechaApertura"
+        />
       </div>
 
       <div class="campo">
-        <label for="fechaHasta">Hasta</label>
-        <input id="fechaHasta" type="date" formControlName="fechaHasta" [min]="fechaApertura" />
+        <label for="fechaHasta"> Hasta </label>
+
+        <input
+          id="fechaHasta"
+          type="date"
+          formControlName="fechaHasta"
+          [min]="fechaApertura"
+        />
       </div>
 
       <div class="acciones-filtro">
-        <button type="button" class="boton-secundario" (click)="limpiarFiltros()">Limpiar</button>
+        <button
+          type="button"
+          class="boton-secundario"
+          (click)="limpiarFiltros()"
+        >
+          Limpiar
+        </button>
+
         <button type="submit" class="boton-principal">Aplicar filtros</button>
       </div>
     </form>
 
     @if (errorFiltro) {
-      <p class="mensaje-error">{{ errorFiltro }}</p>
+      <p class="mensaje-error">
+        {{ errorFiltro }}
+      </p>
     }
   </article>
-@if (cargandoFlujo) {
-  <div class="estado-vacio">
-    <strong>
-      Cargando flujo de caja...
-    </strong>
 
-    <p>
-      Consultando el periodo seleccionado.
-    </p>
-  </div>
-}
-  @if (flujoCaja$ | async; as flujoCaja) {
+  <!-- =======================================================
+       CARGANDO
+       ======================================================= -->
+  @if (cargandoFlujo) {
+    <div class="estado-carga">
+      <span class="estado-carga-punto"></span>
+
+      <div>
+        <strong> Cargando flujo de caja... </strong>
+
+        <p>Preparando la información del periodo seleccionado.</p>
+      </div>
+    </div>
+  }
+
+  <!-- =======================================================
+       INFORMACIÓN
+       ======================================================= -->
+  @if (vistaFlujo$ | async; as vista) {
+    <!-- =====================================================
+         TARJETAS RESUMEN
+         ===================================================== -->
     <div class="resumen-grid">
       <article class="indicador">
-        <span class="indicador-label">Saldo al iniciar el periodo</span>
-        <strong class="valor-neutro">{{ flujoCaja.resumen.saldoInicialReal | monedaSol }}</strong>
-        <small>Incluye la apertura y los días anteriores</small>
-      </article>
+        <span class="indicador-label"> Saldo al iniciar el periodo </span>
 
-      <article class="indicador">
-        <span class="indicador-label">Ingresos</span>
-        <strong class="valor-ingreso">{{ flujoCaja.resumen.totalIngresos | monedaSol }}</strong>
-        <small>Ventas por Efectivo y POS</small>
-      </article>
-
-      <article class="indicador">
-        <span class="indicador-label">Egresos pagados</span>
-        <strong class="valor-egreso">{{ flujoCaja.resumen.totalEgresosPagados | monedaSol }}</strong>
-        <small>Salidas que ya afectaron la caja</small>
-      </article>
-
-      <article class="indicador">
-        <span class="indicador-label">Egresos proyectados</span>
-        <strong class="valor-proyectado">{{ flujoCaja.resumen.totalEgresosProyectados | monedaSol }}</strong>
-        <small>Compromisos todavía pendientes</small>
-      </article>
-
-      <article class="indicador">
-        <span class="indicador-label">Saldo disponible (real)</span>
-        <strong
-          [class.valor-ingreso]="flujoCaja.resumen.saldoFinalReal >= 0"
-          [class.valor-egreso]="flujoCaja.resumen.saldoFinalReal < 0"
-        >
-          {{ flujoCaja.resumen.saldoFinalReal | monedaSol }}
+        <strong class="valor-neutro">
+          {{ vista.flujoCaja.resumen.saldoInicialReal | monedaSol }}
         </strong>
-        <small>Solo considera egresos pagados</small>
+
+        <small> Incluye el saldo de apertura y días anteriores </small>
       </article>
 
       <article class="indicador">
-        <span class="indicador-label">Saldo estimado (proyectado)</span>
-        <strong
-          [class.valor-ingreso]="flujoCaja.resumen.saldoFinalProyectado >= 0"
-          [class.valor-egreso]="flujoCaja.resumen.saldoFinalProyectado < 0"
-        >
-          {{ flujoCaja.resumen.saldoFinalProyectado | monedaSol }}
+        <span class="indicador-label"> Ingresos </span>
+
+        <strong class="valor-ingreso">
+          {{ vista.flujoCaja.resumen.totalIngresos | monedaSol }}
         </strong>
-        <small>Incluye también los egresos pendientes</small>
+
+        <small> Ingresos registrados en el periodo </small>
+      </article>
+
+      <article class="indicador">
+        <span class="indicador-label"> Egresos pagados </span>
+
+        <strong class="valor-egreso">
+          {{ vista.flujoCaja.resumen.totalEgresosPagados | monedaSol }}
+        </strong>
+
+        <small> Egresos que ya afectaron la caja </small>
+      </article>
+
+      <article class="indicador">
+        <span class="indicador-label"> Egresos proyectados </span>
+
+        <strong class="valor-proyectado">
+          {{ vista.flujoCaja.resumen.totalEgresosProyectados | monedaSol }}
+        </strong>
+
+        <small> Compromisos todavía pendientes </small>
+      </article>
+
+      <article class="indicador">
+        <span class="indicador-label"> Saldo disponible </span>
+
+        <strong
+          [class.valor-ingreso]="vista.flujoCaja.resumen.saldoFinalReal >= 0"
+          [class.valor-egreso]="vista.flujoCaja.resumen.saldoFinalReal < 0"
+        >
+          {{ vista.flujoCaja.resumen.saldoFinalReal | monedaSol }}
+        </strong>
+
+        <small> Considera únicamente egresos pagados </small>
+      </article>
+
+      <article class="indicador">
+        <span class="indicador-label"> Saldo proyectado </span>
+
+        <strong
+          [class.valor-ingreso]="
+            vista.flujoCaja.resumen.saldoFinalProyectado >= 0
+          "
+          [class.valor-egreso]="
+            vista.flujoCaja.resumen.saldoFinalProyectado < 0
+          "
+        >
+          {{ vista.flujoCaja.resumen.saldoFinalProyectado | monedaSol }}
+        </strong>
+
+        <small> Incluye los compromisos pendientes </small>
       </article>
     </div>
 
-    <article class="tarjeta">
-      <header class="tabla-header">
-        <div>
-          <h2>Resumen diario</h2>
-          <p> Revisa cuánto ingresó, cuánto se pagó y cuánto quedaría disponible después de considerar los pagos pendientes.</p>
-        </div>
-      </header>
-
-      @if (flujoCaja.filas.length > 0) {
-        <div class="tabla-contenedor">
-          <table>
+    <!-- =====================================================
+         MATRIZ PRINCIPAL
+         ESTILO EXCEL
+         ===================================================== -->
+    <article class="contenedor-flujo-excel">
+      @if (vista.columnas.length > 0) {
+        <div class="matriz-scroll">
+          <table class="matriz-flujo">
+            <!-- =============================================
+                 CABECERA DE FECHAS
+                 ============================================= -->
             <thead>
               <tr>
-                <th>Fecha</th>
-                <th class="texto-derecha">Ingresos</th>
-                <th class="texto-derecha">Pagados</th>
-                <th class="texto-derecha">Proyectados</th>
-                <th class="texto-derecha">Cambio real del día</th>
-                <th class="texto-derecha">Cambio estimado del día</th>
-                <th class="texto-derecha">Saldo real</th>
-                <th class="texto-derecha">Saldo proyectado</th>
+                <th class="matriz-concepto matriz-esquina" scope="col">
+                  FECHA
+                </th>
+
+                @for (columna of vista.columnas; track columna.id) {
+                  <th
+                    scope="col"
+                    [class.columna-resumen]="columna.tipo === 'mes'"
+                    [class.columna-anio]="columna.tipo === 'anio'"
+                  >
+                    {{ columna.etiqueta }}
+                  </th>
+                }
               </tr>
             </thead>
+
+            <!-- =============================================
+                 CONTENIDO
+                 ============================================= -->
             <tbody>
-              @for (fila of flujoCaja.filas; track fila.fecha) {
-                <tr>
-                  <td><strong class="fecha">{{ formatearFecha(fila.fecha) }}</strong></td>
-                  <td class="texto-derecha ingreso">{{ fila.ingresos | monedaSol }}</td>
-                  <td class="texto-derecha egreso">{{ fila.egresosPagados | monedaSol }}</td>
-                  <td class="texto-derecha proyectado">{{ fila.egresosProyectados | monedaSol }}</td>
-                  <td
-                    class="texto-derecha neto"
-                    [class.neto-positivo]="fila.flujoReal > 0"
-                    [class.neto-negativo]="fila.flujoReal < 0"
+              @for (fila of vista.filasMatriz; track fila.id) {
+                <tr
+                  [class.fila-saldo-inicial]="fila.tipo === 'saldo-inicial'"
+                  [class.fila-seccion-ingreso]="fila.tipo === 'seccion-ingreso'"
+                  [class.fila-seccion-egreso]="fila.tipo === 'seccion-egreso'"
+                  [class.fila-subtotal]="fila.tipo === 'subtotal'"
+                  [class.fila-total]="fila.tipo === 'total'"
+                  [class.fila-saldo-final]="fila.tipo === 'saldo-final'"
+                  [class.fila-saldo-operativo]="fila.tipo === 'saldo-operativo'"
+                >
+                  <!-- CONCEPTO -->
+                  <th
+                    class="matriz-concepto"
+                    scope="row"
+                    [title]="fila.concepto"
                   >
-                    {{ fila.flujoReal | monedaSol }}
-                  </td>
-                  <td
-                    class="texto-derecha neto"
-                    [class.neto-positivo]="fila.flujoProyectado > 0"
-                    [class.neto-negativo]="fila.flujoProyectado < 0"
-                  >
-                    {{ fila.flujoProyectado | monedaSol }}
-                  </td>
-                  <td class="texto-derecha monto-destacado">{{ fila.saldoReal | monedaSol }}</td>
-                  <td class="texto-derecha monto-destacado">{{ fila.saldoProyectado | monedaSol }}</td>
+                    {{ fila.concepto }}
+                  </th>
+
+                  <!-- VALORES -->
+                  @for (columna of vista.columnas; track columna.id) {
+                    <td
+                      [class.columna-resumen]="columna.tipo === 'mes'"
+                      [class.columna-anio]="columna.tipo === 'anio'"
+                      [class.saldo-negativo]="
+                        fila.tipo === 'saldo-operativo' &&
+                        fila.valores[columna.id] < 0
+                      "
+                    >
+                      {{ formatearMontoMatriz(fila.valores[columna.id]) }}
+                    </td>
+                  }
                 </tr>
               }
             </tbody>
           </table>
         </div>
       } @else {
-        <div class="estado-vacio">
+        <div class="estado-vacio estado-vacio-matriz">
           <div class="estado-vacio-icono">
             <lucide-icon [img]="ChartNoAxesCombined" aria-hidden="true" />
           </div>
-          <strong>Sin movimientos en el periodo</strong>
-          <p>El saldo de apertura seguirá disponible aunque todavía no existan movimientos.</p>
+
+          <strong> No existe información para mostrar </strong>
+
+          <p>Selecciona un periodo válido y vuelve a aplicar los filtros.</p>
         </div>
       }
     </article>
+
+    <!-- =====================================================
+         TABLA ANTERIOR
+         SE CONSERVA PLEGADA
+         ===================================================== -->
+    <details class="tarjeta detalle-diario">
+      <summary>
+        <div>
+          <strong> Ver resumen diario </strong>
+
+          <span>
+            Consulta ingresos, egresos y saldos detallados por cada día.
+          </span>
+        </div>
+
+        <span class="detalle-indicador"> Mostrar </span>
+      </summary>
+
+      <div class="detalle-diario-contenido">
+        @if (vista.flujoCaja.filas.length > 0) {
+          <div class="tabla-contenedor">
+            <table class="tabla-diaria">
+              <thead>
+                <tr>
+                  <th>Fecha</th>
+
+                  <th class="texto-derecha">Ingresos</th>
+
+                  <th class="texto-derecha">Pagados</th>
+
+                  <th class="texto-derecha">Proyectados</th>
+
+                  <th class="texto-derecha">Cambio real</th>
+
+                  <th class="texto-derecha">Cambio estimado</th>
+
+                  <th class="texto-derecha">Saldo real</th>
+
+                  <th class="texto-derecha">Saldo proyectado</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for (fila of vista.flujoCaja.filas; track fila.fecha) {
+                  <tr>
+                    <td>
+                      <strong class="fecha">
+                        {{ formatearFecha(fila.fecha) }}
+                      </strong>
+                    </td>
+
+                    <td class="texto-derecha ingreso">
+                      {{ fila.ingresos | monedaSol }}
+                    </td>
+
+                    <td class="texto-derecha egreso">
+                      {{ fila.egresosPagados | monedaSol }}
+                    </td>
+
+                    <td class="texto-derecha proyectado">
+                      {{ fila.egresosProyectados | monedaSol }}
+                    </td>
+
+                    <td
+                      class="texto-derecha neto"
+                      [class.neto-positivo]="fila.flujoReal > 0"
+                      [class.neto-negativo]="fila.flujoReal < 0"
+                    >
+                      {{ fila.flujoReal | monedaSol }}
+                    </td>
+
+                    <td
+                      class="texto-derecha neto"
+                      [class.neto-positivo]="fila.flujoProyectado > 0"
+                      [class.neto-negativo]="fila.flujoProyectado < 0"
+                    >
+                      {{ fila.flujoProyectado | monedaSol }}
+                    </td>
+
+                    <td class="texto-derecha monto-destacado">
+                      {{ fila.saldoReal | monedaSol }}
+                    </td>
+
+                    <td class="texto-derecha monto-destacado">
+                      {{ fila.saldoProyectado | monedaSol }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        } @else {
+          <div class="estado-vacio">
+            <div class="estado-vacio-icono">
+              <lucide-icon [img]="ChartNoAxesCombined" aria-hidden="true" />
+            </div>
+
+            <strong> Sin movimientos en el periodo </strong>
+
+            <p>
+              El saldo de apertura seguirá disponible aunque todavía no existan
+              movimientos.
+            </p>
+          </div>
+        }
+      </div>
+    </details>
   }
 </section>

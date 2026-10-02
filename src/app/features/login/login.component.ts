@@ -1,11 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, OnInit, inject } from '@angular/core';
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-  Validators,
-} from '@angular/forms';
-import { Router,  RouterLink } from '@angular/router';
+import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { Router, RouterLink } from '@angular/router';
 import { finalize } from 'rxjs';
 import {
   ArrowRight,
@@ -24,12 +20,7 @@ import { AuthService } from '../../core/auth/auth.service';
 @Component({
   selector: 'app-login',
   standalone: true,
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    LucideAngularModule,
-    RouterLink,
-  ],
+  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink],
   templateUrl: './login.component.html',
   styleUrl: './login.component.scss',
 })
@@ -54,26 +45,12 @@ export class LoginComponent implements OnInit {
   mostrarContrasena = false;
 
   readonly loginForm = this.formBuilder.nonNullable.group({
-    email: [
-      '',
-      [
-        Validators.required,
-        Validators.email,
-      ],
-    ],
+    email: ['', [Validators.required, Validators.email]],
 
-    password: [
-      '',
-      [
-        Validators.required,
-        Validators.minLength(8),
-      ],
-    ],
-
+    password: ['', [Validators.required, Validators.minLength(8)]],
   });
 
   ngOnInit(): void {
-
     if (this.authService.isAuthenticated()) {
       void this.router.navigateByUrl(
         this.authService.requiereCambioPassword()
@@ -81,7 +58,6 @@ export class LoginComponent implements OnInit {
           : '/inicio',
       );
     }
-
   }
 
   alternarVisibilidadContrasena(): void {
@@ -89,9 +65,7 @@ export class LoginComponent implements OnInit {
   }
 
   submit(): void {
-
     if (this.loginForm.invalid || this.isSubmitting) {
-
       this.loginForm.markAllAsTouched();
 
       return;
@@ -99,10 +73,7 @@ export class LoginComponent implements OnInit {
 
     this.isSubmitting = true;
 
-    const {
-      email,
-      password,
-    } = this.loginForm.getRawValue();
+    const { email, password } = this.loginForm.getRawValue();
 
     this.authService
       .login(email, password)
@@ -112,15 +83,12 @@ export class LoginComponent implements OnInit {
         }),
       )
       .subscribe({
-
         next: () => {
-
           void this.router.navigateByUrl(
             this.authService.requiereCambioPassword()
               ? '/cuenta/cambiar-password'
               : '/inicio',
           );
-
         },
 
         error: (error) => {
@@ -131,9 +99,7 @@ export class LoginComponent implements OnInit {
 
           void this.mostrarErrorAutenticacion(mensaje);
         },
-
       });
-
   }
 
   private async mostrarErrorAutenticacion(mensaje: string): Promise<void> {
@@ -151,19 +117,9 @@ export class LoginComponent implements OnInit {
     });
   }
 
-  hasError(
-    controlName: 'email' | 'password',
-    errorName: string,
-  ): boolean {
+  hasError(controlName: 'email' | 'password', errorName: string): boolean {
+    const control = this.loginForm.controls[controlName];
 
-    const control =
-      this.loginForm.controls[controlName];
-
-    return (
-      control.touched &&
-      control.hasError(errorName)
-    );
-
+    return control.touched && control.hasError(errorName);
   }
-
 }

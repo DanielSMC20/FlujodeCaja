@@ -42,42 +42,45 @@ export class ConfiguracionFinancieraService {
 
   readonly configuracion$ = this.configuracionSubject.asObservable();
 
-obtenerConfiguracion(): Observable<ConfiguracionFinanciera | null> {
-  const empresaId = this.sesionEmpresaService.empresaActualId;
-  const configuracionActual = this.configuracionSubject.value;
+  obtenerConfiguracion(): Observable<ConfiguracionFinanciera | null> {
+    const empresaId = this.sesionEmpresaService.empresaActualId;
+    const configuracionActual = this.configuracionSubject.value;
 
-  if (
-    configuracionActual &&
-    empresaId > 0 &&
-    this.empresaConfiguracionCacheId === empresaId
-  ) {
-    return of({ ...configuracionActual });
+    if (
+      configuracionActual &&
+      empresaId > 0 &&
+      this.empresaConfiguracionCacheId === empresaId
+    ) {
+      return of({ ...configuracionActual });
+    }
+
+    return this.http
+      .get<SaldoAperturaBackendResponse>(`${API_CONFIG.baseUrl}/saldo-apertura`)
+      .pipe(
+        map((response) => this.mapearConfiguracion(response)),
+        tap((configuracion) => {
+          this.empresaConfiguracionCacheId = empresaId;
+          this.configuracionSubject.next(configuracion);
+        }),
+        catchError((error: HttpErrorResponse) =>
+          throwError(() => new Error(this.obtenerMensajeError(error))),
+        ),
+      );
   }
-
-  return this.http
-    .get<SaldoAperturaBackendResponse>(
-      `${API_CONFIG.baseUrl}/saldo-apertura`,
-    )
-    .pipe(
-      map((response) => this.mapearConfiguracion(response)),
-      tap((configuracion) => {
-        this.empresaConfiguracionCacheId = empresaId;
-        this.configuracionSubject.next(configuracion);
-      }),
-      catchError((error: HttpErrorResponse) =>
-        throwError(() => new Error(this.obtenerMensajeError(error))),
-      ),
-    );
-}
 
   verificarConfiguracionInicial(): Observable<boolean> {
     return this.obtenerConfiguracion().pipe(
-      map((configuracion) => configuracion?.configuracionInicialCompletada === true),
+      map(
+        (configuracion) =>
+          configuracion?.configuracionInicialCompletada === true,
+      ),
     );
   }
 
   tieneConfiguracionInicial(): boolean {
-    return this.configuracionSubject.value?.configuracionInicialCompletada === true;
+    return (
+      this.configuracionSubject.value?.configuracionInicialCompletada === true
+    );
   }
 
   obtenerConfiguracionActual(): ConfiguracionFinanciera | null {
@@ -90,9 +93,13 @@ obtenerConfiguracion(): Observable<ConfiguracionFinanciera | null> {
   ): Observable<ConfiguracionFinanciera> {
     const guardar$ = () =>
       this.http
-        .post<SaldoAperturaBackendResponse>(`${API_CONFIG.baseUrl}/saldo-apertura`, {
-          saldoInicial: Number(request.saldoInicial),
-        })
+        .post<SaldoAperturaBackendResponse>(
+          `${API_CONFIG.baseUrl}/saldo-apertura`,
+          {
+            saldoInicial: Number(request.saldoInicial),
+            fechaApertura: request.fechaSaldoInicial,
+          },
+        )
         .pipe(
           map((response) => {
             const configuracion = this.mapearConfiguracion(response);
@@ -113,12 +120,13 @@ obtenerConfiguracion(): Observable<ConfiguracionFinanciera | null> {
 
         return guardar$();
       }),
-tap((configuracion) => {
-  this.empresaConfiguracionCacheId =
-    this.sesionEmpresaService.empresaActualId;
+      tap((configuracion) => {
+        this.empresaConfiguracionCacheId =
+          this.sesionEmpresaService.empresaActualId;
 
-  this.configuracionSubject.next(configuracion);
-}),      catchError((error: unknown) => {
+        this.configuracionSubject.next(configuracion);
+      }),
+      catchError((error: unknown) => {
         if (error instanceof Error) {
           return throwError(() => error);
         }
@@ -130,10 +138,10 @@ tap((configuracion) => {
     );
   }
 
-limpiarCache(): void {
-  this.empresaConfiguracionCacheId = null;
-  this.configuracionSubject.next(null);
-}
+  limpiarCache(): void {
+    this.empresaConfiguracionCacheId = null;
+    this.configuracionSubject.next(null);
+  }
 
   private mapearConfiguracion(
     response: SaldoAperturaBackendResponse,

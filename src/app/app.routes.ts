@@ -17,19 +17,19 @@ export const routes: Routes = [
     redirectTo: 'login',
   },
   {
-  path: 'recuperar-password',
-  loadComponent: () =>
-    import('./features/recuperar-password/recuperar-password.component').then(
-      (component) => component.RecuperarPasswordComponent,
-    ),
-},
-{
-  path: 'restablecer-password',
-  loadComponent: () =>
-    import('./features/restablecer-password/restablecer-password.component').then(
-      (component) => component.RestablecerPasswordComponent,
-    ),
-},
+    path: 'recuperar-password',
+    loadComponent: () =>
+      import('./features/recuperar-password/recuperar-password.component').then(
+        (component) => component.RecuperarPasswordComponent,
+      ),
+  },
+  {
+    path: 'restablecer-password',
+    loadComponent: () =>
+      import('./features/restablecer-password/restablecer-password.component').then(
+        (component) => component.RestablecerPasswordComponent,
+      ),
+  },
   {
     path: 'configuracion-inicial',
     canActivate: [authGuard],
@@ -59,7 +59,7 @@ export const routes: Routes = [
             (component) => component.PanelPrincipalComponent,
           ),
       },
-      
+
       {
         path: 'movimientos',
         children: [
@@ -112,10 +112,26 @@ export const routes: Routes = [
       },
       {
         path: 'reportes',
-        loadComponent: () =>
-          import('./modulos/reportes/paginas/reportes/reportes.component').then(
-            (component) => component.ReportesComponent,
-          ),
+
+        children: [
+          {
+            path: '',
+
+            loadComponent: () =>
+              import('./modulos/reportes/paginas/reportes/reportes.component').then(
+                (component) => component.ReportesComponent,
+              ),
+          },
+
+          {
+            path: 'compras',
+
+            loadComponent: () =>
+              import('./modulos/reportes/paginas/registro-compras/registro-compras.component').then(
+                (component) => component.RegistroComprasComponent,
+              ),
+          },
+        ],
       },
       {
         path: 'categorias',
@@ -127,21 +143,15 @@ export const routes: Routes = [
       },
 
       {
-  path:
-    'configuracion/usuarios',
+        path: 'configuracion/usuarios',
 
-  canActivate: [
-    administradorGuard,
-  ],
+        canActivate: [administradorGuard],
 
-  loadComponent: () =>
-    import(
-      './modulos/configuracion/paginas/usuarios/usuarios.component'
-    ).then(
-      (component) =>
-        component.UsuariosComponent,
-    ),
-},
+        loadComponent: () =>
+          import('./modulos/configuracion/paginas/usuarios/usuarios.component').then(
+            (component) => component.UsuariosComponent,
+          ),
+      },
       {
         path: 'configuracion/usuarios/nuevo',
         canActivate: [administradorGuard],
@@ -159,7 +169,6 @@ export const routes: Routes = [
             (component) => component.ConfiguracionComponent,
           ),
       },
-
     ],
   },
   {

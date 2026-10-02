@@ -1,0 +1,772 @@
+:host {
+  display: block;
+
+  width: 100%;
+
+  min-width: 0;
+}
+
+
+.pagina-compras {
+  width: 100%;
+
+  min-width: 0;
+
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 1rem;
+}
+
+
+/* =========================================================
+   CABECERA
+   ========================================================= */
+
+.pagina-etiqueta {
+  color: #2563eb;
+
+  font-size: 0.65rem;
+
+  font-weight: 700;
+
+  letter-spacing: 0.12em;
+
+  text-transform: uppercase;
+}
+
+
+.pagina-header h1 {
+  margin:
+    0.25rem
+    0
+    0;
+
+  color: #0f172a;
+
+  font-size: 1.55rem;
+
+  font-weight: 700;
+
+  letter-spacing: -0.035em;
+}
+
+
+.pagina-header p {
+  max-width: 760px;
+
+  margin:
+    0.35rem
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 0.76rem;
+
+  line-height: 1.5;
+}
+
+
+/* =========================================================
+   TARJETA
+   ========================================================= */
+
+.tarjeta {
+  padding: 1rem;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  border-radius: 14px;
+
+  background: #ffffff;
+}
+
+
+/* =========================================================
+   FILTROS
+   ========================================================= */
+
+.filtros-grid {
+  display: grid;
+
+  grid-template-columns:
+    180px
+    180px
+    180px
+    minmax(
+      210px,
+      1fr
+    );
+
+  align-items: end;
+
+  gap: 0.75rem;
+}
+
+
+.campo {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0.35rem;
+}
+
+
+.campo label {
+  color: #64748b;
+
+  font-size: 0.66rem;
+
+  font-weight: 700;
+}
+
+
+.campo input,
+.campo select {
+  width: 100%;
+
+  height: 40px;
+
+  padding:
+    0
+    0.7rem;
+
+  border:
+    1px solid
+    #dbe3ed;
+
+  border-radius: 9px;
+
+  outline: none;
+
+  background: #f8fafc;
+
+  color: #334155;
+
+  font: inherit;
+
+  font-size: 0.7rem;
+}
+
+
+.campo input:focus,
+.campo select:focus {
+  border-color: #60a5fa;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      59,
+      130,
+      246,
+      0.08
+    );
+}
+
+
+.acciones-filtros {
+  display: flex;
+
+  justify-content: flex-end;
+
+  gap: 0.5rem;
+}
+
+
+/* =========================================================
+   BOTONES
+   ========================================================= */
+
+.boton-principal,
+.boton-secundario,
+.boton-excel {
+  height: 40px;
+
+  display: inline-flex;
+
+  align-items: center;
+
+  justify-content: center;
+
+  gap: 0.4rem;
+
+  padding:
+    0
+    0.85rem;
+
+  border-radius: 9px;
+
+  font: inherit;
+
+  font-size: 0.68rem;
+
+  font-weight: 700;
+
+  cursor: pointer;
+}
+
+
+.boton-principal {
+  border:
+    1px solid
+    #2563eb;
+
+  background: #2563eb;
+
+  color: #ffffff;
+}
+
+
+.boton-secundario {
+  border:
+    1px solid
+    #dbe3ed;
+
+  background: #ffffff;
+
+  color: #64748b;
+}
+
+
+.mensaje-error {
+  margin:
+    0.7rem
+    0
+    0;
+
+  color: #b91c1c;
+
+  font-size: 0.68rem;
+
+  font-weight: 600;
+}
+
+
+/* =========================================================
+   LOADING
+   ========================================================= */
+
+.estado-carga {
+  min-height: 48px;
+
+  display: flex;
+
+  align-items: center;
+
+  gap: 0.65rem;
+
+  padding:
+    0.7rem
+    0.9rem;
+
+  border:
+    1px solid
+    #dbeafe;
+
+  border-radius: 10px;
+
+  background: #eff6ff;
+
+  color: #475569;
+
+  font-size: 0.68rem;
+}
+
+
+.estado-carga-punto {
+  width: 8px;
+
+  height: 8px;
+
+  border-radius: 50%;
+
+  background: #2563eb;
+
+  animation:
+    pulso
+    1.1s
+    ease-in-out
+    infinite;
+}
+
+
+@keyframes pulso {
+
+  50% {
+    opacity: 0.4;
+  }
+
+}
+
+
+/* =========================================================
+   RESUMEN
+   ========================================================= */
+
+.resumen-grid {
+  display: grid;
+
+  grid-template-columns:
+    repeat(
+      4,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
+  gap: 0.75rem;
+}
+
+
+.indicador {
+  display: flex;
+
+  flex-direction: column;
+
+  padding:
+    0.9rem
+    1rem;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  border-radius: 12px;
+
+  background: #ffffff;
+}
+
+
+.indicador span {
+  color: #64748b;
+
+  font-size: 0.64rem;
+
+  font-weight: 600;
+}
+
+
+.indicador strong {
+  margin-top: 0.35rem;
+
+  color: #0f172a;
+
+  font-size: 1.15rem;
+
+  font-weight: 720;
+
+  font-variant-numeric:
+    tabular-nums;
+}
+
+
+.indicador small {
+  margin-top: 0.22rem;
+
+  color: #94a3b8;
+
+  font-size: 0.59rem;
+}
+
+
+.valor-neutro {
+  color: #2563eb !important;
+}
+
+
+.valor-pagado {
+  color: #15803d !important;
+}
+
+
+.valor-proyectado {
+  color: #b45309 !important;
+}
+
+
+/* =========================================================
+   TABLA
+   ========================================================= */
+
+.tarjeta-tabla {
+  min-width: 0;
+}
+
+
+.tabla-header {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  margin-bottom: 0.9rem;
+}
+
+
+.tabla-header h2 {
+  margin: 0;
+
+  color: #1e293b;
+
+  font-size: 0.88rem;
+
+  font-weight: 700;
+}
+
+
+.tabla-header p {
+  margin:
+    0.22rem
+    0
+    0;
+
+  color: #94a3b8;
+
+  font-size: 0.63rem;
+}
+
+
+.boton-excel {
+  border:
+    1px solid
+    #bbf7d0;
+
+  background: #f0fdf4;
+
+  color: #15803d;
+}
+
+
+.boton-excel:disabled {
+  opacity: 0.5;
+
+  cursor: not-allowed;
+}
+
+
+/*
+ * No dejamos que la tabla crezca
+ * indefinidamente hacia abajo.
+ */
+.tabla-contenedor {
+  width: 100%;
+
+  max-height: 560px;
+
+  overflow: auto;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  border-radius: 10px;
+}
+
+
+table {
+  width: 100%;
+
+  min-width: 1120px;
+
+  border-collapse: separate;
+
+  border-spacing: 0;
+}
+
+
+/*
+ * El encabezado queda fijo
+ * mientras haces scroll.
+ */
+thead th {
+  position: sticky;
+
+  top: 0;
+
+  z-index: 2;
+
+  padding:
+    0.7rem
+    0.75rem;
+
+  border-bottom:
+    1px solid
+    #e2e8f0;
+
+  background: #f8fafc;
+
+  color: #64748b;
+
+  font-size: 0.61rem;
+
+  font-weight: 700;
+
+  text-align: left;
+
+  white-space: nowrap;
+}
+
+
+td {
+  padding:
+    0.76rem
+    0.75rem;
+
+  border-bottom:
+    1px solid
+    #f1f5f9;
+
+  color: #475569;
+
+  font-size: 0.67rem;
+
+  vertical-align: middle;
+}
+
+
+tbody tr:hover {
+  background: #fafcff;
+}
+
+
+.texto-derecha {
+  text-align: right !important;
+}
+
+
+.fecha {
+  white-space: nowrap;
+
+  font-weight: 650;
+
+  color: #334155;
+}
+
+
+.proveedor {
+  max-width: 240px;
+
+  font-weight: 650;
+
+  color: #334155;
+}
+
+
+.importe {
+  color: #dc2626;
+
+  font-weight: 720;
+
+  white-space: nowrap;
+}
+
+
+.comprobante strong,
+.concepto strong {
+  display: block;
+
+  color: #334155;
+
+  font-weight: 650;
+}
+
+
+.comprobante small,
+.concepto small {
+  display: block;
+
+  margin-top: 0.18rem;
+
+  color: #94a3b8;
+
+  font-size: 0.58rem;
+}
+
+
+/* =========================================================
+   ESTADOS
+   ========================================================= */
+
+.badge-estado {
+  display: inline-flex;
+
+  padding:
+    0.24rem
+    0.5rem;
+
+  border-radius: 999px;
+
+  font-size: 0.58rem;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+
+.estado-pagado {
+  background: #ecfdf5;
+
+  color: #15803d;
+}
+
+
+.estado-proyectado {
+  background: #fffbeb;
+
+  color: #b45309;
+}
+
+
+/* =========================================================
+   VACÍO
+   ========================================================= */
+
+.estado-vacio {
+  min-height: 240px;
+
+  display: flex;
+
+  flex-direction: column;
+
+  align-items: center;
+
+  justify-content: center;
+
+  text-align: center;
+}
+
+
+.estado-vacio-icono {
+  width: 46px;
+
+  height: 46px;
+
+  display: grid;
+
+  place-items: center;
+
+  margin-bottom: 0.7rem;
+
+  border-radius: 12px;
+
+  background: #f1f5f9;
+
+  color: #94a3b8;
+}
+
+
+.estado-vacio strong {
+  color: #475569;
+
+  font-size: 0.75rem;
+}
+
+
+.estado-vacio p {
+  margin:
+    0.25rem
+    0
+    0;
+
+  color: #94a3b8;
+
+  font-size: 0.64rem;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (
+  max-width: 950px
+) {
+
+  .resumen-grid {
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+  }
+
+
+  .filtros-grid {
+
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+  }
+
+}
+
+
+@media (
+  max-width: 620px
+) {
+
+  .resumen-grid,
+  .filtros-grid {
+
+    grid-template-columns:
+      1fr;
+
+  }
+
+
+  .acciones-filtros {
+
+    justify-content:
+      stretch;
+
+  }
+
+
+  .acciones-filtros button {
+
+    flex: 1;
+
+  }
+
+
+  .tabla-header {
+
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+
+  }
+
+
+  .boton-excel {
+
+    width: 100%;
+
+  }
+
+}

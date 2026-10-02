@@ -10,7 +10,7 @@ import { AuthService } from '../../core/auth/auth.service';
   standalone: true,
   imports: [AsyncPipe],
   templateUrl: './dashboard.component.html',
-  styleUrl: './dashboard.component.scss'
+  styleUrl: './dashboard.component.scss',
 })
 export class DashboardComponent {
   private readonly authService = inject(AuthService);
@@ -20,7 +20,7 @@ export class DashboardComponent {
 
   readonly remainingMs$ = combineLatest([
     this.authService.expiresAt$,
-    interval(1000).pipe(startWith(0))
+    interval(1000).pipe(startWith(0)),
   ]).pipe(
     map(([expiresAt]) => {
       if (!expiresAt) {
@@ -28,7 +28,7 @@ export class DashboardComponent {
       }
 
       return Math.max(0, expiresAt - Date.now());
-    })
+    }),
   );
 
   logout(): void {
