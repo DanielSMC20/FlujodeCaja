@@ -89,6 +89,7 @@
          TARJETAS RESUMEN
          ===================================================== -->
     <div class="resumen-grid">
+      <!-- SALDO INICIAL -->
       <article class="indicador">
         <span class="indicador-label"> Saldo al iniciar el periodo </span>
 
@@ -99,6 +100,7 @@
         <small> Incluye el saldo de apertura y días anteriores </small>
       </article>
 
+      <!-- INGRESOS -->
       <article class="indicador">
         <span class="indicador-label"> Ingresos </span>
 
@@ -109,6 +111,7 @@
         <small> Ingresos registrados en el periodo </small>
       </article>
 
+      <!-- EGRESOS PAGADOS -->
       <article class="indicador">
         <span class="indicador-label"> Egresos pagados </span>
 
@@ -119,6 +122,7 @@
         <small> Egresos que ya afectaron la caja </small>
       </article>
 
+      <!-- EGRESOS PROYECTADOS -->
       <article class="indicador">
         <span class="indicador-label"> Egresos proyectados </span>
 
@@ -129,6 +133,7 @@
         <small> Compromisos todavía pendientes </small>
       </article>
 
+      <!-- SALDO DISPONIBLE -->
       <article class="indicador">
         <span class="indicador-label"> Saldo disponible </span>
 
@@ -142,6 +147,7 @@
         <small> Considera únicamente egresos pagados </small>
       </article>
 
+      <!-- SALDO PROYECTADO -->
       <article class="indicador">
         <span class="indicador-label"> Saldo proyectado </span>
 
@@ -161,68 +167,274 @@
     </div>
 
     <!-- =====================================================
-         MATRIZ PRINCIPAL
-         ESTILO EXCEL
+         FLUJO DE CAJA - MATRIZ FINANCIERA
          ===================================================== -->
-    <article class="contenedor-flujo-excel">
+    <article class="cashflow-panel">
+      <!-- ===============================================
+           CABECERA
+           =============================================== -->
+      <header class="cashflow-panel__header">
+        <div class="cashflow-panel__title">
+          <span class="cashflow-panel__eyebrow"> Análisis financiero </span>
+
+          <h2>Flujo de caja por periodo</h2>
+
+          <p>
+            Consulta cómo evolucionan los ingresos, egresos y saldos a través
+            del periodo seleccionado.
+          </p>
+        </div>
+
+        <div class="cashflow-period">
+          <span> Periodo </span>
+
+          <strong>
+            {{ formulario.controls.fechaDesde.value || "Inicio" }}
+
+            <i> → </i>
+
+            {{ formulario.controls.fechaHasta.value || "Actualidad" }}
+          </strong>
+        </div>
+      </header>
+
+      <!-- ===============================================
+           LEYENDA
+           =============================================== -->
+      <div class="cashflow-panel__toolbar">
+        <div class="cashflow-legend">
+          <span class="cashflow-legend__item">
+            <i class="legend-dot legend-dot--income"></i>
+
+            Ingresos
+          </span>
+
+          <span class="cashflow-legend__item">
+            <i class="legend-dot legend-dot--expense"></i>
+
+            Egresos
+          </span>
+
+          <span class="cashflow-legend__item">
+            <i class="legend-dot legend-dot--paid"></i>
+
+            Pagado
+          </span>
+
+          <span class="cashflow-legend__item">
+            <i class="legend-dot legend-dot--projected"></i>
+
+            Proyectado
+          </span>
+
+          <span class="cashflow-legend__item">
+            <i class="legend-dot legend-dot--balance"></i>
+
+            Saldos
+          </span>
+
+          <span class="cashflow-legend__item">
+            <i class="legend-dot legend-dot--negative"></i>
+
+            Saldo negativo
+          </span>
+        </div>
+
+        <span class="cashflow-scroll-help">
+          Los egresos proyectados pueden arrastrarse entre fechas
+        </span>
+      </div>
+
+      <!-- ===============================================
+           MATRIZ
+           =============================================== -->
       @if (vista.columnas.length > 0) {
-        <div class="matriz-scroll">
-          <table class="matriz-flujo">
-            <!-- =============================================
+        <div class="cashflow-table-wrap"
+  #cashflowTableWrap
+  class="cashflow-table-wrap"
+
+  (dragover)="
+    manejarAutoScrollArrastre($event)
+  "
+
+  (dragleave)="
+    detenerAutoScrollSiSale($event)
+  ">
+          <table class="cashflow-grid">
+            <!-- =========================================
                  CABECERA DE FECHAS
-                 ============================================= -->
+                 ========================================= -->
             <thead>
               <tr>
-                <th class="matriz-concepto matriz-esquina" scope="col">
-                  FECHA
+                <!-- PRIMERA COLUMNA -->
+                <th class="cashflow-concept cashflow-corner" scope="col">
+                  <div class="corner-content">
+                    <span> Concepto </span>
+
+                    <small> Fecha → </small>
+                  </div>
                 </th>
 
+                <!-- FECHAS -->
                 @for (columna of vista.columnas; track columna.id) {
                   <th
+                    class="cashflow-date"
                     scope="col"
-                    [class.columna-resumen]="columna.tipo === 'mes'"
-                    [class.columna-anio]="columna.tipo === 'anio'"
+                    [class.cashflow-date--month]="columna.tipo === 'mes'"
+                    [class.cashflow-date--year]="columna.tipo === 'anio'"
                   >
-                    {{ columna.etiqueta }}
+                    <span class="cashflow-date__label">
+                      {{ columna.etiqueta }}
+                    </span>
+
+                    @if (columna.tipo === "mes") {
+                      <small> Cierre mensual </small>
+                    } @else if (columna.tipo === "anio") {
+                      <small> Cierre anual </small>
+                    } @else {
+                      <small> Día </small>
+                    }
                   </th>
                 }
               </tr>
             </thead>
 
-            <!-- =============================================
-                 CONTENIDO
-                 ============================================= -->
+            <!-- =========================================
+                 CUERPO
+                 ========================================= -->
             <tbody>
               @for (fila of vista.filasMatriz; track fila.id) {
                 <tr
-                  [class.fila-saldo-inicial]="fila.tipo === 'saldo-inicial'"
-                  [class.fila-seccion-ingreso]="fila.tipo === 'seccion-ingreso'"
-                  [class.fila-seccion-egreso]="fila.tipo === 'seccion-egreso'"
-                  [class.fila-subtotal]="fila.tipo === 'subtotal'"
-                  [class.fila-total]="fila.tipo === 'total'"
-                  [class.fila-saldo-final]="fila.tipo === 'saldo-final'"
-                  [class.fila-saldo-operativo]="fila.tipo === 'saldo-operativo'"
+                  [class.row-opening]="fila.tipo === 'saldo-inicial'"
+                  [class.row-income-section]="fila.tipo === 'seccion-ingreso'"
+                  [class.row-expense-section]="fila.tipo === 'seccion-egreso'"
+                  [class.row-subtotal]="fila.tipo === 'subtotal'"
+                  [class.row-total]="fila.tipo === 'total'"
+                  [class.row-final-balance]="fila.tipo === 'saldo-final'"
+                  [class.row-operating-balance]="
+                    fila.tipo === 'saldo-operativo'
+                  "
                 >
-                  <!-- CONCEPTO -->
+                  <!-- =====================================
+                       CONCEPTO
+                       ===================================== -->
                   <th
-                    class="matriz-concepto"
+                    class="cashflow-concept"
                     scope="row"
                     [title]="fila.concepto"
                   >
-                    {{ fila.concepto }}
+                    <span class="concept-accent"></span>
+
+                    <span class="concept-name">
+                      {{ fila.concepto }}
+                    </span>
                   </th>
 
-                  <!-- VALORES -->
+                  <!-- =====================================
+                       VALORES
+                       ===================================== -->
                   @for (columna of vista.columnas; track columna.id) {
                     <td
-                      [class.columna-resumen]="columna.tipo === 'mes'"
-                      [class.columna-anio]="columna.tipo === 'anio'"
-                      [class.saldo-negativo]="
+                      [class.cashflow-column-month]="columna.tipo === 'mes'"
+                      [class.cashflow-column-year]="columna.tipo === 'anio'"
+                      [class.cell-has-value]="fila.valores[columna.id] !== 0"
+                      [class.cell-empty]="fila.valores[columna.id] === 0"
+                      [class.cell-negative]="
                         fila.tipo === 'saldo-operativo' &&
                         fila.valores[columna.id] < 0
                       "
+                      [class.cashflow-drop-target]="
+                        esDestinoArrastre(fila.id, columna.id)
+                      "
+                      (dragover)="
+                        permitirSoltarProyectado($event, columna, fila.id)
+                      "
+                      (dragleave)="salirDestinoArrastre(fila.id, columna.id)"
+                      (drop)="soltarProyectado($event, columna, fila.id)"
                     >
-                      {{ formatearMontoMatriz(fila.valores[columna.id]) }}
+                      <!-- =================================
+                           CELDA DE EGRESO
+                           ================================= -->
+                      @if (fila.detalleEgresos?.[columna.id]; as detalle) {
+                        <div class="estado-egreso-celda">
+                          <!-- =============================
+                               PAGADOS
+                               ============================= -->
+                          @for (
+                            movimiento of detalle.pagados;
+                            track movimiento.id
+                          ) {
+                            <span
+                              class="importe-egreso importe-egreso--pagado"
+                              [title]="movimiento.descripcion + ' - Pagado'"
+                            >
+                              <strong>
+                                {{ formatearMontoMatriz(movimiento.monto) }}
+                              </strong>
+
+                              <small> Pagado </small>
+                            </span>
+                          }
+
+                          <!-- =============================
+                               PROYECTADOS
+                               ============================= -->
+                          @for (
+                            movimiento of detalle.proyectados;
+                            track movimiento.id
+                          ) {
+                            <span
+                              class="importe-egreso importe-egreso--proyectado"
+                              [class.importe-egreso--arrastrable]="
+                                columna.tipo === 'dia'
+                              "
+                              [draggable]="columna.tipo === 'dia'"
+                              [title]="
+                                columna.tipo === 'dia'
+                                  ? movimiento.descripcion +
+                                    ' - Arrastra para cambiar la fecha proyectada'
+                                  : movimiento.descripcion + ' - Proyectado'
+                              "
+                              (dragstart)="
+                                iniciarArrastreProyectado(
+                                  $event,
+                                  movimiento,
+                                  fila.id
+                                )
+                              "
+                              (dragend)="finalizarArrastre()"
+                            >
+                              <strong>
+                                {{ formatearMontoMatriz(movimiento.monto) }}
+                              </strong>
+
+                              <small> Proyectado </small>
+                            </span>
+                          }
+
+                          <!-- =============================
+                               SIN MOVIMIENTOS
+                               ============================= -->
+                          @if (
+                            detalle.pagados.length === 0 &&
+                            detalle.proyectados.length === 0
+                          ) {
+                            <span class="cashflow-empty"> — </span>
+                          }
+                        </div>
+                      } @else {
+                        <!-- ===============================
+                             FILAS NORMALES
+                             INGRESOS / TOTALES / SALDOS
+                             =============================== -->
+                        @if (fila.valores[columna.id] !== 0) {
+                          <span class="cashflow-value">
+                            {{ formatearMontoMatriz(fila.valores[columna.id]) }}
+                          </span>
+                        } @else {
+                          <span class="cashflow-empty"> — </span>
+                        }
+                      }
                     </td>
                   }
                 </tr>
@@ -231,6 +443,9 @@
           </table>
         </div>
       } @else {
+        <!-- ===============================================
+             ESTADO VACÍO
+             =============================================== -->
         <div class="estado-vacio estado-vacio-matriz">
           <div class="estado-vacio-icono">
             <lucide-icon [img]="ChartNoAxesCombined" aria-hidden="true" />
@@ -244,8 +459,8 @@
     </article>
 
     <!-- =====================================================
-         TABLA ANTERIOR
-         SE CONSERVA PLEGADA
+         RESUMEN DIARIO
+         SE CONSERVA PLEGADO
          ===================================================== -->
     <details class="tarjeta detalle-diario">
       <summary>
@@ -287,24 +502,29 @@
               <tbody>
                 @for (fila of vista.flujoCaja.filas; track fila.fecha) {
                   <tr>
+                    <!-- FECHA -->
                     <td>
                       <strong class="fecha">
                         {{ formatearFecha(fila.fecha) }}
                       </strong>
                     </td>
 
+                    <!-- INGRESOS -->
                     <td class="texto-derecha ingreso">
                       {{ fila.ingresos | monedaSol }}
                     </td>
 
+                    <!-- EGRESOS PAGADOS -->
                     <td class="texto-derecha egreso">
                       {{ fila.egresosPagados | monedaSol }}
                     </td>
 
+                    <!-- EGRESOS PROYECTADOS -->
                     <td class="texto-derecha proyectado">
                       {{ fila.egresosProyectados | monedaSol }}
                     </td>
 
+                    <!-- CAMBIO REAL -->
                     <td
                       class="texto-derecha neto"
                       [class.neto-positivo]="fila.flujoReal > 0"
@@ -313,6 +533,7 @@
                       {{ fila.flujoReal | monedaSol }}
                     </td>
 
+                    <!-- CAMBIO ESTIMADO -->
                     <td
                       class="texto-derecha neto"
                       [class.neto-positivo]="fila.flujoProyectado > 0"
@@ -321,10 +542,12 @@
                       {{ fila.flujoProyectado | monedaSol }}
                     </td>
 
+                    <!-- SALDO REAL -->
                     <td class="texto-derecha monto-destacado">
                       {{ fila.saldoReal | monedaSol }}
                     </td>
 
+                    <!-- SALDO PROYECTADO -->
                     <td class="texto-derecha monto-destacado">
                       {{ fila.saldoProyectado | monedaSol }}
                     </td>
@@ -334,6 +557,9 @@
             </table>
           </div>
         } @else {
+          <!-- =============================================
+               SIN MOVIMIENTOS
+               ============================================= -->
           <div class="estado-vacio">
             <div class="estado-vacio-icono">
               <lucide-icon [img]="ChartNoAxesCombined" aria-hidden="true" />

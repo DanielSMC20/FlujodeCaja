@@ -348,4 +348,33 @@ export class MovimientoService {
 
     return 'No se pudo procesar el movimiento.';
   }
+
+
+  reprogramarFechaProyectada(
+  movimientoId: number,
+  fechaProyectada: string,
+): Observable<Movimiento> {
+
+  return this.http
+    .patch<MovimientoBackendResponse>(
+      `${API_CONFIG.baseUrl}/movimientos/${movimientoId}/fecha-proyectada`,
+      {
+        fechaProyectada,
+      },
+    )
+    .pipe(
+      map((response) =>
+        this.mapearMovimiento(response)
+      ),
+
+      catchError((error: HttpErrorResponse) =>
+        throwError(
+          () =>
+            new Error(
+              this.obtenerMensajeError(error),
+            ),
+        ),
+      ),
+    );
+}
 }

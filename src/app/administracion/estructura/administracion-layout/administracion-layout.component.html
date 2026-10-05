@@ -1,0 +1,158 @@
+<div class="admin-shell">
+
+  <aside class="admin-sidebar">
+
+    <div class="admin-sidebar__brand">
+
+      <div class="admin-sidebar__brand-icon">
+
+        <lucide-icon
+          [img]="iconos.marca"
+          [size]="22"
+          [strokeWidth]="1.9"
+        />
+
+      </div>
+
+
+      <div class="admin-sidebar__brand-text">
+
+        <strong>
+          Flujo de Caja
+        </strong>
+
+        <span>
+          Administración SaaS
+        </span>
+
+      </div>
+
+    </div>
+
+
+    <nav class="admin-sidebar__nav">
+
+      <span class="admin-sidebar__section">
+        Gestión
+      </span>
+
+
+      <a
+        routerLink="/administracion/empresas"
+        routerLinkActive="admin-sidebar__link--active"
+        class="admin-sidebar__link"
+      >
+
+        <lucide-icon
+          [img]="iconos.empresas"
+          [size]="18"
+          [strokeWidth]="1.8"
+        />
+
+        <span>
+          Empresas
+        </span>
+
+      </a>
+
+    </nav>
+
+
+    <div class="admin-sidebar__footer">
+
+      <button
+        type="button"
+        class="
+          admin-sidebar__link
+          admin-sidebar__link--logout
+          boton-cerrar-sesion
+        "
+        (click)="cerrarSesion()"
+      >
+
+        <lucide-icon
+          [img]="iconos.salir"
+          [size]="18"
+          [strokeWidth]="1.8"
+        />
+
+        <span>
+          Cerrar sesión
+        </span>
+
+      </button>
+
+    </div>
+
+  </aside>
+
+
+  <main class="admin-main">
+
+    <header class="admin-topbar">
+
+      <div class="admin-topbar__contexto">
+
+        <strong>
+          Administración del servicio
+        </strong>
+
+        <span>
+          Gestión de empresas
+        </span>
+
+      </div>
+
+
+      <div class="admin-user">
+
+        <div class="admin-user__avatar">
+
+          {{
+            inicialesAdministrador
+          }}
+
+        </div>
+
+
+        <div class="admin-user__datos">
+
+          <strong>
+
+            {{
+              administrador
+                ?.nombreCompleto
+                ||
+                'Administrador SaaS'
+            }}
+
+          </strong>
+
+
+          <span>
+
+            {{
+              administrador
+                ?.correo
+                ||
+                'Plataforma'
+            }}
+
+          </span>
+
+        </div>
+
+      </div>
+
+    </header>
+
+
+    <section class="admin-content">
+
+      <router-outlet />
+
+    </section>
+
+  </main>
+
+</div>

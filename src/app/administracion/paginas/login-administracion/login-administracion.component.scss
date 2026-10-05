@@ -1,0 +1,494 @@
+:host {
+  display: block;
+  min-height: 100vh;
+}
+
+
+.admin-login-page {
+  min-height: 100vh;
+
+  display: grid;
+  place-items: center;
+
+  padding: 2rem;
+
+  background:
+    radial-gradient(
+      circle at 20% 15%,
+      rgba(37, 99, 235, 0.11),
+      transparent 28%
+    ),
+    linear-gradient(
+      145deg,
+      #f7f9fc 0%,
+      #eef3f8 100%
+    );
+}
+
+
+.admin-login-card {
+  width: min(
+    100%,
+    430px
+  );
+
+  padding: 2rem;
+
+  border:
+    1px solid
+    #dce3ec;
+
+  border-radius: 22px;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 24px 60px
+    rgba(15, 23, 42, 0.1);
+}
+
+
+/* =========================================================
+   MARCA
+   ========================================================= */
+
+.admin-login-brand {
+  display: flex;
+  align-items: center;
+
+  gap: 0.8rem;
+
+  margin-bottom: 2rem;
+}
+
+
+.admin-login-brand__icon {
+  width: 46px;
+  height: 46px;
+
+  flex: 0 0 46px;
+
+  display: grid;
+  place-items: center;
+
+  border-radius: 14px;
+
+  background: #1d4ed8;
+
+  color: #ffffff;
+
+  box-shadow:
+    0 10px 24px
+    rgba(37, 99, 235, 0.22);
+}
+
+
+.admin-login-brand > div:last-child {
+  min-width: 0;
+
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.1rem;
+}
+
+
+.admin-login-brand strong {
+  color: #0f172a;
+
+  font-size: 0.95rem;
+
+  font-weight: 800;
+
+  line-height: 1.25;
+}
+
+
+.admin-login-brand span {
+  color: #94a3b8;
+
+  font-size: 0.68rem;
+
+  font-weight: 600;
+
+  line-height: 1.35;
+}
+
+
+/* =========================================================
+   CABECERA
+   ========================================================= */
+
+.admin-login-heading {
+  margin-bottom: 1.6rem;
+}
+
+
+.admin-login-eyebrow {
+  color: #2563eb;
+
+  font-size: 0.64rem;
+
+  font-weight: 800;
+
+  letter-spacing: 0.12em;
+
+  text-transform: uppercase;
+}
+
+
+.admin-login-heading h1 {
+  margin:
+    0.38rem
+    0
+    0;
+
+  color: #0f172a;
+
+  font-size: 1.55rem;
+
+  font-weight: 800;
+
+  line-height: 1.2;
+
+  letter-spacing: -0.035em;
+}
+
+
+.admin-login-heading p {
+  margin:
+    0.55rem
+    0
+    0;
+
+  color: #64748b;
+
+  font-size: 0.76rem;
+
+  line-height: 1.65;
+}
+
+
+/* =========================================================
+   FORMULARIO
+   ========================================================= */
+
+form {
+  display: flex;
+  flex-direction: column;
+
+  gap: 1rem;
+}
+
+
+.campo {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.38rem;
+}
+
+
+.campo label {
+  color: #334155;
+
+  font-size: 0.69rem;
+
+  font-weight: 750;
+}
+
+
+.control {
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+
+  gap: 0.65rem;
+
+  padding:
+    0
+    0.85rem;
+
+  border:
+    1px solid
+    #d7dee8;
+
+  border-radius: 11px;
+
+  background: #f8fafc;
+
+  color: #94a3b8;
+
+  transition:
+    border-color 150ms ease,
+    box-shadow 150ms ease,
+    background 150ms ease;
+}
+
+
+.control:hover {
+  border-color: #cbd5e1;
+}
+
+
+.control:focus-within {
+  border-color: #60a5fa;
+
+  background: #ffffff;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(37, 99, 235, 0.1);
+}
+
+
+.control--error {
+  border-color: #ef4444;
+}
+
+
+.control--error:focus-within {
+  border-color: #ef4444;
+
+  box-shadow:
+    0 0 0 3px
+    rgba(239, 68, 68, 0.08);
+}
+
+
+.control input {
+  width: 100%;
+
+  min-width: 0;
+
+  flex: 1;
+
+  border: 0;
+
+  outline: 0;
+
+  background: transparent;
+
+  color: #1e293b;
+
+  font-family: inherit;
+
+  font-size: 0.76rem;
+}
+
+
+.control input::placeholder {
+  color: #a8b2c0;
+}
+
+
+.control__toggle {
+  width: 30px;
+  height: 30px;
+
+  flex: 0 0 30px;
+
+  display: grid;
+  place-items: center;
+
+  padding: 0;
+
+  border: 0;
+
+  border-radius: 8px;
+
+  background: transparent;
+
+  color: #64748b;
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    color 150ms ease;
+}
+
+
+.control__toggle:hover {
+  background: #eef2f7;
+
+  color: #334155;
+}
+
+
+.error {
+  color: #dc2626;
+
+  font-size: 0.62rem;
+
+  font-weight: 650;
+
+  line-height: 1.4;
+}
+
+
+/* =========================================================
+   BOTÓN PRINCIPAL
+   ========================================================= */
+
+.boton-ingresar {
+  min-height: 46px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  gap: 0.6rem;
+
+  margin-top: 0.25rem;
+
+  padding:
+    0
+    1rem;
+
+  border:
+    1px solid
+    #2563eb;
+
+  border-radius: 11px;
+
+  background: #2563eb;
+
+  color: #ffffff;
+
+  font-family: inherit;
+
+  font-size: 0.75rem;
+
+  font-weight: 800;
+
+  box-shadow:
+    0 10px 22px
+    rgba(37, 99, 235, 0.18);
+
+  cursor: pointer;
+
+  transition:
+    background 150ms ease,
+    border-color 150ms ease,
+    transform 150ms ease,
+    box-shadow 150ms ease;
+}
+
+
+.boton-ingresar:hover:not(:disabled) {
+  border-color: #1d4ed8;
+
+  background: #1d4ed8;
+
+  box-shadow:
+    0 12px 24px
+    rgba(37, 99, 235, 0.22);
+
+  transform:
+    translateY(-1px);
+}
+
+
+.boton-ingresar:active:not(:disabled) {
+  transform:
+    translateY(0);
+}
+
+
+.boton-ingresar:disabled {
+  opacity: 0.65;
+
+  cursor: wait;
+
+  box-shadow: none;
+}
+
+
+/* =========================================================
+   CARGANDO
+   ========================================================= */
+
+.icono-cargando {
+  animation:
+    girar
+    0.8s
+    linear
+    infinite;
+}
+
+
+@keyframes girar {
+  to {
+    transform:
+      rotate(360deg);
+  }
+}
+
+
+/* =========================================================
+   NOTA INFERIOR
+   ========================================================= */
+
+.admin-login-note {
+  display: flex;
+  align-items: flex-start;
+
+  gap: 0.55rem;
+
+  margin-top: 1.4rem;
+
+  padding-top: 1rem;
+
+  border-top:
+    1px solid
+    #edf1f5;
+
+  color: #94a3b8;
+
+  font-size: 0.63rem;
+
+  line-height: 1.45;
+}
+
+
+.admin-login-note lucide-icon {
+  flex: 0 0 auto;
+
+  margin-top: 1px;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+   ========================================================= */
+
+@media (
+  max-width: 520px
+) {
+
+  .admin-login-page {
+    padding: 1rem;
+  }
+
+
+  .admin-login-card {
+    padding: 1.35rem;
+
+    border-radius: 18px;
+  }
+
+
+  .admin-login-heading h1 {
+    font-size: 1.35rem;
+  }
+
+
+  .admin-login-brand__icon {
+    width: 42px;
+    height: 42px;
+
+    flex-basis: 42px;
+  }
+}

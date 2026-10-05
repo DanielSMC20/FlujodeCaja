@@ -1,0 +1,147 @@
+<section class="admin-login-page">
+  <article class="admin-login-card">
+    <!-- ==================================================
+         MARCA
+         ================================================== -->
+
+    <div class="admin-login-brand">
+      <div class="admin-login-brand__icon">
+        <lucide-icon [img]="iconos.escudo" [size]="26" [strokeWidth]="1.9" />
+      </div>
+
+      <div>
+        <strong> Administración SaaS </strong>
+
+        <span> Flujo de Caja para Gerentes </span>
+      </div>
+    </div>
+
+    <!-- ==================================================
+         CABECERA
+         ================================================== -->
+
+    <div class="admin-login-heading">
+      <span class="admin-login-eyebrow"> Acceso restringido </span>
+
+      <h1>Panel de administración</h1>
+
+      <p>
+        Ingresa con tu cuenta de administrador de plataforma para gestionar las
+        empresas registradas en el servicio.
+      </p>
+    </div>
+
+    <!-- ==================================================
+         FORMULARIO
+         ================================================== -->
+
+    <form [formGroup]="formulario" (ngSubmit)="ingresar()" novalidate>
+      <!-- CORREO -->
+
+      <div class="campo">
+        <label for="adminCorreo"> Correo electrónico </label>
+
+        <div
+          class="control"
+          [class.control--error]="
+            tieneError('correo', 'required') || tieneError('correo', 'email')
+          "
+        >
+          <lucide-icon [img]="iconos.correo" [size]="18" [strokeWidth]="1.8" />
+
+          <input
+            id="adminCorreo"
+            type="email"
+            formControlName="correo"
+            autocomplete="username"
+            placeholder="admin@nexustechperu.com"
+          />
+        </div>
+
+        @if (tieneError("correo", "required")) {
+          <small class="error"> El correo es obligatorio. </small>
+        } @else if (tieneError("correo", "email")) {
+          <small class="error"> Ingresa un correo válido. </small>
+        }
+      </div>
+
+      <!-- CONTRASEÑA -->
+
+      <div class="campo">
+        <label for="adminPassword"> Contraseña </label>
+
+        <div
+          class="control"
+          [class.control--error]="
+            tieneError('password', 'required') ||
+            tieneError('password', 'minlength')
+          "
+        >
+          <lucide-icon [img]="iconos.clave" [size]="18" [strokeWidth]="1.8" />
+
+          <input
+            id="adminPassword"
+            [type]="mostrarContrasena ? 'text' : 'password'"
+            formControlName="password"
+            autocomplete="current-password"
+            placeholder="Ingresa tu contraseña"
+          />
+
+          <button
+            type="button"
+            class="control__toggle"
+            (click)="alternarContrasena()"
+            [attr.aria-label]="
+              mostrarContrasena ? 'Ocultar contraseña' : 'Mostrar contraseña'
+            "
+          >
+            <lucide-icon
+              [img]="mostrarContrasena ? iconos.ocultar : iconos.ver"
+              [size]="18"
+              [strokeWidth]="1.8"
+            />
+          </button>
+        </div>
+
+        @if (tieneError("password", "required")) {
+          <small class="error"> La contraseña es obligatoria. </small>
+        } @else if (tieneError("password", "minlength")) {
+          <small class="error">
+            La contraseña debe tener al menos 8 caracteres.
+          </small>
+        }
+      </div>
+
+      <!-- BOTÓN -->
+
+      <button class="boton-ingresar" type="submit" [disabled]="enviando">
+        @if (enviando) {
+          <lucide-icon
+            class="icono-cargando"
+            [img]="iconos.cargando"
+            [size]="18"
+            [strokeWidth]="2"
+          />
+
+          <span> Ingresando... </span>
+        } @else {
+          <span> Ingresar al panel </span>
+
+          <lucide-icon [img]="iconos.ingresar" [size]="18" [strokeWidth]="2" />
+        }
+      </button>
+    </form>
+
+    <!-- ==================================================
+         NOTA
+         ================================================== -->
+
+    <div class="admin-login-note">
+      <lucide-icon [img]="iconos.empresa" [size]="17" [strokeWidth]="1.8" />
+
+      <span>
+        Este acceso es exclusivo para los administradores del servicio.
+      </span>
+    </div>
+  </article>
+</section>

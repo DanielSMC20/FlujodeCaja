@@ -5,8 +5,109 @@ import { LoginComponent } from './features/login/login.component';
 import { authGuard } from './core/guards/auth.guard';
 import { administradorGuard } from './core/guards/administrador.guard';
 import { configuracionInicialGuard } from './core/guards/configuracion-inicial.guard';
+import {  plataformaAuthGuard,} from '../app/core/guards/plataforma-auth.guard';
 
 export const routes: Routes = [
+
+  {
+  path:
+    'administracion/login',
+
+  loadComponent: () =>
+    import(
+      './administracion/paginas/login-administracion/login-administracion.component'
+    )
+      .then(
+        (component) =>
+          component
+            .LoginAdministracionComponent,
+      ),
+},
+
+
+{
+  path:
+    'administracion',
+
+  canActivate: [
+    plataformaAuthGuard,
+  ],
+
+  canActivateChild: [
+    plataformaAuthGuard,
+  ],
+
+  loadComponent: () =>
+    import(
+      './administracion/estructura/administracion-layout/administracion-layout.component'
+    )
+      .then(
+        (component) =>
+          component
+            .AdministracionLayoutComponent,
+      ),
+
+  children: [
+
+    {
+      path: '',
+
+      pathMatch:
+        'full',
+
+      redirectTo:
+        'empresas',
+    },
+
+
+    {
+      path:
+        'empresas',
+
+      loadComponent: () =>
+        import(
+          './administracion/paginas/empresas/lista-empresas/lista-empresas.component'
+        )
+          .then(
+            (component) =>
+              component
+                .ListaEmpresasComponent,
+          ),
+    },
+
+
+    {
+      path:
+        'empresas/nueva',
+
+      loadComponent: () =>
+        import(
+          './administracion/paginas/empresas/nueva-empresa/nueva-empresa.component'
+        )
+          .then(
+            (component) =>
+              component
+                .NuevaEmpresaComponent,
+          ),
+    },
+
+
+    {
+      path:
+        'empresas/:id',
+
+      loadComponent: () =>
+        import(
+          './administracion/paginas/empresas/detalle-empresa/detalle-empresa.component'
+        )
+          .then(
+            (component) =>
+              component
+                .DetalleEmpresaComponent,
+          ),
+    },
+  ],
+},
   {
     path: 'login',
     component: LoginComponent,

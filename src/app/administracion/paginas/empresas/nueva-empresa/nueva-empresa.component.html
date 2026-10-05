@@ -1,0 +1,332 @@
+<section class="pagina-formulario">
+  <header class="pagina-header">
+    <a routerLink="/administracion/empresas" class="volver">
+      <lucide-icon [img]="iconos.volver" [size]="16" [strokeWidth]="1.9" />
+
+      <span> Volver a empresas </span>
+    </a>
+
+    <span class="pagina-etiqueta"> Administración SaaS </span>
+
+    <h1>Nueva empresa</h1>
+
+    <p>
+      Registra una empresa y crea automáticamente su primer usuario con rol
+      ADMINISTRADOR.
+    </p>
+  </header>
+
+  <form [formGroup]="formulario" (ngSubmit)="guardar()" novalidate>
+    <!-- ================================================
+         EMPRESA
+         ================================================ -->
+
+    <article class="tarjeta-formulario">
+      <header class="tarjeta-header">
+        <div class="tarjeta-icono tarjeta-icono--azul">
+          <lucide-icon [img]="iconos.empresa" [size]="21" [strokeWidth]="1.8" />
+        </div>
+
+        <div>
+          <h2>Datos de la empresa</h2>
+
+          <p>
+            Información principal con la que la empresa será identificada dentro
+            del servicio.
+          </p>
+        </div>
+      </header>
+
+      <div class="form-grid">
+        <div class="campo">
+          <label for="ruc"> RUC </label>
+
+          <input
+            id="ruc"
+            type="text"
+            maxlength="11"
+            inputmode="numeric"
+            formControlName="ruc"
+            placeholder="20612345678"
+            [class.input-error]="
+              tieneError('ruc', 'required') || tieneError('ruc', 'pattern')
+            "
+          />
+
+          @if (tieneError("ruc", "required")) {
+            <small class="error"> El RUC es obligatorio. </small>
+          } @else if (tieneError("ruc", "pattern")) {
+            <small class="error">
+              El RUC debe contener exactamente 11 dígitos.
+            </small>
+          }
+        </div>
+
+        <div class="campo campo--doble">
+          <label for="razonSocial"> Razón social </label>
+
+          <input
+            id="razonSocial"
+            type="text"
+            maxlength="200"
+            formControlName="razonSocial"
+            placeholder="Razón social de la empresa"
+            [class.input-error]="tieneError('razonSocial', 'required')"
+          />
+
+          @if (tieneError("razonSocial", "required")) {
+            <small class="error"> La razón social es obligatoria. </small>
+          }
+        </div>
+
+        <div class="campo campo--doble">
+          <label for="nombreComercial"> Nombre comercial </label>
+
+          <input
+            id="nombreComercial"
+            type="text"
+            maxlength="150"
+            formControlName="nombreComercial"
+            placeholder="Nombre comercial de la empresa"
+            [class.input-error]="tieneError('nombreComercial', 'required')"
+          />
+
+          @if (tieneError("nombreComercial", "required")) {
+            <small class="error"> El nombre comercial es obligatorio. </small>
+          }
+        </div>
+
+        <div class="campo">
+          <label for="monedaBase"> Moneda base </label>
+
+          <div class="select-con-icono">
+            <lucide-icon
+              [img]="iconos.moneda"
+              [size]="17"
+              [strokeWidth]="1.8"
+            />
+
+            <select id="monedaBase" formControlName="monedaBase">
+              <option [ngValue]="1">Soles (PEN)</option>
+            </select>
+          </div>
+        </div>
+
+        <div class="campo">
+          <label for="zonaHoraria"> Zona horaria </label>
+
+          <div class="select-con-icono">
+            <lucide-icon [img]="iconos.zona" [size]="17" [strokeWidth]="1.8" />
+
+            <select id="zonaHoraria" formControlName="zonaHoraria">
+              <option value="America/Lima">America/Lima</option>
+            </select>
+          </div>
+        </div>
+      </div>
+    </article>
+
+    <!-- ================================================
+         ADMINISTRADOR INICIAL
+         ================================================ -->
+
+    <article class="tarjeta-formulario">
+      <header class="tarjeta-header">
+        <div class="tarjeta-icono tarjeta-icono--violeta">
+          <lucide-icon [img]="iconos.usuario" [size]="21" [strokeWidth]="1.8" />
+        </div>
+
+        <div>
+          <h2>Administrador inicial</h2>
+
+          <p>
+            Esta cuenta será creada automáticamente con el rol ADMINISTRADOR de
+            la empresa.
+          </p>
+        </div>
+      </header>
+
+      <div class="aviso-temporal">
+        <lucide-icon [img]="iconos.correcto" [size]="18" [strokeWidth]="1.8" />
+
+        <span>
+          La contraseña será temporal. En el primer ingreso el usuario deberá
+          establecer una nueva contraseña.
+        </span>
+      </div>
+
+      <div class="form-grid">
+        <div class="campo">
+          <label for="nombres"> Nombres </label>
+
+          <input
+            id="nombres"
+            type="text"
+            maxlength="100"
+            formControlName="nombres"
+            placeholder="Nombres del administrador"
+            [class.input-error]="tieneError('nombres', 'required')"
+          />
+
+          @if (tieneError("nombres", "required")) {
+            <small class="error"> Los nombres son obligatorios. </small>
+          }
+        </div>
+
+        <div class="campo">
+          <label for="apellidos"> Apellidos </label>
+
+          <input
+            id="apellidos"
+            type="text"
+            maxlength="100"
+            formControlName="apellidos"
+            placeholder="Apellidos del administrador"
+            [class.input-error]="tieneError('apellidos', 'required')"
+          />
+
+          @if (tieneError("apellidos", "required")) {
+            <small class="error"> Los apellidos son obligatorios. </small>
+          }
+        </div>
+
+        <div class="campo campo--doble">
+          <label for="correo"> Correo electrónico </label>
+
+          <div
+            class="control-con-icono"
+            [class.input-error]="
+              tieneError('correo', 'required') || tieneError('correo', 'email')
+            "
+          >
+            <lucide-icon
+              [img]="iconos.correo"
+              [size]="17"
+              [strokeWidth]="1.8"
+            />
+
+            <input
+              id="correo"
+              type="email"
+              maxlength="254"
+              formControlName="correo"
+              autocomplete="off"
+              placeholder="gerencia@empresa.com"
+            />
+          </div>
+
+          @if (tieneError("correo", "required")) {
+            <small class="error"> El correo es obligatorio. </small>
+          } @else if (tieneError("correo", "email")) {
+            <small class="error"> Ingresa un correo válido. </small>
+          }
+        </div>
+
+        <div class="campo">
+          <label for="passwordTemporal"> Contraseña temporal </label>
+
+          <div
+            class="control-password"
+            [class.input-error]="
+              tieneError('passwordTemporal', 'required') ||
+              tieneError('passwordTemporal', 'minlength')
+            "
+          >
+            <lucide-icon [img]="iconos.clave" [size]="17" [strokeWidth]="1.8" />
+
+            <input
+              id="passwordTemporal"
+              [type]="mostrarPassword() ? 'text' : 'password'"
+              formControlName="passwordTemporal"
+              autocomplete="new-password"
+              placeholder="Mínimo 8 caracteres"
+            />
+
+            <button
+              type="button"
+              title="Mostrar u ocultar contraseña"
+              (click)="alternarPassword()"
+            >
+              <lucide-icon
+                [img]="mostrarPassword() ? iconos.ocultar : iconos.ver"
+                [size]="17"
+                [strokeWidth]="1.8"
+              />
+            </button>
+          </div>
+
+          @if (tieneError("passwordTemporal", "required")) {
+            <small class="error">
+              La contraseña temporal es obligatoria.
+            </small>
+          } @else if (tieneError("passwordTemporal", "minlength")) {
+            <small class="error"> Debe contener al menos 8 caracteres. </small>
+          }
+        </div>
+
+        <div class="campo">
+          <label for="confirmarPassword"> Confirmar contraseña </label>
+
+          <div
+            class="control-password"
+            [class.input-error]="
+              tieneError('confirmarPassword', 'required') ||
+              passwordsNoCoinciden()
+            "
+          >
+            <lucide-icon [img]="iconos.clave" [size]="17" [strokeWidth]="1.8" />
+
+            <input
+              id="confirmarPassword"
+              [type]="mostrarConfirmacion() ? 'text' : 'password'"
+              formControlName="confirmarPassword"
+              autocomplete="new-password"
+              placeholder="Repite la contraseña"
+            />
+
+            <button
+              type="button"
+              title="Mostrar u ocultar contraseña"
+              (click)="alternarConfirmacion()"
+            >
+              <lucide-icon
+                [img]="mostrarConfirmacion() ? iconos.ocultar : iconos.ver"
+                [size]="17"
+                [strokeWidth]="1.8"
+              />
+            </button>
+          </div>
+
+          @if (tieneError("confirmarPassword", "required")) {
+            <small class="error"> Debes confirmar la contraseña. </small>
+          } @else if (passwordsNoCoinciden()) {
+            <small class="error"> Las contraseñas no coinciden. </small>
+          }
+        </div>
+      </div>
+    </article>
+
+    <div class="acciones-formulario">
+      <a routerLink="/administracion/empresas" class="boton-secundario">
+        Cancelar
+      </a>
+
+      <button type="submit" class="boton-principal" [disabled]="guardando()">
+        @if (guardando()) {
+          <lucide-icon
+            class="icono-cargando"
+            [img]="iconos.cargando"
+            [size]="18"
+            [strokeWidth]="2"
+          />
+
+          <span> Creando empresa... </span>
+        } @else {
+          <lucide-icon [img]="iconos.guardar" [size]="18" [strokeWidth]="2" />
+
+          <span> Crear empresa </span>
+        }
+      </button>
+    </div>
+  </form>
+</section>

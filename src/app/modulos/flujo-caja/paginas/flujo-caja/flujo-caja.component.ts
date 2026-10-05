@@ -4,6 +4,8 @@ import {
   ChangeDetectorRef,
   Component,
   DestroyRef,
+    ElementRef,
+  ViewChild,
   inject,
 } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -57,9 +59,14 @@ interface ColumnaMatriz {
 
 interface FilaMatriz {
   id: string;
+
   concepto: string;
+
   tipo: TipoFilaMatriz;
+
   valores: Record<string, number>;
+
+  detalleEgresos?: Record<string, DetalleEgresoCelda>;
 }
 
 interface CategoriaMatriz {
@@ -72,6 +79,28 @@ interface VistaFlujoCaja {
   flujoCaja: ResultadoFlujoCaja;
   columnas: ColumnaMatriz[];
   filasMatriz: FilaMatriz[];
+}
+
+interface MovimientoCeldaMatriz {
+  id: number;
+
+  monto: number;
+
+  descripcion: string;
+
+  fecha: string;
+
+  estado: 'pagado' | 'proyectado';
+}
+
+interface DetalleEgresoCelda {
+  pagados: MovimientoCeldaMatriz[];
+
+  proyectados: MovimientoCeldaMatriz[];
+
+  montoPagado: number;
+
+  montoProyectado: number;
 }
 
 @Component({
@@ -90,7 +119,8 @@ interface VistaFlujoCaja {
 })
 export class FlujoCajaComponent {
   readonly ChartNoAxesCombined = ChartNoAxesCombined;
-
+@ViewChild('cashflowTableWrap')
+private cashflowTableWrap?: ElementRef<HTMLDivElement>;
   private readonly flujoCajaService = inject(FlujoCajaService);
   private readonly movimientoService = inject(MovimientoService);
   private readonly categoriaService = inject(CategoriaService);
@@ -100,6 +130,13 @@ export class FlujoCajaComponent {
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
   private readonly formBuilder = inject(FormBuilder);
+  private autoScrollFrameId:
+  number | null = null;
+
+private posicionXArrastre = 0;
+
+private direccionAutoScroll:
+  -1 | 0 | 1 = 0;
 
   private readonly fechasIniciales = this.obtenerFechasIniciales();
 
@@ -726,7 +763,28 @@ export class FlujoCajaComponent {
         saldoOperativo,
       ),
     ];
+    for (const fila of filas) {
+      /*
+       * Solamente enriquecemos las filas
+       * que representan categorías de egreso.
+       */
+      if (fila.tipo !== 'detalle' || !fila.id.startsWith('egreso-')) {
+        continue;
+      }
 
+      const categoria = this.normalizarTexto(fila.concepto);
+
+      const movimientosCategoria = movimientos.filter(
+        (movimiento) =>
+          movimiento.tipoMovimiento === 2 &&
+          this.normalizarTexto(movimiento.categoria) === categoria,
+      );
+
+      fila.detalleEgresos = this.crearDetalleEgresoPorColumnas(
+        columnas,
+        movimientosCategoria,
+      );
+    }
     return filas;
   }
 
@@ -1007,4 +1065,605 @@ export class FlujoCajaComponent {
       fechaHasta: `${anio}-${mes}-${dia}`,
     };
   }
+
+  private crearDetalleEgresoPorColumnas(
+    columnas: ColumnaMatriz[],
+    movimientos: Movimiento[],
+  ): Record<string, DetalleEgresoCelda> {
+    const resultado: Record<string, DetalleEgresoCelda> = {};
+
+    for (const columna of columnas) {
+      const fechasColumna = new Set(columna.fechas);
+
+      const pagados: MovimientoCeldaMatriz[] = [];
+
+      const proyectados: MovimientoCeldaMatriz[] = [];
+
+      for (const movimiento of movimientos) {
+        const fecha = this.obtenerFechaEfectivaMovimiento(movimiento);
+
+        if (!fecha || !fechasColumna.has(fecha)) {
+          continue;
+        }
+
+        const item: MovimientoCeldaMatriz = {
+          id: movimiento.id,
+
+          monto: Number(movimiento.monto ?? 0),
+
+          descripcion: movimiento.descripcion,
+
+          fecha,
+
+          estado: movimiento.bCancelado === 0 ? 'proyectado' : 'pagado',
+        };
+
+        if (movimiento.bCancelado === 0) {
+          proyectados.push(item);
+        } else {
+          pagados.push(item);
+        }
+      }
+
+      resultado[columna.id] = {
+        pagados,
+
+        proyectados,
+
+        montoPagado: pagados.reduce((total, item) => total + item.monto, 0),
+
+        montoProyectado: proyectados.reduce(
+          (total, item) => total + item.monto,
+          0,
+        ),
+      };
+    }
+
+    return resultado;
+  }
+
+  private movimientoArrastrado: MovimientoCeldaMatriz | null = null;
+
+  private filaArrastradaId: string | null = null;
+
+  celdaDestinoArrastre: string | null = null;
+
+  reprogramandoEgreso = false;
+
+  iniciarArrastreProyectado(
+    event: DragEvent,
+    movimiento: MovimientoCeldaMatriz,
+    filaId: string,
+  ): void {
+    if (movimiento.estado !== 'proyectado' || this.reprogramandoEgreso) {
+      event.preventDefault();
+      return;
+    }
+
+    this.movimientoArrastrado = movimiento;
+
+    this.filaArrastradaId = filaId;
+    this.detenerAutoScroll();
+
+    if (event.dataTransfer) {
+      event.dataTransfer.effectAllowed = 'move';
+
+      event.dataTransfer.setData('text/plain', String(movimiento.id));
+    }
+  }
+  permitirSoltarProyectado(
+    event: DragEvent,
+    columna: ColumnaMatriz,
+    filaId: string,
+  ): void {
+    if (
+      !this.movimientoArrastrado ||
+      columna.tipo !== 'dia' ||
+      filaId !== this.filaArrastradaId
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+
+    this.celdaDestinoArrastre = `${filaId}_${columna.id}`;
+  }
+  salirDestinoArrastre(filaId: string, columnaId: string): void {
+    const clave = `${filaId}_${columnaId}`;
+
+    if (this.celdaDestinoArrastre === clave) {
+      this.celdaDestinoArrastre = null;
+    }
+  }
+  async soltarProyectado(
+    event: DragEvent,
+    columna: ColumnaMatriz,
+    filaId: string,
+  ): Promise<void> {
+    event.preventDefault();
+
+    const movimiento = this.movimientoArrastrado;
+
+    this.celdaDestinoArrastre = null;
+
+    if (
+      !movimiento ||
+      columna.tipo !== 'dia' ||
+      filaId !== this.filaArrastradaId
+    ) {
+      this.finalizarArrastre();
+      return;
+    }
+
+    const fechaDestino = columna.fechas[0];
+
+    if (!fechaDestino || fechaDestino === movimiento.fecha) {
+      this.finalizarArrastre();
+      return;
+    }
+
+    const { default: Swal } = await import('sweetalert2');
+
+    const confirmacion = await Swal.fire({
+      icon: 'question',
+
+      title: 'Reprogramar egreso',
+
+      html: `
+        <div style="text-align:left">
+          <p>
+            Se cambiará la fecha proyectada:
+          </p>
+
+          <p>
+            <strong>
+              ${this.formatearFecha(movimiento.fecha)}
+            </strong>
+            →
+            <strong>
+              ${this.formatearFecha(fechaDestino)}
+            </strong>
+          </p>
+
+          <p>
+            Monto:
+            <strong>
+              S/ ${movimiento.monto.toFixed(2)}
+            </strong>
+          </p>
+        </div>
+      `,
+
+      showCancelButton: true,
+
+      confirmButtonText: 'Reprogramar',
+
+      cancelButtonText: 'Cancelar',
+
+      heightAuto: false,
+    });
+
+    if (!confirmacion.isConfirmed) {
+      this.finalizarArrastre();
+      return;
+    }
+
+    this.reprogramandoEgreso = true;
+
+    this.movimientoService
+      .reprogramarFechaProyectada(movimiento.id, fechaDestino)
+      .pipe(
+        finalize(() => {
+          this.reprogramandoEgreso = false;
+
+          this.finalizarArrastre();
+
+          this.changeDetectorRef.markForCheck();
+        }),
+      )
+      .subscribe({
+        next: () => {
+          void Swal.fire({
+            icon: 'success',
+
+            title: 'Fecha actualizada',
+
+            text: 'El egreso proyectado fue reprogramado.',
+
+            timer: 1500,
+
+            showConfirmButton: false,
+
+            heightAuto: false,
+          });
+
+          /*
+           * Volvemos a consultar flujo,
+           * movimientos y saldos.
+           */
+          this.aplicarFiltros();
+        },
+
+        error: (error) => {
+          void Swal.fire({
+            icon: 'error',
+
+            title: 'No se pudo reprogramar',
+
+            text:
+              error instanceof Error
+                ? error.message
+                : 'Ocurrió un error al actualizar la fecha.',
+
+            confirmButtonText: 'Aceptar',
+
+            heightAuto: false,
+          });
+        },
+      });
+  }
+  finalizarArrastre(): void {
+
+  this.detenerAutoScroll();
+
+
+  this.movimientoArrastrado =
+    null;
+
+
+  this.filaArrastradaId =
+    null;
+
+
+  this.celdaDestinoArrastre =
+    null;
 }
+esDestinoArrastre(
+  filaId: string,
+  columnaId: string,
+): boolean {
+
+  return (
+    this.celdaDestinoArrastre
+    ===
+    `${filaId}_${columnaId}`
+  );
+}
+
+arrastrandoMatriz = false;
+
+private pointerMatrizId: number | null = null;
+
+private posicionInicialXMatriz = 0;
+
+private scrollInicialMatriz = 0;
+
+iniciarDesplazamientoMatriz(
+  event: PointerEvent,
+): void {
+
+  /*
+   * Solo botón izquierdo del mouse.
+   */
+  if (
+    event.pointerType === 'mouse'
+    &&
+    event.button !== 0
+  ) {
+    return;
+  }
+
+
+  const objetivo =
+    event.target as HTMLElement;
+
+
+  /*
+   * IMPORTANTE:
+   *
+   * Si agarramos un egreso proyectado,
+   * NO queremos mover la matriz.
+   *
+   * Ahí debe funcionar el drag & drop
+   * para cambiar su fecha.
+   */
+  if (
+    objetivo.closest(
+      '.importe-egreso--proyectado'
+    )
+    ||
+    objetivo.closest(
+      'button'
+    )
+    ||
+    objetivo.closest(
+      'input'
+    )
+    ||
+    objetivo.closest(
+      'a'
+    )
+    ||
+    objetivo.closest(
+      'select'
+    )
+    ||
+    objetivo.closest(
+      'textarea'
+    )
+  ) {
+    return;
+  }
+
+
+  const contenedor =
+    event.currentTarget as HTMLDivElement;
+
+
+  this.arrastrandoMatriz =
+    true;
+
+
+  this.pointerMatrizId =
+    event.pointerId;
+
+
+  this.posicionInicialXMatriz =
+    event.clientX;
+
+
+  this.scrollInicialMatriz =
+    contenedor.scrollLeft;
+
+
+  /*
+   * Esta es la parte importante.
+   *
+   * Aunque el cursor se mueva rápido
+   * o salga temporalmente del contenedor,
+   * seguimos recibiendo el movimiento.
+   */
+  contenedor.setPointerCapture(
+    event.pointerId
+  );
+}
+
+desplazarMatriz(
+  event: PointerEvent,
+): void {
+
+  if (
+    !this.arrastrandoMatriz
+    ||
+    this.pointerMatrizId
+      !==
+      event.pointerId
+  ) {
+    return;
+  }
+
+
+  const contenedor =
+    event.currentTarget as HTMLDivElement;
+
+
+  /*
+   * Distancia recorrida desde
+   * que empezó el arrastre.
+   */
+  const desplazamiento =
+    event.clientX
+    -
+    this.posicionInicialXMatriz;
+
+
+  /*
+   * Si arrastras el mouse hacia la izquierda:
+   * avanzamos hacia la derecha.
+   *
+   * Si arrastras hacia la derecha:
+   * regresamos hacia la izquierda.
+   */
+  contenedor.scrollLeft =
+    this.scrollInicialMatriz
+    -
+    desplazamiento;
+
+
+  event.preventDefault();
+}
+finalizarDesplazamientoMatriz(
+  event: PointerEvent,
+): void {
+
+  const contenedor =
+    event.currentTarget as HTMLDivElement;
+
+
+  if (
+    contenedor.hasPointerCapture(
+      event.pointerId
+    )
+  ) {
+
+    contenedor.releasePointerCapture(
+      event.pointerId
+    );
+  }
+
+
+  this.cancelarDesplazamientoMatriz();
+}
+cancelarDesplazamientoMatriz(): void {
+
+  this.arrastrandoMatriz =
+    false;
+
+  this.pointerMatrizId =
+    null;
+
+  this.posicionInicialXMatriz =
+    0;
+
+  this.scrollInicialMatriz =
+    0;
+}
+manejarAutoScrollArrastre(event: DragEvent): void {
+  if (!this.movimientoArrastrado) {
+    return;
+  }
+
+  const contenedor = this.cashflowTableWrap?.nativeElement;
+
+  if (!contenedor) {
+    return;
+  }
+
+  event.preventDefault();
+
+  this.posicionXArrastre = event.clientX;
+
+  const rect = contenedor.getBoundingClientRect();
+
+  // Ancho real de la columna sticky "Concepto"
+  const anchoConcepto =
+    contenedor
+      .querySelector<HTMLElement>('.cashflow-concept')
+      ?.getBoundingClientRect().width ?? 0;
+
+  const zonaBorde = 100;
+
+  // La zona izquierda empieza DESPUÉS de la columna sticky
+  const limiteIzquierdo = rect.left + anchoConcepto + zonaBorde;
+  const limiteDerecho = rect.right - zonaBorde;
+
+  if (event.clientX < limiteIzquierdo) {
+    this.direccionAutoScroll = -1;
+    this.iniciarAutoScroll();
+    return;
+  }
+
+  if (event.clientX > limiteDerecho) {
+    this.direccionAutoScroll = 1;
+    this.iniciarAutoScroll();
+    return;
+  }
+
+  this.direccionAutoScroll = 0;
+  this.detenerAutoScroll();
+}
+private iniciarAutoScroll(): void {
+
+  if (
+    this.autoScrollFrameId !== null
+  ) {
+    return;
+  }
+
+
+  const ejecutar = () => {
+
+    const contenedor =
+      this.cashflowTableWrap
+        ?.nativeElement;
+
+
+    if (
+      !contenedor
+      ||
+      !this.movimientoArrastrado
+      ||
+      this.direccionAutoScroll === 0
+    ) {
+
+      this.detenerAutoScroll();
+
+      return;
+    }
+
+
+    /*
+     * Velocidad horizontal.
+     */
+    const velocidad = 14;
+
+
+    contenedor.scrollLeft +=
+      this.direccionAutoScroll
+      *
+      velocidad;
+
+
+    this.autoScrollFrameId =
+      requestAnimationFrame(
+        ejecutar,
+      );
+  };
+
+
+  this.autoScrollFrameId =
+    requestAnimationFrame(
+      ejecutar,
+    );
+}
+
+private detenerAutoScroll(): void {
+
+  if (
+    this.autoScrollFrameId !== null
+  ) {
+
+    cancelAnimationFrame(
+      this.autoScrollFrameId,
+    );
+
+
+    this.autoScrollFrameId =
+      null;
+  }
+
+
+  this.direccionAutoScroll =
+    0;
+}
+detenerAutoScrollSiSale(
+  event: DragEvent,
+): void {
+
+  const contenedor =
+    this.cashflowTableWrap
+      ?.nativeElement;
+
+
+  if (!contenedor) {
+    return;
+  }
+
+
+  const relacionado =
+    event.relatedTarget;
+
+
+  /*
+   * Si seguimos dentro de la matriz,
+   * no detenemos nada.
+   */
+  if (
+    relacionado instanceof Node
+    &&
+    contenedor.contains(
+      relacionado,
+    )
+  ) {
+    return;
+  }
+
+
+  this.detenerAutoScroll();
+}
+}
+

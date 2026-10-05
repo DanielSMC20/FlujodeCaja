@@ -1,0 +1,337 @@
+<section class="pagina-detalle">
+@if (
+  cargando()
+) {
+
+  <div class="estado-pagina">
+
+    <div class="spinner">
+    </div>
+
+    <strong>
+      Cargando empresa...
+    </strong>
+
+  </div>
+
+} @else if (
+  error()
+) {
+
+  <div class="estado-pagina">
+
+    <div class="estado-pagina__icono">
+
+      <lucide-icon
+        [img]="iconos.empresa"
+        [size]="28"
+        [strokeWidth]="1.7"
+      />
+
+    </div>
+
+
+    <h1>
+      No se pudo cargar la empresa
+    </h1>
+
+
+    <p>
+      {{ error() }}
+    </p>
+
+
+    <button
+      type="button"
+      (click)="cargarEmpresa()"
+    >
+
+      <lucide-icon
+        [img]="iconos.recargar"
+        [size]="16"
+        [strokeWidth]="1.8"
+      />
+
+      Intentar nuevamente
+
+    </button>
+
+
+    <a
+      routerLink="/administracion/empresas"
+    >
+      Volver al listado
+    </a>
+
+  </div>
+
+} @else {
+    @if (
+    empresa();
+    as empresaActual
+  ) {
+    <header class="pagina-header">
+      <a routerLink="/administracion/empresas" class="volver">
+        <lucide-icon [img]="iconos.volver" [size]="16" [strokeWidth]="1.9" />
+
+        <span> Volver a empresas </span>
+      </a>
+
+      <span class="pagina-etiqueta"> Administración SaaS </span>
+
+      <h1>Detalle de empresa</h1>
+
+      <p>Consulta y modifica los datos generales de la empresa registrada.</p>
+    </header>
+
+    <article class="perfil-empresa">
+      <div class="empresa-avatar">
+        {{ obtenerIniciales() }}
+      </div>
+
+      <div class="empresa-presentacion">
+        <span class="estado" [class.estado--inactivo]="!empresaActual.activa">
+          <span class="estado-punto"> </span>
+
+          {{ empresaActual.activa ? "Activa" : "Inactiva" }}
+        </span>
+
+        <h2>
+          {{ empresaActual.razonSocial }}
+        </h2>
+
+        <p>
+          {{ empresaActual.nombreComercial }}
+        </p>
+
+        <div class="empresa-meta">
+          <span> RUC {{ empresaActual.ruc }} </span>
+
+          <span>
+            <lucide-icon [img]="iconos.fecha" [size]="13" [strokeWidth]="1.8" />
+
+            Registrada
+
+            {{ formatearFecha(empresaActual.fechaRegistro) }}
+          </span>
+        </div>
+      </div>
+    </article>
+
+    <div class="detalle-grid">
+      <!-- =============================================
+           DATOS EMPRESA
+           ============================================= -->
+
+      <form
+        [formGroup]="formulario"
+        (ngSubmit)="guardarCambios()"
+        class="tarjeta"
+      >
+        <header class="tarjeta-header">
+          <div class="tarjeta-icono tarjeta-icono--azul">
+            <lucide-icon
+              [img]="iconos.empresa"
+              [size]="21"
+              [strokeWidth]="1.8"
+            />
+          </div>
+
+          <div>
+            <h2>Datos de la empresa</h2>
+
+            <p>Información general registrada para esta empresa.</p>
+          </div>
+        </header>
+
+        <div class="form-grid">
+          <div class="campo">
+            <label for="detalleRuc"> RUC </label>
+
+            <input
+              id="detalleRuc"
+              type="text"
+              maxlength="11"
+              inputmode="numeric"
+              formControlName="ruc"
+              [class.input-error]="
+                tieneError('ruc', 'required') || tieneError('ruc', 'pattern')
+              "
+            />
+
+            @if (tieneError("ruc", "required")) {
+              <small class="error"> El RUC es obligatorio. </small>
+            } @else if (tieneError("ruc", "pattern")) {
+              <small class="error"> Debe contener 11 dígitos. </small>
+            }
+          </div>
+
+          <div class="campo campo--doble">
+            <label for="detalleRazonSocial"> Razón social </label>
+
+            <input
+              id="detalleRazonSocial"
+              type="text"
+              maxlength="200"
+              formControlName="razonSocial"
+              [class.input-error]="tieneError('razonSocial', 'required')"
+            />
+          </div>
+
+          <div class="campo campo--doble">
+            <label for="detalleNombreComercial"> Nombre comercial </label>
+
+            <input
+              id="detalleNombreComercial"
+              type="text"
+              maxlength="150"
+              formControlName="nombreComercial"
+              [class.input-error]="tieneError('nombreComercial', 'required')"
+            />
+          </div>
+
+          <div class="campo">
+            <label for="detalleMoneda"> Moneda base </label>
+
+            <div class="select-con-icono">
+              <lucide-icon
+                [img]="iconos.moneda"
+                [size]="17"
+                [strokeWidth]="1.8"
+              />
+
+              <select id="detalleMoneda" formControlName="monedaBase">
+                <option [ngValue]="1">Soles (PEN)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="campo">
+            <label for="detalleZona"> Zona horaria </label>
+
+            <div class="select-con-icono">
+              <lucide-icon
+                [img]="iconos.zona"
+                [size]="17"
+                [strokeWidth]="1.8"
+              />
+
+              <select id="detalleZona" formControlName="zonaHoraria">
+                <option value="America/Lima">America/Lima</option>
+              </select>
+            </div>
+          </div>
+        </div>
+
+        <div class="acciones-formulario">
+          <button
+            type="submit"
+            class="boton-principal"
+            [disabled]="guardando() || formulario.pristine"
+          >
+            @if (guardando()) {
+              <lucide-icon
+                class="icono-cargando"
+                [img]="iconos.cargando"
+                [size]="17"
+                [strokeWidth]="2"
+              />
+
+              Guardando...
+            } @else {
+              <lucide-icon
+                [img]="iconos.guardar"
+                [size]="17"
+                [strokeWidth]="2"
+              />
+
+              Guardar cambios
+            }
+          </button>
+        </div>
+      </form>
+
+      <!-- =============================================
+           ADMINISTRADOR
+           ============================================= -->
+
+      <article class="tarjeta administrador-card">
+        <header class="tarjeta-header">
+          <div class="tarjeta-icono tarjeta-icono--violeta">
+            <lucide-icon
+              [img]="iconos.usuario"
+              [size]="21"
+              [strokeWidth]="1.8"
+            />
+          </div>
+
+          <div>
+            <h2>Administrador inicial</h2>
+
+            <p>Usuario creado al registrar esta empresa.</p>
+          </div>
+        </header>
+
+        @if (empresaActual.administradorUsuarioId) {
+          <div class="administrador-perfil">
+            <div class="administrador-avatar">
+              {{ obtenerInicialesAdministrador() }}
+            </div>
+
+            <div>
+              <strong>
+                {{ empresaActual.administradorNombreCompleto }}
+              </strong>
+
+              <span> Administrador de la empresa </span>
+            </div>
+          </div>
+
+          <div class="dato-item">
+            <div class="dato-icono">
+              <lucide-icon
+                [img]="iconos.correo"
+                [size]="17"
+                [strokeWidth]="1.8"
+              />
+            </div>
+
+            <div>
+              <span> Correo </span>
+
+              <strong>
+                {{ empresaActual.administradorCorreo }}
+              </strong>
+            </div>
+          </div>
+
+          <div class="dato-item">
+            <div class="dato-icono">
+              <lucide-icon
+                [img]="iconos.estado"
+                [size]="17"
+                [strokeWidth]="1.8"
+              />
+            </div>
+
+            <div>
+              <span> Rol </span>
+
+              <strong> ADMINISTRADOR </strong>
+            </div>
+          </div>
+        } @else {
+          <div class="sin-administrador">
+            <strong> No se encontró administrador inicial </strong>
+
+            <p>
+              La empresa no tiene un usuario administrador asociado en la
+              consulta actual.
+            </p>
+          </div>
+        }
+      </article>
+    </div>
+  }
+}
+</section>

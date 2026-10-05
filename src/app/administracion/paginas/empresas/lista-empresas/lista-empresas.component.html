@@ -1,0 +1,239 @@
+<section class="pagina-empresas">
+  <header class="pagina-header">
+    <div>
+      <span class="pagina-etiqueta"> Administración SaaS </span>
+
+      <h1>Empresas</h1>
+
+      <p>Consulta las empresas registradas y su administrador inicial.</p>
+    </div>
+
+    <a routerLink="/administracion/empresas/nueva" class="boton-nueva-empresa">
+      <lucide-icon [img]="iconos.nueva" [size]="18" [strokeWidth]="2" />
+
+      <span> Nueva empresa </span>
+    </a>
+  </header>
+
+  <div class="resumen-grid">
+    <article class="resumen-card">
+      <div class="resumen-icono resumen-icono--azul">
+        <lucide-icon [img]="iconos.empresa" [size]="21" [strokeWidth]="1.8" />
+      </div>
+
+      <div>
+        <span> Empresas mostradas </span>
+
+        <strong>
+          {{ totalEmpresas() }}
+        </strong>
+      </div>
+    </article>
+
+    <article class="resumen-card">
+      <div class="resumen-icono resumen-icono--verde">
+        <lucide-icon [img]="iconos.activa" [size]="21" [strokeWidth]="1.8" />
+      </div>
+
+      <div>
+        <span> Activas </span>
+
+        <strong>
+          {{ totalActivas() }}
+        </strong>
+      </div>
+    </article>
+
+    <article class="resumen-card">
+      <div class="resumen-icono resumen-icono--violeta">
+        <lucide-icon [img]="iconos.usuario" [size]="21" [strokeWidth]="1.8" />
+      </div>
+
+      <div>
+        <span> Con administrador inicial </span>
+
+        <strong>
+          {{ totalAdministradores() }}
+        </strong>
+      </div>
+    </article>
+  </div>
+
+  <article class="panel-empresas">
+    <div class="panel-toolbar">
+      <div class="buscador">
+        <lucide-icon [img]="iconos.buscar" [size]="18" [strokeWidth]="1.8" />
+
+        <input
+          type="text"
+          [formControl]="busquedaControl"
+          placeholder="
+            Buscar por RUC, razón social o nombre comercial
+          "
+        />
+
+        @if (busquedaControl.value) {
+          <button
+            type="button"
+            class="buscador-limpiar"
+            (click)="limpiarBusqueda()"
+          >
+            ×
+          </button>
+        }
+      </div>
+
+      <button type="button" class="boton-recargar" (click)="recargar()">
+        <lucide-icon [img]="iconos.recargar" [size]="16" [strokeWidth]="1.8" />
+
+        Actualizar
+      </button>
+    </div>
+
+    @if (cargando()) {
+      <div class="estado-panel">
+        <div class="spinner"></div>
+
+        <strong> Cargando empresas... </strong>
+      </div>
+    } @else if (error()) {
+      <div class="estado-panel">
+        <div class="estado-panel__icono">
+          <lucide-icon [img]="iconos.empresa" [size]="26" [strokeWidth]="1.7" />
+        </div>
+
+        <strong> No se pudieron cargar las empresas </strong>
+
+        <p>
+          {{ error() }}
+        </p>
+
+        <button type="button" (click)="recargar()">Intentar nuevamente</button>
+      </div>
+    } @else if (empresas().length === 0) {
+      <div class="estado-panel">
+        <div class="estado-panel__icono">
+          <lucide-icon [img]="iconos.empresa" [size]="26" [strokeWidth]="1.7" />
+        </div>
+
+        <strong> No se encontraron empresas </strong>
+
+        <p>No existen resultados para la búsqueda realizada.</p>
+      </div>
+    } @else {
+      <div class="tabla-contenedor">
+        <table class="tabla-empresas">
+          <thead>
+            <tr>
+              <th>Empresa</th>
+
+              <th>RUC</th>
+
+              <th>Administrador inicial</th>
+
+              <th>Registro</th>
+
+              <th>Estado</th>
+
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            @for (empresa of empresas(); track empresa.empresaId) {
+              <tr>
+                <td>
+                  <div class="empresa-celda">
+                    <div class="empresa-avatar">
+                      {{ obtenerIniciales(empresa) }}
+                    </div>
+
+                    <div>
+                      <strong>
+                        {{ empresa.razonSocial }}
+                      </strong>
+
+                      <span>
+                        {{ empresa.nombreComercial }}
+                      </span>
+                    </div>
+                  </div>
+                </td>
+
+                <td>
+                  <span class="ruc">
+                    {{ empresa.ruc }}
+                  </span>
+                </td>
+
+                <td>
+                  @if (empresa.administradorUsuarioId) {
+                    <div class="administrador-celda">
+                      <strong>
+                        {{ empresa.administradorNombreCompleto }}
+                      </strong>
+
+                      <span>
+                        <lucide-icon
+                          [img]="iconos.correo"
+                          [size]="13"
+                          [strokeWidth]="1.8"
+                        />
+
+                        {{ empresa.administradorCorreo }}
+                      </span>
+                    </div>
+                  } @else {
+                    <span class="sin-dato"> Sin administrador </span>
+                  }
+                </td>
+
+                <td>
+                  <div class="fecha-celda">
+                    <lucide-icon
+                      [img]="iconos.fecha"
+                      [size]="15"
+                      [strokeWidth]="1.8"
+                    />
+
+                    {{ formatearFecha(empresa.fechaRegistro) }}
+                  </div>
+                </td>
+
+                <td>
+                  <span
+                    class="estado"
+                    [class.estado--activo]="empresa.activa"
+                    [class.estado--inactivo]="!empresa.activa"
+                  >
+                    <span class="estado-punto"> </span>
+
+                    {{ empresa.activa ? "Activa" : "Inactiva" }}
+                  </span>
+                </td>
+
+                <td class="acciones">
+                  <a
+                    [routerLink]="[
+                      '/administracion/empresas',
+                      empresa.empresaId,
+                    ]"
+                    class="boton-ver"
+                  >
+                    Ver
+
+                    <lucide-icon
+                      [img]="iconos.detalle"
+                      [size]="16"
+                      [strokeWidth]="1.8"
+                    />
+                  </a>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  </article>
+</section>

@@ -1,61 +1,78 @@
-/* =========================================================
-   CONTENEDOR GENERAL
-   ========================================================= */
-
 :host {
+  --cf-text-strong: #0f172a;
+  --cf-text: #334155;
+  --cf-text-soft: #64748b;
+  --cf-text-muted: #94a3b8;
+
+  --cf-border: #dce3ec;
+  --cf-border-soft: #e4e9ef;
+
+  --cf-surface: #ffffff;
+  --cf-surface-soft: #f8fafc;
+  --cf-surface-muted: #f1f5f9;
+  --cf-surface-table: #f3f6fa;
+
+  --cf-primary: #2563eb;
+  --cf-primary-dark: #1d4ed8;
+
+  --cf-income: #15803d;
+  --cf-income-bg: #eaf8ef;
+  --cf-income-bg-strong: #dff4e6;
+
+  --cf-expense: #dc2626;
+
+  --cf-projected: #a15c00;
+  --cf-projected-bg: #fff4df;
+
+  --cf-slate: #40536a;
+  --cf-slate-dark: #223044;
+  --cf-slate-darker: #1b293c;
+
   display: block;
 
   width: 100%;
   min-width: 0;
 }
 
-
 .pagina-flujo {
+  display: flex;
+
   width: 100%;
   min-width: 0;
 
-  display: flex;
   flex-direction: column;
 
   gap: 1rem;
 }
 
-
-/* =========================================================
-   CABECERA DE LA PÁGINA
-   ========================================================= */
-
 .pagina-header {
   width: 100%;
+
+  h1 {
+    margin: 0.25rem 0 0;
+
+    color: var(--cf-text-strong);
+
+    font-size: 1.55rem;
+    font-weight: 700;
+
+    letter-spacing: -0.035em;
+  }
+
+  p {
+    max-width: 760px;
+
+    margin: 0.35rem 0 0;
+
+    color: var(--cf-text-soft);
+
+    font-size: 0.78rem;
+    line-height: 1.5;
+  }
 }
-
-
-.pagina-header h1 {
-  margin: 0.25rem 0 0;
-
-  color: #0f172a;
-
-  font-size: 1.55rem;
-  font-weight: 700;
-
-  letter-spacing: -0.035em;
-}
-
-
-.pagina-header p {
-  max-width: 760px;
-
-  margin: 0.35rem 0 0;
-
-  color: #64748b;
-
-  font-size: 0.78rem;
-  line-height: 1.5;
-}
-
 
 .pagina-etiqueta {
-  color: #2563eb;
+  color: var(--cf-primary);
 
   font-size: 0.65rem;
   font-weight: 700;
@@ -64,103 +81,87 @@
   text-transform: uppercase;
 }
 
-
-/* =========================================================
-   TARJETAS GENERALES
-   ========================================================= */
-
 .tarjeta {
   width: 100%;
 
   padding: 1.1rem;
 
-  border: 1px solid #e2e8f0;
+  border: 1px solid #e1e7ef;
   border-radius: 14px;
 
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #fbfcfe 100%);
 
-  box-shadow:
-    0 2px 8px
-    rgba(15, 23, 42, 0.025);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.035);
 }
-
-
-/* =========================================================
-   FILTROS
-   ========================================================= */
 
 .filtros {
   padding: 1rem 1.1rem;
 }
 
-
 .filtros-formulario {
+  display: flex;
+
   width: 100%;
 
-  display: flex;
   align-items: flex-end;
 
   gap: 0.8rem;
 }
 
-
 .campo {
+  display: flex;
+
   width: 185px;
 
-  display: flex;
   flex-direction: column;
 
   gap: 0.35rem;
+
+  label {
+    color: #475569;
+
+    font-size: 0.66rem;
+    font-weight: 700;
+  }
+
+  input {
+    width: 100%;
+    height: 40px;
+
+    padding: 0 0.7rem;
+
+    border: 1px solid #d5dde7;
+    border-radius: 9px;
+
+    outline: none;
+
+    background: #f5f7fa;
+
+    color: var(--cf-text);
+
+    font-family: inherit;
+    font-size: 0.72rem;
+
+    transition:
+      border-color 0.15s ease,
+      background 0.15s ease,
+      box-shadow 0.15s ease;
+
+    &:hover {
+      border-color: #c2ccd8;
+
+      background: #ffffff;
+    }
+
+    &:focus {
+      border-color: #60a5fa;
+
+      background: #ffffff;
+
+      box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+    }
+  }
 }
-
-
-.campo label {
-  color: #475569;
-
-  font-size: 0.66rem;
-  font-weight: 700;
-}
-
-
-.campo input {
-  width: 100%;
-  height: 40px;
-
-  padding: 0 0.7rem;
-
-  border: 1px solid #dbe3ed;
-  border-radius: 8px;
-
-  outline: none;
-
-  background: #f8fafc;
-
-  color: #334155;
-
-  font-family: inherit;
-  font-size: 0.72rem;
-
-  transition:
-    border-color 0.15s ease,
-    box-shadow 0.15s ease,
-    background 0.15s ease;
-}
-
-
-.campo input:focus {
-  border-color: #60a5fa;
-
-  background: #ffffff;
-
-  box-shadow:
-    0 0 0 3px
-    rgba(59, 130, 246, 0.08);
-}
-
-
-/* =========================================================
-   BOTONES
-   ========================================================= */
 
 .acciones-filtro {
   display: flex;
@@ -170,18 +171,18 @@
   margin-left: auto;
 }
 
-
 .boton-principal,
 .boton-secundario {
+  display: inline-flex;
+
   height: 40px;
 
-  display: inline-flex;
   align-items: center;
   justify-content: center;
 
   padding: 0 0.9rem;
 
-  border-radius: 8px;
+  border-radius: 9px;
 
   font-family: inherit;
   font-size: 0.68rem;
@@ -191,39 +192,39 @@
 
   transition:
     background 0.15s ease,
-    border-color 0.15s ease;
+    border-color 0.15s ease,
+    transform 0.15s ease;
 }
-
 
 .boton-principal {
-  border: 1px solid #2563eb;
+  border: 1px solid var(--cf-primary);
 
-  background: #2563eb;
+  background: var(--cf-primary);
 
   color: #ffffff;
+
+  &:hover {
+    border-color: var(--cf-primary-dark);
+
+    background: var(--cf-primary-dark);
+
+    transform: translateY(-1px);
+  }
 }
-
-
-.boton-principal:hover {
-  border-color: #1d4ed8;
-
-  background: #1d4ed8;
-}
-
 
 .boton-secundario {
-  border: 1px solid #dbe3ed;
+  border: 1px solid #d7dee8;
 
   background: #ffffff;
 
-  color: #64748b;
+  color: var(--cf-text-soft);
+
+  &:hover {
+    border-color: #c5cfda;
+
+    background: #f5f7fa;
+  }
 }
-
-
-.boton-secundario:hover {
-  background: #f8fafc;
-}
-
 
 .mensaje-error {
   margin: 0.75rem 0 0;
@@ -234,15 +235,11 @@
   font-weight: 600;
 }
 
-
-/* =========================================================
-   CARGANDO
-   ========================================================= */
-
 .estado-carga {
+  display: flex;
+
   min-height: 68px;
 
-  display: flex;
   align-items: center;
 
   gap: 0.8rem;
@@ -253,8 +250,21 @@
   border-radius: 11px;
 
   background: #eff6ff;
-}
 
+  strong {
+    color: #1e3a8a;
+
+    font-size: 0.73rem;
+  }
+
+  p {
+    margin: 0.15rem 0 0;
+
+    color: var(--cf-text-soft);
+
+    font-size: 0.65rem;
+  }
+}
 
 .estado-carga-punto {
   width: 9px;
@@ -264,199 +274,378 @@
 
   border-radius: 50%;
 
-  background: #2563eb;
+  background: var(--cf-primary);
 
-  box-shadow:
-    0 0 0 6px
-    rgba(37, 99, 235, 0.1);
+  box-shadow: 0 0 0 6px rgba(37, 99, 235, 0.1);
 
-  animation:
-    pulso-carga
-    1.15s
-    ease-in-out
-    infinite;
+  animation: pulso-carga 1.15s ease-in-out infinite;
 }
-
-
-.estado-carga strong {
-  color: #1e3a8a;
-
-  font-size: 0.73rem;
-}
-
-
-.estado-carga p {
-  margin: 0.15rem 0 0;
-
-  color: #64748b;
-
-  font-size: 0.65rem;
-}
-
 
 @keyframes pulso-carga {
-
   50% {
     opacity: 0.5;
 
     transform: scale(0.78);
   }
-
 }
-
-
-/* =========================================================
-   TARJETAS RESUMEN
-   ========================================================= */
 
 .resumen-grid {
   display: grid;
 
-  grid-template-columns:
-    repeat(
-      auto-fit,
-      minmax(170px, 1fr)
-    );
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
 
   gap: 0.75rem;
 }
 
-
 .indicador {
-  min-width: 0;
+  position: relative;
 
   display: flex;
+
+  min-width: 0;
+
+  overflow: hidden;
+
   flex-direction: column;
 
-  padding: 0.95rem 1rem;
+  padding: 1rem;
 
-  border: 1px solid #e2e8f0;
-  border-radius: 12px;
+  border: 1px solid #e2e7ed;
+  border-radius: 13px;
 
-  background: #ffffff;
+  background: linear-gradient(180deg, #ffffff 0%, #fafbfd 100%);
 
-  box-shadow:
-    0 2px 8px
-    rgba(15, 23, 42, 0.02);
+  box-shadow: 0 4px 14px rgba(15, 23, 42, 0.025);
+
+  &::before {
+    content: "";
+
+    position: absolute;
+
+    top: 0;
+    right: 0;
+    left: 0;
+
+    height: 3px;
+
+    background: #94a3b8;
+  }
+
+  &:nth-child(1)::before {
+    background: #3b82f6;
+  }
+
+  &:nth-child(2)::before {
+    background: #22c55e;
+  }
+
+  &:nth-child(3)::before {
+    background: #ef4444;
+  }
+
+  &:nth-child(4)::before {
+    background: #f59e0b;
+  }
+
+  &:nth-child(5)::before {
+    background: #0f766e;
+  }
+
+  &:nth-child(6)::before {
+    background: #6366f1;
+  }
+
+  strong {
+    margin-top: 0.4rem;
+
+    font-size: 1.2rem;
+    font-weight: 750;
+
+    font-variant-numeric: tabular-nums;
+
+    letter-spacing: -0.025em;
+  }
+
+  small {
+    margin-top: 0.26rem;
+
+    color: var(--cf-text-muted);
+
+    font-size: 0.59rem;
+    line-height: 1.35;
+  }
 }
-
 
 .indicador-label {
-  color: #64748b;
+  color: var(--cf-text-soft);
 
   font-size: 0.64rem;
-  font-weight: 600;
+  font-weight: 650;
 }
-
-
-.indicador strong {
-  margin-top: 0.38rem;
-
-  font-size: 1.2rem;
-  font-weight: 700;
-
-  letter-spacing: -0.025em;
-
-  font-variant-numeric:
-    tabular-nums;
-}
-
-
-.indicador small {
-  margin-top: 0.25rem;
-
-  color: #94a3b8;
-
-  font-size: 0.59rem;
-  line-height: 1.35;
-}
-
 
 .valor-ingreso {
-  color: #15803d;
+  color: var(--cf-income);
 }
-
 
 .valor-egreso {
-  color: #dc2626;
+  color: var(--cf-expense);
 }
-
 
 .valor-proyectado,
 .proyectado {
   color: #b45309;
 }
 
-
 .valor-neutro {
-  color: #2563eb;
+  color: var(--cf-primary);
 }
 
-
-/* =========================================================
-   MATRIZ DEL FLUJO DE CAJA
-   AQUÍ SE REPRODUCE EL ESTILO DEL EXCEL
-   ========================================================= */
-
-.contenedor-flujo-excel {
+.cashflow-panel {
   width: 100%;
   min-width: 0;
 
   overflow: hidden;
 
-  border: 1px solid #b7b7b7;
+  border: 1px solid var(--cf-border);
+  border-radius: 18px;
 
   background: #ffffff;
+
+  box-shadow: 0 12px 32px rgba(15, 23, 42, 0.055);
 }
 
+.cashflow-panel__header {
+  display: flex;
 
-/* =========================================================
-   SCROLL
-   ========================================================= */
+  min-height: 94px;
 
-.matriz-scroll {
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 2rem;
+
+  padding: 1.15rem 1.3rem;
+
+  border-bottom: 1px solid #e6ebf1;
+
+  background: linear-gradient(135deg, #f8fafc 0%, #f3f6fa 50%, #eef3f8 100%);
+}
+
+.cashflow-panel__eyebrow {
+  display: block;
+
+  margin-bottom: 0.28rem;
+
+  color: var(--cf-primary);
+
+  font-size: 0.57rem;
+  font-weight: 800;
+
+  letter-spacing: 0.11em;
+  text-transform: uppercase;
+}
+
+.cashflow-panel__title {
+  h2 {
+    margin: 0;
+
+    color: var(--cf-text-strong);
+
+    font-size: 1.05rem;
+    font-weight: 750;
+
+    letter-spacing: -0.025em;
+  }
+
+  p {
+    max-width: 650px;
+
+    margin: 0.3rem 0 0;
+
+    color: var(--cf-text-soft);
+
+    font-size: 0.65rem;
+    line-height: 1.5;
+  }
+}
+
+.cashflow-period {
+  display: flex;
+
+  flex: 0 0 auto;
+  flex-direction: column;
+
+  gap: 0.2rem;
+
+  padding: 0.66rem 0.85rem;
+
+  border: 1px solid #d8e0ea;
+  border-radius: 11px;
+
+  background: #ffffff;
+
+  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.035);
+
+  > span {
+    color: var(--cf-text-muted);
+
+    font-size: 0.54rem;
+    font-weight: 700;
+
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  strong {
+    display: flex;
+
+    align-items: center;
+
+    gap: 0.4rem;
+
+    color: var(--cf-text);
+
+    font-size: 0.67rem;
+    font-weight: 750;
+
+    white-space: nowrap;
+
+    i {
+      color: var(--cf-text-muted);
+
+      font-style: normal;
+    }
+  }
+}
+
+.cashflow-panel__toolbar {
+  display: flex;
+
+  min-height: 48px;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 1rem;
+
+  padding: 0.68rem 1.3rem;
+
+  border-bottom: 1px solid #e3e8ef;
+
+  background: #edf2f7;
+}
+
+.cashflow-legend {
+  display: flex;
+
+  align-items: center;
+  flex-wrap: wrap;
+
+  gap: 1rem;
+}
+
+.cashflow-legend__item {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 0.38rem;
+
+  color: #526173;
+
+  font-size: 0.59rem;
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+.legend-dot {
+  width: 8px;
+  height: 8px;
+
+  flex: 0 0 8px;
+
+  border-radius: 50%;
+}
+
+.legend-dot--income {
+  background: #22c55e;
+}
+
+.legend-dot--expense {
+  background: #ef4444;
+}
+
+.legend-dot--paid {
+  background: #0f766e;
+}
+
+.legend-dot--projected {
+  background: #f59e0b;
+}
+
+.legend-dot--balance {
+  background: #475569;
+}
+
+.legend-dot--negative {
+  background: #e11d48;
+}
+
+.cashflow-scroll-help {
+  color: #7f8da0;
+
+  font-size: 0.57rem;
+  font-weight: 600;
+}
+
+.cashflow-table-wrap {
   width: 100%;
 
-  max-height: 74vh;
+  max-height: 72vh;
 
   overflow: auto;
 
-  background: #ffffff;
+  background: var(--cf-surface-table);
+
+  cursor: grab;
 
   overscroll-behavior: contain;
 
+  scrollbar-color: #aeb9c7 #e9eef4;
+
   scrollbar-width: thin;
-  scrollbar-color:
-    #a3a3a3
-    #eeeeee;
+
+  scroll-behavior: auto;
+  scroll-snap-type: none;
+
+  touch-action: pan-y;
+
+  user-select: none;
+
+  &::-webkit-scrollbar {
+    width: 10px;
+    height: 10px;
+  }
+
+  &::-webkit-scrollbar-track {
+    background: #e9eef4;
+  }
+
+  &::-webkit-scrollbar-thumb {
+    border: 2px solid #e9eef4;
+    border-radius: 999px;
+
+    background: #aeb9c7;
+  }
 }
 
-
-.matriz-scroll::-webkit-scrollbar {
-  width: 10px;
-  height: 10px;
+.cashflow-table-wrap--dragging,
+.cashflow-table-wrap--dragging * {
+  cursor: grabbing;
 }
 
-
-.matriz-scroll::-webkit-scrollbar-track {
-  background: #eeeeee;
-}
-
-
-.matriz-scroll::-webkit-scrollbar-thumb {
-  border: 2px solid #eeeeee;
-
-  border-radius: 8px;
-
-  background: #a3a3a3;
-}
-
-
-/* =========================================================
-   TABLA
-   ========================================================= */
-
-.matriz-flujo {
+.cashflow-grid {
   width: max-content;
   min-width: 100%;
 
@@ -465,820 +654,1024 @@
 
   table-layout: fixed;
 
-  color: #000000;
+  color: #475569;
 
-  /*
-   * Cambria se aproxima bastante
-   * al aspecto del Excel de referencia.
-   */
-  font-family:
-    Cambria,
-    Calibri,
-    Arial,
-    sans-serif;
+  font-family: Inter, "Segoe UI", Arial, sans-serif;
 
-  font-size: 11px;
-  line-height: 1;
+  font-size: 10.5px;
 
-  font-variant-numeric:
-    tabular-nums;
+  font-variant-numeric: tabular-nums;
+
+  th,
+  td {
+    min-width: 116px;
+    height: 42px;
+
+    padding: 0.35rem 0.55rem;
+
+    border-right: 1px solid #e6ebf1;
+    border-bottom: 1px solid var(--cf-border-soft);
+
+    background: #fbfcfe;
+
+    text-align: center;
+    vertical-align: middle;
+
+    white-space: nowrap;
+  }
+
+  thead th {
+    position: sticky;
+
+    top: 0;
+
+    z-index: 20;
+
+    height: 58px;
+
+    border-right: 1px solid #d8e0e9;
+    border-bottom: 1px solid #cfd8e3;
+
+    background: #e9eff5;
+
+    box-shadow: 0 4px 10px rgba(15, 23, 42, 0.04);
+  }
 }
 
+.cashflow-date {
+  padding-top: 0.6rem !important;
+  padding-bottom: 0.55rem !important;
 
-/* =========================================================
-   CELDAS
-   ========================================================= */
+  small {
+    display: block;
 
-.matriz-flujo th,
-.matriz-flujo td {
-  min-width: 104px;
-  height: 23px;
+    margin-top: 0.18rem;
 
-  padding:
-    2px
-    5px;
+    color: #8290a2;
 
-  border-right:
-    1px solid
-    #d9d9d9;
+    font-size: 7.5px;
+    font-weight: 650;
 
-  border-bottom:
-    1px solid
-    #d9d9d9;
-
-  background: #ffffff;
-
-  color: #000000;
-
-  text-align: center;
-  vertical-align: middle;
-
-  white-space: nowrap;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
 }
 
+.cashflow-date__label {
+  display: block;
 
-/* =========================================================
-   CABECERA SUPERIOR
-   ========================================================= */
+  color: var(--cf-text);
 
-.matriz-flujo thead th {
-  position: sticky;
+  font-size: 10px;
+  font-weight: 800;
 
-  top: 0;
-
-  z-index: 20;
-
-  height: 27px;
-
-  padding:
-    3px
-    5px;
-
-  border-bottom:
-    1px solid
-    #a6a6a6;
-
-  background: #ffffff;
-
-  color: #000000;
-
-  font-size: 11px;
-  font-weight: 700;
+  letter-spacing: 0.015em;
 }
 
+.cashflow-date--month {
+  border-left: 2px solid #c4ceda !important;
 
-/* =========================================================
-   PRIMERA COLUMNA
-   CONCEPTOS FIJOS COMO EXCEL
-   ========================================================= */
+  background: #dfe7f0 !important;
 
-.matriz-flujo .matriz-concepto {
-  width: 250px;
-  min-width: 250px;
-  max-width: 250px;
+  .cashflow-date__label {
+    color: #1e293b;
+  }
+}
 
+.cashflow-date--year {
+  border-left: 2px solid #64748b !important;
+
+  background: #d5dee8 !important;
+
+  .cashflow-date__label {
+    color: var(--cf-text-strong);
+
+    font-weight: 800;
+  }
+}
+
+.cashflow-concept {
   position: sticky;
 
   left: 0;
 
   z-index: 10;
 
-  padding-left: 5px;
+  width: 260px;
+  min-width: 260px !important;
+  max-width: 260px;
 
-  border-right:
-    1px solid
-    #a6a6a6;
+  border-right: 1px solid #ccd6e1 !important;
 
-  background: #ffffff;
+  background: #f1f5f9;
 
-  color: #000000;
+  color: #475569;
 
-  text-align: left;
+  text-align: left !important;
 
-  font-size: 11px;
-  font-weight: 400;
+  box-shadow: 6px 0 13px rgba(15, 23, 42, 0.04);
+}
+
+.cashflow-corner {
+  z-index: 30 !important;
+
+  background: #dde6ef !important;
+}
+
+.corner-content {
+  display: flex;
+
+  flex-direction: column;
+
+  gap: 0.16rem;
+
+  padding-left: 0.45rem;
+
+  span {
+    color: var(--cf-text);
+
+    font-size: 9.5px;
+    font-weight: 800;
+
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+
+  small {
+    color: #7f8da0;
+
+    font-size: 8px;
+    font-weight: 600;
+  }
+}
+
+.cashflow-grid tbody .cashflow-concept {
+  padding-left: 0.9rem;
+}
+
+.concept-name {
+  display: inline-block;
+
+  max-width: 215px;
 
   overflow: hidden;
 
   text-overflow: ellipsis;
+
+  vertical-align: middle;
 }
 
+.concept-accent {
+  display: inline-block;
 
-/* =========================================================
-   ESQUINA FECHA
-   ========================================================= */
+  width: 3px;
+  height: 18px;
 
-.matriz-flujo .matriz-esquina {
-  z-index: 30;
+  margin-right: 0.55rem;
 
-  font-weight: 700;
+  border-radius: 999px;
 
-  text-decoration: underline;
-}
-
-
-/* =========================================================
-   COLUMNAS DE RESUMEN
-   MES / AÑO
-   ========================================================= */
-
-.matriz-flujo .columna-resumen {
-  min-width: 108px;
-
-  border-left:
-    1px solid
-    #a6a6a6;
-
-  font-weight: 700;
-}
-
-
-.matriz-flujo .columna-anio {
-  min-width: 108px;
-
-  border-left:
-    1px solid
-    #7f7f7f;
-
-  font-weight: 700;
-}
-
-
-/* =========================================================
-   VALORES NORMALES
-   ========================================================= */
-
-.matriz-flujo tbody td {
-  font-weight: 600;
-}
-
-
-/* =========================================================
-   SALDO INICIAL
-   ========================================================= */
-
-.matriz-flujo
-.fila-saldo-inicial
-.matriz-concepto {
-  font-weight: 700;
-
-  text-decoration: underline;
-}
-
-
-.matriz-flujo
-.fila-saldo-inicial
-td {
-  font-weight: 700;
-}
-
-
-/* =========================================================
-   INGRESOS
-   VERDE EXACTO APROX. DEL EXCEL
-   ========================================================= */
-
-.matriz-flujo
-.fila-seccion-ingreso
-th,
-.matriz-flujo
-.fila-seccion-ingreso
-td {
-  height: 23px;
-
-  border-bottom:
-    1px solid
-    #70ad47;
-
-  background: #92d050;
-
-  color: #000000;
-
-  font-weight: 700;
-}
-
-
-.matriz-flujo
-.fila-seccion-ingreso
-.matriz-concepto {
-  background: #92d050;
-
-  font-weight: 700;
-
-  text-decoration: underline;
-}
-
-
-/* =========================================================
-   EGRESOS
-   NARANJA EXACTO APROX. DEL EXCEL
-   ========================================================= */
-
-.matriz-flujo
-.fila-seccion-egreso
-th,
-.matriz-flujo
-.fila-seccion-egreso
-td {
-  height: 23px;
-
-  border-bottom:
-    1px solid
-    #a64b00;
-
-  background: #c65911;
-
-  color: #000000;
-
-  font-weight: 700;
-}
-
-
-.matriz-flujo
-.fila-seccion-egreso
-.matriz-concepto {
-  background: #c65911;
-
-  color: #000000;
-
-  font-weight: 700;
-
-  text-decoration: underline;
-}
-
-
-/* =========================================================
-   SUBTOTALES
-   NEGRO
-   ========================================================= */
-
-.matriz-flujo
-.fila-subtotal
-th,
-.matriz-flujo
-.fila-subtotal
-td {
-  border-right:
-    1px solid
-    #262626;
-
-  border-bottom:
-    1px solid
-    #ffffff;
-
-  background: #000000;
-
-  color: #ffffff;
-
-  font-weight: 700;
-}
-
-
-.matriz-flujo
-.fila-subtotal
-.matriz-concepto {
-  background: #000000;
-
-  color: #ffffff;
-
-  font-weight: 700;
-
-  text-decoration: underline;
-}
-
-
-/* =========================================================
-   TOTAL GENERAL INGRESOS / EGRESOS
-   ========================================================= */
-
-.matriz-flujo
-.fila-total
-th,
-.matriz-flujo
-.fila-total
-td {
-  border-right:
-    1px solid
-    #262626;
-
-  border-bottom:
-    1px solid
-    #ffffff;
-
-  background: #000000;
-
-  color: #ffffff;
-
-  font-weight: 700;
-}
-
-
-.matriz-flujo
-.fila-total
-.matriz-concepto {
-  background: #000000;
-
-  color: #ffffff;
-
-  font-weight: 700;
-
-  text-decoration: underline;
-}
-
-
-/* =========================================================
-   SALDO FINAL
-   ========================================================= */
-
-.matriz-flujo
-.fila-saldo-final
-th,
-.matriz-flujo
-.fila-saldo-final
-td {
-  border-right:
-    1px solid
-    #262626;
-
-  border-bottom:
-    1px solid
-    #ffffff;
-
-  background: #000000;
-
-  color: #ffffff;
-
-  font-weight: 700;
-}
-
-
-.matriz-flujo
-.fila-saldo-final
-.matriz-concepto {
-  background: #000000;
-
-  color: #ffffff;
-
-  font-weight: 700;
-
-  text-decoration: underline;
-}
-
-
-/* =========================================================
-   SALDO OPERATIVO
-   ========================================================= */
-
-.matriz-flujo
-.fila-saldo-operativo
-th,
-.matriz-flujo
-.fila-saldo-operativo
-td {
-  border-right:
-    1px solid
-    #262626;
-
-  background: #000000;
-
-  color: #ffffff;
-
-  font-weight: 700;
-}
-
-
-.matriz-flujo
-.fila-saldo-operativo
-.matriz-concepto {
-  background: #000000;
-
-  color: #ffffff;
-
-  font-weight: 700;
-
-  text-decoration: underline;
-}
-
-
-/* =========================================================
-   SALDO OPERATIVO NEGATIVO
-   ROSADO COMO EXCEL
-   ========================================================= */
-
-.matriz-flujo
-.fila-saldo-operativo
-td.saldo-negativo {
-  border-right:
-    1px solid
-    #f4a6ad;
-
-  background: #ffc7ce;
-
-  color: #9c0006;
-
-  font-weight: 700;
-}
-
-
-/* =========================================================
-   EVITAR EFECTOS MODERNOS SOBRE EL EXCEL
-   ========================================================= */
-
-.matriz-flujo tbody tr {
-  transition: none;
-}
-
-
-.matriz-flujo tbody tr:hover {
   background: transparent;
+
+  vertical-align: middle;
 }
 
+.cashflow-grid
+  tbody
+  tr:not(
+    :is(
+      .row-opening,
+      .row-income-section,
+      .row-expense-section,
+      .row-subtotal,
+      .row-total,
+      .row-final-balance,
+      .row-operating-balance
+    )
+  ) {
+  td {
+    background: #fbfcfe;
+  }
 
-.matriz-flujo tbody tr:hover td {
-  filter: none;
+  .cashflow-concept {
+    padding-left: 1.9rem;
+
+    background: #f3f6f9;
+
+    color: #526173;
+
+    font-weight: 550;
+  }
+
+  &:nth-child(even) {
+    td {
+      background: #f6f8fb;
+    }
+
+    .cashflow-concept {
+      background: #edf2f6;
+    }
+  }
+
+  &:hover {
+    td {
+      background: #eaf2fb;
+
+      color: var(--cf-text);
+    }
+
+    .cashflow-concept {
+      background: #e4edf7;
+
+      color: var(--cf-text);
+
+      box-shadow:
+        inset 4px 0 0 #3b82f6,
+        6px 0 13px rgba(15, 23, 42, 0.04);
+    }
+
+    td:hover {
+      position: relative;
+
+      z-index: 2;
+
+      box-shadow: inset 0 0 0 1px #93b4d8;
+    }
+  }
+
+  td.cashflow-column-month {
+    border-left: 2px solid #d2dae4;
+
+    background: #f0f4f8;
+  }
+
+  td.cashflow-column-year {
+    border-left: 2px solid #8290a2;
+
+    background: #e8eef4;
+  }
+
+  &:hover td.cashflow-column-month,
+  &:hover td.cashflow-column-year {
+    background: #e4edf7;
+  }
 }
 
+.cashflow-value {
+  display: inline-block;
 
-/* =========================================================
-   ESTADO VACÍO DE LA MATRIZ
-   ========================================================= */
+  color: #27364a;
 
-.estado-vacio-matriz {
-  min-height: 220px;
+  font-weight: 700;
+
+  line-height: 1;
 }
 
-
-/* =========================================================
-   RESUMEN DIARIO PLEGABLE
-   ========================================================= */
-
-.detalle-diario {
-  padding: 0;
-
-  overflow: hidden;
+.cashflow-empty,
+.cell-empty {
+  color: #c3ccd7;
 }
 
+.cashflow-empty {
+  font-size: 10px;
+  font-weight: 450;
+}
 
-.detalle-diario > summary {
-  min-height: 70px;
+.cell-has-value {
+  color: #1e293b;
 
+  font-weight: 700;
+}
+
+.row-opening {
+  th,
+  td {
+    height: 44px;
+
+    border-top: 1px solid #d6dee8;
+    border-bottom: 1px solid #d6dee8;
+
+    background: #eaf0f6;
+
+    color: var(--cf-text);
+
+    font-weight: 750;
+  }
+
+  .cashflow-concept {
+    background: #e3eaf2;
+
+    color: var(--cf-text);
+  }
+
+  .concept-accent {
+    background: #64748b;
+  }
+}
+
+.row-income-section,
+.row-expense-section {
+  th,
+  td {
+    height: 46px;
+
+    border-top: 8px solid var(--cf-surface-table);
+
+    font-weight: 800;
+  }
+}
+
+.row-income-section {
+  th,
+  td {
+    border-bottom: 1px solid #cbe8d4;
+
+    background: var(--cf-income-bg);
+
+    color: #166534;
+  }
+
+  .cashflow-concept {
+    background: var(--cf-income-bg-strong);
+
+    color: #166534;
+  }
+
+  .concept-accent {
+    height: 23px;
+
+    background: #22c55e;
+  }
+
+  .cashflow-value,
+  .cashflow-empty {
+    color: #166534;
+  }
+}
+
+.row-expense-section {
+  th,
+  td {
+    border-bottom: 1px solid #f1d9bb;
+
+    background: #fff2e4;
+
+    color: #9a3412;
+  }
+
+  .cashflow-concept {
+    background: #fce8d1;
+
+    color: #9a3412;
+  }
+
+  .concept-accent {
+    height: 23px;
+
+    background: #f59e0b;
+  }
+
+  .cashflow-value,
+  .cashflow-empty {
+    color: #9a3412;
+  }
+}
+
+.row-subtotal {
+  th,
+  td {
+    height: 43px;
+
+    border-top: 1px solid #d5dde7;
+    border-bottom: 1px solid #d5dde7;
+
+    background: #e9eef5;
+
+    color: var(--cf-text);
+
+    font-weight: 750;
+  }
+
+  .cashflow-concept {
+    background: #e1e8f0;
+
+    color: var(--cf-text);
+
+    font-weight: 750;
+  }
+
+  .cashflow-value {
+    color: #27364a;
+
+    font-weight: 800;
+  }
+
+  .cashflow-empty {
+    color: #a5b1bf;
+  }
+}
+
+.row-total {
+  th,
+  td {
+    height: 46px;
+
+    border-top: 1px solid #c5d0dc;
+    border-bottom: 1px solid #c5d0dc;
+
+    background: #dce5ef;
+
+    color: #1e293b;
+
+    font-weight: 800;
+  }
+
+  .cashflow-concept {
+    background: #d3dee9;
+
+    color: #1e293b;
+  }
+
+  .cashflow-value {
+    color: #172033;
+
+    font-weight: 800;
+  }
+
+  .cashflow-empty {
+    color: #8492a6;
+  }
+}
+
+.row-final-balance {
+  th,
+  td {
+    height: 49px;
+
+    border-right-color: #43566c;
+    border-bottom-color: #43566c;
+
+    background: var(--cf-slate);
+
+    color: #ffffff;
+
+    font-weight: 800;
+  }
+
+  .cashflow-concept {
+    background: #384b61;
+
+    color: #ffffff;
+  }
+
+  .concept-accent {
+    height: 24px;
+
+    background: #cbd5e1;
+  }
+
+  .cashflow-value {
+    color: #ffffff;
+
+    font-weight: 800;
+  }
+
+  .cashflow-empty {
+    color: rgba(255, 255, 255, 0.45);
+  }
+
+  &:hover {
+    th,
+    td {
+      background: var(--cf-slate);
+
+      color: #ffffff;
+    }
+
+    .cashflow-concept {
+      background: #384b61;
+
+      color: #ffffff;
+    }
+  }
+}
+
+.row-operating-balance {
+  th,
+  td {
+    height: 52px;
+
+    border-right-color: #2e3c4f;
+    border-bottom: 0;
+
+    background: var(--cf-slate-dark);
+
+    color: #ffffff;
+
+    font-size: 11px;
+    font-weight: 800;
+  }
+
+  .cashflow-concept {
+    background: var(--cf-slate-darker);
+
+    color: #ffffff;
+  }
+
+  .concept-accent {
+    height: 25px;
+
+    background: #60a5fa;
+  }
+
+  .cashflow-value {
+    color: #ffffff;
+
+    font-weight: 800;
+  }
+
+  .cashflow-empty {
+    color: rgba(255, 255, 255, 0.42);
+  }
+
+  &:hover {
+    th,
+    td {
+      background: var(--cf-slate-dark);
+
+      color: #ffffff;
+    }
+
+    .cashflow-concept {
+      background: var(--cf-slate-darker);
+
+      color: #ffffff;
+    }
+  }
+
+  td.cell-negative {
+    border-right: 1px solid #f3c4cb;
+
+    background: #fff1f2 !important;
+
+    color: #be123c !important;
+
+    .cashflow-value {
+      color: #be123c;
+
+      font-weight: 800;
+    }
+
+    &:hover {
+      background: #ffe7ea !important;
+
+      color: #be123c !important;
+    }
+  }
+}
+
+:is(
+  .row-opening,
+  .row-income-section,
+  .row-expense-section,
+  .row-subtotal,
+  .row-total,
+  .row-final-balance,
+  .row-operating-balance
+) {
+  td.cashflow-column-month {
+    border-left: 2px solid rgba(100, 116, 139, 0.35);
+  }
+
+  td.cashflow-column-year {
+    border-left: 2px solid rgba(71, 85, 105, 0.65);
+  }
+}
+
+.estado-egreso-celda {
   display: flex;
+
+  width: 100%;
+
+  flex-direction: column;
+  align-items: stretch;
+
+  gap: 0.28rem;
+}
+
+.importe-egreso {
+  display: flex;
+
+  width: 100%;
+
   align-items: center;
   justify-content: space-between;
 
-  gap: 1rem;
+  gap: 0.35rem;
 
-  padding:
-    0.9rem
-    1.05rem;
+  padding: 0.3rem 0.42rem;
 
-  cursor: pointer;
-
-  list-style: none;
+  border: 1px solid transparent;
+  border-radius: 7px;
 
   user-select: none;
+
+  strong {
+    font-size: 10px;
+    font-weight: 750;
+
+    font-variant-numeric: tabular-nums;
+  }
+
+  small {
+    font-size: 7px;
+    font-weight: 750;
+
+    letter-spacing: 0.025em;
+    text-transform: uppercase;
+  }
 }
 
+.importe-egreso--pagado {
+  border-color: #cbe7d5;
 
-.detalle-diario > summary::-webkit-details-marker {
-  display: none;
+  background: var(--cf-income-bg);
+
+  color: #166534;
+
+  small {
+    color: #4f8a64;
+  }
+
+
+  &:hover {
+    background: var(--cf-income-bg);
+
+    color: #166534;
+  }
 }
 
+.importe-egreso--proyectado {
+  border-color: #f2d5a7;
 
-.detalle-diario > summary strong {
-  display: block;
+  background: var(--cf-projected-bg);
 
-  color: #1e293b;
+  color: var(--cf-projected);
 
-  font-size: 0.75rem;
+  small {
+    color: #b7791f;
+  }
+
+  &:hover {
+    background: var(--cf-projected-bg);
+
+    color: var(--cf-projected);
+  }
 }
 
+.importe-egreso--arrastrable {
+  cursor: grab;
 
-.detalle-diario
-> summary
-span:not(.detalle-indicador) {
-  display: block;
+  transition:
+    transform 0.12s ease,
+    box-shadow 0.12s ease,
+    border-color 0.12s ease;
 
-  margin-top: 0.18rem;
+  &:hover {
+    border-color: #e5b867;
 
-  color: #94a3b8;
+    transform: translateY(-1px);
 
-  font-size: 0.62rem;
+    box-shadow: 0 4px 10px rgba(161, 92, 0, 0.1);
+  }
+
+  &:active {
+    cursor: grabbing;
+  }
 }
 
+.cashflow-grid td.cashflow-drop-target {
+  background: #e8f1fb !important;
+
+  box-shadow: inset 0 0 0 2px #60a5fa !important;
+}
+
+.estado-vacio {
+  display: flex;
+
+  min-height: 250px;
+
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+
+  text-align: center;
+
+  strong {
+    color: #475569;
+
+    font-size: 0.78rem;
+  }
+
+  p {
+    max-width: 420px;
+
+    margin: 0.3rem 0 0;
+
+    color: var(--cf-text-muted);
+
+    font-size: 0.67rem;
+  }
+}
+
+.estado-vacio-matriz {
+  min-height: 230px;
+
+  background: #f7f9fc;
+}
+
+.estado-vacio-icono {
+  display: grid;
+
+  width: 46px;
+  height: 46px;
+
+  place-items: center;
+
+  margin-bottom: 0.75rem;
+
+  border: 1px solid #e1e7ef;
+  border-radius: 12px;
+
+  background: #edf2f7;
+
+  color: #8290a2;
+
+  lucide-icon {
+    width: 21px;
+    height: 21px;
+  }
+}
+
+.detalle-diario {
+  overflow: hidden;
+
+  padding: 0;
+
+  > summary {
+    display: flex;
+
+    min-height: 70px;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 1rem;
+
+    padding: 0.9rem 1.05rem;
+
+    cursor: pointer;
+
+    list-style: none;
+
+    user-select: none;
+
+    transition: background 0.15s ease;
+
+    &:hover {
+      background: #f5f8fb;
+    }
+
+    &::-webkit-details-marker {
+      display: none;
+    }
+
+    strong {
+      display: block;
+
+      color: #1e293b;
+
+      font-size: 0.75rem;
+    }
+
+    span:not(.detalle-indicador) {
+      display: block;
+
+      margin-top: 0.18rem;
+
+      color: var(--cf-text-muted);
+
+      font-size: 0.62rem;
+    }
+  }
+
+  &[open] .detalle-indicador {
+    position: relative;
+
+    color: transparent;
+
+    &::after {
+      content: "Ocultar";
+
+      position: absolute;
+
+      inset: 0;
+
+      display: grid;
+
+      place-items: center;
+
+      color: var(--cf-text-soft);
+    }
+  }
+}
 
 .detalle-indicador {
   flex: 0 0 auto;
 
-  padding:
-    0.35rem
-    0.6rem;
+  padding: 0.35rem 0.6rem;
 
-  border: 1px solid #dbe3ed;
+  border: 1px solid #d4dce6;
   border-radius: 7px;
 
-  background: #f8fafc;
+  background: #edf2f7;
 
-  color: #64748b;
+  color: var(--cf-text-soft);
 
   font-size: 0.61rem;
   font-weight: 700;
 }
 
-
-.detalle-diario[open]
-.detalle-indicador {
-  color: transparent;
-
-  position: relative;
-}
-
-
-.detalle-diario[open]
-.detalle-indicador::after {
-  content: 'Ocultar';
-
-  position: absolute;
-
-  inset: 0;
-
-  display: grid;
-
-  place-items: center;
-
-  color: #64748b;
-}
-
-
 .detalle-diario-contenido {
-  padding:
-    0
-    1.05rem
-    1.05rem;
+  padding: 0 1.05rem 1.05rem;
 
-  border-top:
-    1px solid
-    #f1f5f9;
+  border-top: 1px solid #e6ebf1;
+
+  background: #fafbfd;
 }
-
-
-/* =========================================================
-   TABLA DIARIA ANTERIOR
-   ========================================================= */
 
 .tabla-contenedor {
   margin-top: 1rem;
 
   overflow-x: auto;
 
-  border:
-    1px solid
-    #e2e8f0;
-
+  border: 1px solid #dde4ec;
   border-radius: 10px;
-}
 
+  background: #ffffff;
+}
 
 .tabla-diaria {
   width: 100%;
 
   border-collapse: collapse;
+
+  thead {
+    background: #eaf0f6;
+  }
+
+  th {
+    padding: 0.72rem 0.8rem;
+
+    border-bottom: 1px solid #d8e0e9;
+
+    color: #526173;
+
+    font-size: 0.62rem;
+    font-weight: 750;
+
+    text-align: left;
+
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 0.78rem 0.8rem;
+
+    border-top: 1px solid #e9edf2;
+
+    color: #475569;
+
+    font-size: 0.69rem;
+
+    white-space: nowrap;
+
+    font-variant-numeric: tabular-nums;
+  }
+
+  tbody tr {
+    &:nth-child(even) {
+      background: #f8fafc;
+    }
+
+    &:hover {
+      background: #eef5fc;
+    }
+  }
 }
-
-
-.tabla-diaria thead {
-  background: #f8fafc;
-}
-
-
-.tabla-diaria th {
-  padding:
-    0.72rem
-    0.8rem;
-
-  color: #64748b;
-
-  font-size: 0.62rem;
-  font-weight: 700;
-
-  text-align: left;
-
-  white-space: nowrap;
-}
-
-
-.tabla-diaria td {
-  padding:
-    0.78rem
-    0.8rem;
-
-  border-top:
-    1px solid
-    #f1f5f9;
-
-  color: #475569;
-
-  font-size: 0.69rem;
-
-  white-space: nowrap;
-
-  font-variant-numeric:
-    tabular-nums;
-}
-
-
-.tabla-diaria tbody tr:hover {
-  background: #fafcff;
-}
-
 
 .texto-derecha {
   text-align: right !important;
 }
 
-
 .fecha {
-  color: #334155;
+  color: var(--cf-text);
 
   font-size: 0.69rem;
 }
 
-
 .ingreso {
-  color: #15803d !important;
+  color: var(--cf-income) !important;
 
-  font-weight: 600;
+  font-weight: 650;
 }
-
 
 .egreso {
-  color: #dc2626 !important;
+  color: var(--cf-expense) !important;
 
-  font-weight: 600;
+  font-weight: 650;
 }
-
 
 .proyectado {
   color: #b45309 !important;
 
-  font-weight: 600;
+  font-weight: 650;
 }
-
 
 .neto {
   font-weight: 700;
 }
 
-
 .neto-positivo {
-  color: #15803d !important;
+  color: var(--cf-income) !important;
 }
-
 
 .neto-negativo {
   color: #b91c1c !important;
 }
 
-
 .monto-destacado {
-  color: #0f172a !important;
+  color: var(--cf-text-strong) !important;
 
-  font-weight: 700;
+  font-weight: 750;
 }
-
-
-/* =========================================================
-   ESTADOS VACÍOS
-   ========================================================= */
-
-.estado-vacio {
-  min-height: 250px;
-
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-
-  text-align: center;
-}
-
-
-.estado-vacio-icono {
-  width: 46px;
-  height: 46px;
-
-  display: grid;
-
-  place-items: center;
-
-  margin-bottom: 0.75rem;
-
-  border-radius: 12px;
-
-  background: #f1f5f9;
-
-  color: #94a3b8;
-}
-
-
-.estado-vacio-icono lucide-icon {
-  width: 21px;
-  height: 21px;
-}
-
-
-.estado-vacio strong {
-  color: #475569;
-
-  font-size: 0.78rem;
-}
-
-
-.estado-vacio p {
-  max-width: 420px;
-
-  margin:
-    0.3rem
-    0
-    0;
-
-  color: #94a3b8;
-
-  font-size: 0.67rem;
-}
-
-
-/* =========================================================
-   RESPONSIVE
-   ========================================================= */
 
 @media (max-width: 1000px) {
-
   .resumen-grid {
-    grid-template-columns:
-      repeat(
-        3,
-        minmax(0, 1fr)
-      );
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
+  .cashflow-panel__header {
+    align-items: stretch;
+
+    flex-direction: column;
+
+    gap: 0.85rem;
+  }
+
+  .cashflow-period {
+    align-self: flex-start;
+  }
 }
 
-
 @media (max-width: 800px) {
-
   .resumen-grid {
-    grid-template-columns:
-      repeat(
-        2,
-        minmax(0, 1fr)
-      );
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
+  .cashflow-panel__toolbar {
+    align-items: flex-start;
 
-  .matriz-flujo
-  .matriz-concepto {
+    flex-direction: column;
+  }
+
+  .cashflow-scroll-help {
+    width: 100%;
+  }
+
+  .cashflow-concept {
     width: 220px;
-    min-width: 220px;
+
+    min-width: 220px !important;
+
     max-width: 220px;
   }
 
+  .concept-name {
+    max-width: 175px;
+  }
 }
 
-
 @media (max-width: 650px) {
-
   .filtros-formulario {
     align-items: stretch;
 
     flex-direction: column;
   }
 
-
   .campo {
     width: 100%;
   }
-
 
   .acciones-filtro {
     width: 100%;
@@ -1286,56 +1679,62 @@ span:not(.detalle-indicador) {
     margin-left: 0;
   }
 
-
   .boton-principal,
   .boton-secundario {
     flex: 1;
   }
 
-
   .resumen-grid {
     grid-template-columns: 1fr;
   }
 
+  .cashflow-panel {
+    border-radius: 14px;
+  }
 
-  .matriz-flujo {
+  .cashflow-panel__header {
+    padding: 0.95rem;
+  }
+
+  .cashflow-panel__toolbar {
+    padding: 0.7rem 0.95rem;
+  }
+
+  .cashflow-concept {
+    width: 195px;
+
+    min-width: 195px !important;
+
+    max-width: 195px;
+  }
+
+  .concept-name {
+    max-width: 150px;
+  }
+
+  .cashflow-grid {
     font-size: 10px;
+
+    th,
+    td {
+      min-width: 96px;
+    }
   }
 
-
-  .matriz-flujo
-  .matriz-concepto {
-    width: 190px;
-    min-width: 190px;
-    max-width: 190px;
-  }
-
-
-  .matriz-flujo th,
-  .matriz-flujo td {
-    min-width: 90px;
-  }
-
-
-  .detalle-diario
-  > summary {
+  .detalle-diario > summary {
     align-items: flex-start;
   }
-
 }
 
-
-/* =========================================================
-   ACCESIBILIDAD
-   ========================================================= */
-
-@media (
-  prefers-reduced-motion:
-  reduce
-) {
-
+@media (prefers-reduced-motion: reduce) {
   .estado-carga-punto {
     animation: none;
   }
 
+  .boton-principal,
+  .boton-secundario,
+  .campo input,
+  .importe-egreso--arrastrable {
+    transition: none;
+  }
 }
