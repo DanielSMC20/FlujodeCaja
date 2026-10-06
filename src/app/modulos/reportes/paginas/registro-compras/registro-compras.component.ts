@@ -1,7 +1,4 @@
-import {
-  AsyncPipe,
-  CommonModule,
-} from '@angular/common';
+import { AsyncPipe, CommonModule } from '@angular/common';
 
 import {
   ChangeDetectionStrategy,
@@ -10,18 +7,9 @@ import {
   inject,
 } from '@angular/core';
 
-import {
-  FormBuilder,
-  ReactiveFormsModule,
-} from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
-import {
-  BehaviorSubject,
-  catchError,
-  EMPTY,
-  finalize,
-  switchMap,
-} from 'rxjs';
+import { BehaviorSubject, catchError, EMPTY, finalize, switchMap } from 'rxjs';
 
 import {
   FileSpreadsheet,
@@ -31,41 +19,25 @@ import {
   Search,
 } from 'lucide-angular';
 
-import * as XLSX
-  from 'xlsx-js-style';
-
+import * as XLSX from 'xlsx-js-style';
 
 import {
   FiltroMovimientos,
   Movimiento,
 } from '../../../../nucleo/modelos/movimiento';
 
-import {
-  MovimientoService,
-} from '../../../../nucleo/servicios/movimiento.service';
+import { MovimientoService } from '../../../../nucleo/servicios/movimiento.service';
 
-import {
-  SesionEmpresaService,
-} from '../../../../nucleo/servicios/sesion-empresa.service';
+import { SesionEmpresaService } from '../../../../nucleo/servicios/sesion-empresa.service';
 
-import {
-  MonedaSolPipe,
-} from '../../../../compartido/pipes/moneda-sol.pipe';
+import { MonedaSolPipe } from '../../../../compartido/pipes/moneda-sol.pipe';
 
-
-type EstadoCompra =
-  | 'todos'
-  | 'pagado'
-  | 'proyectado';
-
+type EstadoCompra = 'todos' | 'pagado' | 'proyectado';
 
 @Component({
+  selector: 'app-registro-compras',
 
-  selector:
-    'app-registro-compras',
-
-  standalone:
-    true,
+  standalone: true,
 
   imports: [
     CommonModule,
@@ -75,1120 +47,990 @@ type EstadoCompra =
     MonedaSolPipe,
   ],
 
-  templateUrl:
-    './registro-compras.component.html',
+  templateUrl: './registro-compras.component.html',
 
-  styleUrl:
-    './registro-compras.component.scss',
+  styleUrl: './registro-compras.component.scss',
 
-  changeDetection:
-    ChangeDetectionStrategy.OnPush,
-
+  changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class RegistroComprasComponent {
+  /* =========================================================
+     DEPENDENCIAS
+     ========================================================= */
 
-  private readonly formBuilder =
-    inject(
-      FormBuilder,
-    );
+  private readonly formBuilder = inject(FormBuilder);
 
-  private readonly movimientoService =
-    inject(
-      MovimientoService,
-    );
+  private readonly movimientoService = inject(MovimientoService);
 
-  private readonly sesionEmpresaService =
-    inject(
-      SesionEmpresaService,
-    );
+  private readonly sesionEmpresaService = inject(SesionEmpresaService);
 
-  private readonly changeDetectorRef =
-    inject(
-      ChangeDetectorRef,
-    );
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
+  /* =========================================================
+     ICONOS
+     ========================================================= */
 
   readonly iconos = {
+    compras: ReceiptText,
 
-    compras:
-      ReceiptText,
+    excel: FileSpreadsheet,
 
-    excel:
-      FileSpreadsheet,
+    buscar: Search,
 
-    buscar:
-      Search,
-
-    limpiar:
-      RotateCcw,
-
+    limpiar: RotateCcw,
   };
 
+  /* =========================================================
+     ESTADO
+     ========================================================= */
 
-  cargando =
-    false;
+  cargando = false;
 
+  errorFiltro = '';
 
-  errorFiltro =
-    '';
+  /* =========================================================
+     FECHAS INICIALES
+     ========================================================= */
 
+  private readonly fechasIniciales = this.obtenerFechasIniciales();
 
-  private readonly fechasIniciales =
-    this.obtenerFechasIniciales();
+  /* =========================================================
+     FORMULARIO
+     ========================================================= */
 
+  readonly formulario = this.formBuilder.nonNullable.group({
+    fechaDesde: [this.fechasIniciales.fechaDesde],
 
-  readonly formulario =
-    this.formBuilder
-      .nonNullable
-      .group({
+    fechaHasta: [this.fechasIniciales.fechaHasta],
 
-        fechaDesde: [
-          this.fechasIniciales
-            .fechaDesde,
-        ],
+    estado: ['todos' as EstadoCompra],
+  });
 
-        fechaHasta: [
-          this.fechasIniciales
-            .fechaHasta,
-        ],
+  /* =========================================================
+     FILTRO
+     ========================================================= */
 
-        estado: [
-          'todos' as EstadoCompra,
-        ],
+  private readonly filtroSubject = new BehaviorSubject<FiltroMovimientos>(
+    this.construirFiltro(),
+  );
 
-      });
+  /* =========================================================
+     REGISTRO DE COMPRAS
+     ========================================================= */
 
+  readonly compras$ = this.filtroSubject.pipe(
+    switchMap((filtro) => {
+      this.cargando = true;
 
-  private readonly filtroSubject =
-    new BehaviorSubject<FiltroMovimientos>(
-      this.construirFiltro(),
-    );
+      this.changeDetectorRef.markForCheck();
 
+      return this.movimientoService.listarMovimientosFiltrados(filtro).pipe(
+        catchError((error) => {
+          void import('sweetalert2').then(({ default: Swal }) =>
+            Swal.fire({
+              icon: 'error',
 
-  readonly compras$ =
-    this.filtroSubject
-      .pipe(
+              title: 'No se pudo cargar el registro de compras',
 
-        switchMap(
-          (filtro) => {
+              text:
+                error instanceof Error
+                  ? error.message
+                  : 'Ocurrió un error al consultar los egresos.',
 
-            this.cargando =
-              true;
+              confirmButtonText: 'Aceptar',
 
-            this.changeDetectorRef
-              .markForCheck();
+              heightAuto: false,
+            }),
+          );
 
+          return EMPTY;
+        }),
 
-            return this
-              .movimientoService
-              .listarMovimientosFiltrados(
-                filtro,
-              )
-              .pipe(
+        finalize(() => {
+          this.cargando = false;
 
-                catchError(
-                  (error) => {
-
-                    void import(
-                      'sweetalert2'
-                    )
-                      .then(
-                        ({
-                          default:
-                            Swal,
-                        }) =>
-                          Swal.fire({
-
-                            icon:
-                              'error',
-
-                            title:
-                              'No se pudo cargar el registro de compras',
-
-                            text:
-                              error instanceof Error
-                                ? error.message
-                                : 'Ocurrió un error al consultar los egresos.',
-
-                            confirmButtonText:
-                              'Aceptar',
-
-                            heightAuto:
-                              false,
-
-                          }),
-                      );
-
-
-                    return EMPTY;
-
-                  },
-                ),
-
-
-                finalize(
-                  () => {
-
-                    this.cargando =
-                      false;
-
-                    this
-                      .changeDetectorRef
-                      .markForCheck();
-
-                  },
-                ),
-
-              );
-
-          },
-        ),
-
+          this.changeDetectorRef.markForCheck();
+        }),
       );
+    }),
+  );
 
+  /* =========================================================
+     EMPRESA
+     ========================================================= */
+
+  get nombreEmpresa(): string {
+    const empresa = this.sesionEmpresaService.empresaActual;
+
+    return (
+      empresa.razonSocial?.trim() ||
+      empresa.nombreComercial?.trim() ||
+      'Empresa'
+    );
+  }
+
+  get rucEmpresa(): string {
+    const empresa = this.sesionEmpresaService.empresaActual as unknown as {
+      ruc?: string | null;
+
+      cRuc?: string | null;
+    };
+
+    return empresa.ruc?.trim() || empresa.cRuc?.trim() || '';
+  }
+
+  /* =========================================================
+     FILTRAR
+     ========================================================= */
 
   aplicarFiltros(): void {
+    const datos = this.formulario.getRawValue();
 
-    const datos =
-      this.formulario
-        .getRawValue();
-
-
-    if (
-      !datos.fechaDesde
-      ||
-      !datos.fechaHasta
-    ) {
-
-      this.errorFiltro =
-        'Selecciona la fecha inicial y la fecha final.';
+    if (!datos.fechaDesde || !datos.fechaHasta) {
+      this.errorFiltro = 'Selecciona la fecha inicial y la fecha final.';
 
       return;
-
     }
 
-
-    if (
-      datos.fechaDesde
-      >
-      datos.fechaHasta
-    ) {
-
+    if (datos.fechaDesde > datos.fechaHasta) {
       this.errorFiltro =
         'La fecha inicial no puede ser mayor que la fecha final.';
 
       return;
-
     }
 
+    this.errorFiltro = '';
 
-    this.errorFiltro =
-      '';
-
-
-    this.filtroSubject
-      .next(
-        this.construirFiltro(),
-      );
-
+    this.filtroSubject.next(this.construirFiltro());
   }
-
-
-  limpiarFiltros(): void {
-
-    const fechas =
-      this.obtenerFechasIniciales();
-
-
-    this.formulario
-      .setValue({
-
-        fechaDesde:
-          fechas.fechaDesde,
-
-        fechaHasta:
-          fechas.fechaHasta,
-
-        estado:
-          'todos',
-
-      });
-
-
-    this.errorFiltro =
-      '';
-
-
-    this.filtroSubject
-      .next(
-        this.construirFiltro(),
-      );
-
-  }
-
-
-  obtenerProveedor(
-    movimiento:
-      Movimiento,
-  ): string {
-
-    return (
-      movimiento
-        .razonSocialEmisor
-        ?.trim()
-      ||
-      '—'
-    );
-
-  }
-
-
-  obtenerRuc(
-    movimiento:
-      Movimiento,
-  ): string {
-
-    return (
-      movimiento
-        .documentoEmisor
-        ?.trim()
-      ||
-      '—'
-    );
-
-  }
-
-
-  obtenerComprobante(
-    movimiento:
-      Movimiento,
-  ): string {
-
-    const serie =
-      movimiento
-        .serieComprobante
-        ?.trim();
-
-
-    const numero =
-      movimiento
-        .numeroComprobante
-        ?.trim();
-
-
-    if (
-      serie
-      &&
-      numero
-    ) {
-
-      return (
-        `${serie}-${numero}`
-      );
-
-    }
-
-
-    return (
-      numero
-      ||
-      serie
-      ||
-      '—'
-    );
-
-  }
-
-
-  obtenerConcepto(
-    movimiento:
-      Movimiento,
-  ): string {
-
-    return (
-      movimiento
-        .descripcion
-        ?.trim()
-      ||
-      movimiento.categoria
-      ||
-      '—'
-    );
-
-  }
-
-
-  obtenerEstado(
-    movimiento:
-      Movimiento,
-  ): string {
-
-    return (
-      movimiento.cancelado
-      === true
-      ||
-      movimiento.bCancelado
-      === 1
-    )
-      ? 'Pagado'
-      : 'Proyectado';
-
-  }
-
-
-  claseEstado(
-    movimiento:
-      Movimiento,
-  ): string {
-
-    return (
-      this.obtenerEstado(
-        movimiento,
-      )
-      ===
-      'Pagado'
-    )
-      ? 'estado-pagado'
-      : 'estado-proyectado';
-
-  }
-
-
-  obtenerOrigen(
-    movimiento:
-      Movimiento,
-  ): string {
-
-    return (
-
-      movimiento
-        .origenRegistroDescripcion
-        ?.trim()
-
-      ||
-
-      (
-        movimiento
-          .origenRegistro
-        === 3
-
-          ? 'Importación desde Excel'
-
-          : movimiento
-                .origenRegistro
-            === 2
-
-            ? 'Registro asistido por XML'
-
-            : 'Registro manual'
-      )
-
-    );
-
-  }
-
-
-  totalCompras(
-    compras:
-      Movimiento[],
-  ): number {
-
-    return compras
-      .reduce(
-        (
-          total,
-          movimiento,
-        ) =>
-          total
-          +
-          movimiento.monto,
-
-        0,
-      );
-
-  }
-
-
-  totalPagado(
-    compras:
-      Movimiento[],
-  ): number {
-
-    return compras
-
-      .filter(
-        (movimiento) =>
-          movimiento.cancelado
-            === true
-          ||
-          movimiento.bCancelado
-            === 1,
-      )
-
-      .reduce(
-        (
-          total,
-          movimiento,
-        ) =>
-          total
-          +
-          movimiento.monto,
-
-        0,
-      );
-
-  }
-
-
-  totalProyectado(
-    compras:
-      Movimiento[],
-  ): number {
-
-    return compras
-
-      .filter(
-        (movimiento) =>
-          movimiento.cancelado
-            === false
-          ||
-          movimiento.bCancelado
-            === 0,
-      )
-
-      .reduce(
-        (
-          total,
-          movimiento,
-        ) =>
-          total
-          +
-          movimiento.monto,
-
-        0,
-      );
-
-  }
-
-
-  formatearFecha(
-    fecha?:
-      string
-      | null,
-  ): string {
-
-    if (!fecha) {
-
-      return '—';
-
-    }
-
-
-    const partes =
-      fecha
-        .substring(
-          0,
-          10,
-        )
-        .split(
-          '-',
-        );
-
-
-    if (
-      partes.length
-      !== 3
-    ) {
-
-      return fecha;
-
-    }
-
-
-    return (
-      `${partes[2]}/`
-      +
-      `${partes[1]}/`
-      +
-      `${partes[0]}`
-    );
-
-  }
-
 
   /* =========================================================
-     EXPORTAR A EXCEL
+     LIMPIAR
      ========================================================= */
 
-  exportarExcel(
-    compras:
-      Movimiento[],
-  ): void {
+  limpiarFiltros(): void {
+    const fechas = this.obtenerFechasIniciales();
 
-    if (
-      !compras.length
-    ) {
+    this.formulario.setValue({
+      fechaDesde: fechas.fechaDesde,
 
-      return;
+      fechaHasta: fechas.fechaHasta,
 
+      estado: 'todos',
+    });
+
+    this.errorFiltro = '';
+
+    this.filtroSubject.next(this.construirFiltro());
+  }
+
+  /* =========================================================
+     PERIODO
+     ========================================================= */
+
+  obtenerPeriodo(movimiento: Movimiento): string {
+    const fecha = this.obtenerFechaCompra(movimiento);
+
+    if (!fecha) {
+      return '—';
     }
 
+    return fecha.substring(0, 4);
+  }
 
-    const empresa =
-      this
-        .sesionEmpresaService
-        .empresaActual;
+  /* =========================================================
+     MES
+     ========================================================= */
 
+  obtenerMes(movimiento: Movimiento): string {
+    const fecha = this.obtenerFechaCompra(movimiento);
 
-    const filtros =
-      this.formulario
-        .getRawValue();
+    if (!fecha) {
+      return '—';
+    }
 
+    return fecha.substring(5, 7);
+  }
+
+  /* =========================================================
+     TIPO DOCUMENTO SUNAT
+     ========================================================= */
+
+  obtenerTipoDocumento(movimiento: Movimiento): string {
+    switch (movimiento.tipoComprobante) {
+      /*
+       * Constante 300 actual.
+       *
+       * 1 = Factura
+       * 2 = Boleta
+       */
+
+      case 1:
+        return '01';
+
+      case 2:
+        return '03';
+
+      default:
+        return '—';
+    }
+  }
+
+  /* =========================================================
+     SERIE
+     ========================================================= */
+
+  obtenerSerie(movimiento: Movimiento): string {
+    return movimiento.serieComprobante?.trim() || '—';
+  }
+
+  /* =========================================================
+     NÚMERO
+     ========================================================= */
+
+  obtenerNumero(movimiento: Movimiento): string {
+    return movimiento.numeroComprobante?.trim() || '—';
+  }
+
+  /* =========================================================
+     PROVEEDOR
+     ========================================================= */
+
+  obtenerProveedor(movimiento: Movimiento): string {
+    return movimiento.razonSocialEmisor?.trim() || '—';
+  }
+
+  /* =========================================================
+     RUC
+     ========================================================= */
+
+  obtenerRuc(movimiento: Movimiento): string {
+    return movimiento.documentoEmisor?.trim() || '—';
+  }
+
+  /* =========================================================
+     GLOSA
+     ========================================================= */
+
+  obtenerGlosa(movimiento: Movimiento): string {
+    return (
+      movimiento.descripcion?.trim() || movimiento.categoria?.trim() || '—'
+    );
+  }
+
+  /* =========================================================
+     MONEDA
+     ========================================================= */
+
+  obtenerMoneda(movimiento: Movimiento): string {
+    /*
+     * Formato utilizado por el archivo del contador.
+     *
+     * S = Soles
+     * D = Dólares
+     */
+
+    if (movimiento.moneda === 1) {
+      return 'S';
+    }
+
+    if (movimiento.moneda === 2) {
+      return 'D';
+    }
+
+    return '—';
+  }
+
+  /* =========================================================
+     TIPO DE CAMBIO
+     ========================================================= */
+
+  obtenerTipoCambio(movimiento: Movimiento): number {
+    if (movimiento.tipoCambio != null) {
+      return Number(movimiento.tipoCambio);
+    }
+
+    /*
+     * Para soles el archivo contable usa 1.
+     */
+
+    if (movimiento.moneda === 1) {
+      return 1;
+    }
+
+    return 0;
+  }
+
+  /* =========================================================
+     FECHA COMPRA
+     ========================================================= */
+
+  obtenerFechaCompra(movimiento: Movimiento): string {
+    const fechaComprobante = movimiento.fechaComprobante?.trim();
+
+    if (fechaComprobante) {
+      return fechaComprobante;
+    }
+
+    return movimiento.fechaMovimiento;
+  }
+
+  /* =========================================================
+     ESTADO
+     ========================================================= */
+
+  obtenerEstado(movimiento: Movimiento): string {
+    return movimiento.cancelado === true || movimiento.bCancelado === 1
+      ? 'Pagado'
+      : 'Proyectado';
+  }
+
+  claseEstado(movimiento: Movimiento): string {
+    return this.obtenerEstado(movimiento) === 'Pagado'
+      ? 'estado-pagado'
+      : 'estado-proyectado';
+  }
+
+  /* =========================================================
+     ORIGEN
+     ========================================================= */
+
+  obtenerOrigen(movimiento: Movimiento): string {
+    if (movimiento.origenRegistro === 2) {
+      return 'XML';
+    }
+
+    if (movimiento.origenRegistro === 3) {
+      return 'Excel';
+    }
+
+    return 'Manual';
+  }
+
+  /* =========================================================
+     NUMÉRICO
+     ========================================================= */
+
+  valorNumerico(valor: number | null | undefined): number {
+    if (valor == null) {
+      return 0;
+    }
+
+    const numero = Number(valor);
+
+    return Number.isFinite(numero) ? numero : 0;
+  }
+
+  /* =========================================================
+     TOTAL COMPRAS
+     ========================================================= */
+
+  totalCompras(compras: Movimiento[]): number {
+    return compras.reduce(
+      (total, movimiento) => total + Number(movimiento.monto ?? 0),
+
+      0,
+    );
+  }
+
+  /* =========================================================
+     TOTAL BASE IMPONIBLE
+     ========================================================= */
+
+  totalBaseImponible(compras: Movimiento[]): number {
+    return compras.reduce(
+      (total, movimiento) =>
+        total + this.valorNumerico(movimiento.baseImponible),
+
+      0,
+    );
+  }
+
+  /* =========================================================
+     TOTAL IGV
+     ========================================================= */
+
+  totalIgv(compras: Movimiento[]): number {
+    return compras.reduce(
+      (total, movimiento) => total + this.valorNumerico(movimiento.igv),
+
+      0,
+    );
+  }
+
+  /* =========================================================
+     TOTAL INAFECTO
+     ========================================================= */
+
+  totalInafecto(compras: Movimiento[]): number {
+    return compras.reduce(
+      (total, movimiento) => total + this.valorNumerico(movimiento.inafecto),
+
+      0,
+    );
+  }
+
+  /* =========================================================
+     FORMATEAR FECHA
+     ========================================================= */
+
+  formatearFecha(fecha?: string | null): string {
+    if (!fecha) {
+      return '—';
+    }
+
+    const partes = fecha.substring(0, 10).split('-');
+
+    if (partes.length !== 3) {
+      return fecha;
+    }
+
+    return `${partes[2]}/` + `${partes[1]}/` + `${partes[0]}`;
+  }
+
+  /* =========================================================
+     PERIODO ACTUAL
+     ========================================================= */
+
+  get periodoSeleccionado(): string {
+    const datos = this.formulario.getRawValue();
+
+    return (
+      `${this.formatearFecha(datos.fechaDesde)}` +
+      ' al ' +
+      `${this.formatearFecha(datos.fechaHasta)}`
+    );
+  }
+
+  /* =========================================================
+     EXPORTAR EXCEL
+     ========================================================= */
+
+  exportarExcel(compras: Movimiento[]): void {
+    if (!compras.length) {
+      return;
+    }
+
+    const empresa = this.sesionEmpresaService.empresaActual;
 
     const razonSocial =
-      empresa
-        .razonSocial
-        ?.trim()
-
-      ||
-
-      empresa
-        .nombreComercial
-        ?.trim()
-
-      ||
-
+      empresa.razonSocial?.trim() ||
+      empresa.nombreComercial?.trim() ||
       'Empresa';
 
+    const empresaTitulo = this.rucEmpresa
+      ? `Empresa: ${this.rucEmpresa} - ${razonSocial}`
+      : `Empresa: ${razonSocial}`;
 
-    const filas:
-      unknown[][] =
-      [
+    /*
+     * Se eliminan del archivo original:
+     *
+     * S_D
+     * ASI
+     * F_ASIENTO
+     *
+     * Por ello quedan exactamente
+     * 26 columnas, A hasta Z.
+     */
 
-        [
-          'REGISTRO DE COMPRAS',
-        ],
+    const cabeceras = [
+      'PERIODO',
+      'MES',
+      'T_DOC',
+      'SERIE',
+      'NUMERO',
+      'F_DOC',
+      'F_VEN',
+      'RUC',
+      'RAZON_SOCIAL',
+      'BASE_IMP',
+      'IGV',
+      'BASE_IMP2',
+      'IGV2',
+      'BASE_IMP3',
+      'IGV3',
+      'INAFECTO',
+      'ISC',
+      'ICBPER',
+      'EXONERADO',
+      'TOTAL',
+      'MONEDA',
+      'P_IGV',
+      'T_C',
+      'D_DETRAC',
+      'F_DETRAC',
+      'GLOSA',
+    ];
 
-        [
-          razonSocial,
-        ],
+    const filas: unknown[][] = [
+      [],
 
-        [
-          `Periodo: ${
-            this.formatearFecha(
-              filtros.fechaDesde,
-            )
-          } al ${
-            this.formatearFecha(
-              filtros.fechaHasta,
-            )
-          }`,
-        ],
+      [empresaTitulo],
 
-        [],
+      ['Titulo: REGISTRO DE COMPRAS'],
 
+      [],
 
-        [
-          'Fecha',
-          'Proveedor',
-          'RUC / Documento',
-          'Comprobante',
-          'Concepto',
-          'Importe (S/)',
-          'Estado',
-          'Origen',
-        ],
+      cabeceras,
 
+      ...compras.map((movimiento) => [
+        this.obtenerPeriodo(movimiento),
 
-        ...compras.map(
-          (movimiento) => [
+        this.obtenerMes(movimiento),
 
-            this.formatearFecha(
-              movimiento
-                .fechaMovimiento,
-            ),
+        this.obtenerTipoDocumento(movimiento),
 
-            this.obtenerProveedor(
-              movimiento,
-            ),
+        this.obtenerSerie(movimiento),
 
-            this.obtenerRuc(
-              movimiento,
-            ),
+        this.obtenerNumero(movimiento),
 
-            this.obtenerComprobante(
-              movimiento,
-            ),
-
-            this.obtenerConcepto(
-              movimiento,
-            ),
-
-            movimiento.monto,
-
-            this.obtenerEstado(
-              movimiento,
-            ),
-
-            this.obtenerOrigen(
-              movimiento,
-            ),
-
-          ],
+        this.formatearFecha(
+          movimiento.fechaComprobante ?? movimiento.fechaMovimiento,
         ),
 
+        movimiento.fechaVencimiento
+          ? this.formatearFecha(movimiento.fechaVencimiento)
+          : '',
 
-        [],
+        movimiento.documentoEmisor ?? '',
 
+        movimiento.razonSocialEmisor ?? '',
 
-        [
-          '',
-          '',
-          '',
-          '',
-          'TOTAL',
-          this.totalCompras(
-            compras,
-          ),
-          '',
-          '',
-        ],
+        this.valorNumerico(movimiento.baseImponible),
 
-      ];
+        this.valorNumerico(movimiento.igv),
 
+        /*
+         * Segunda base / IGV:
+         * aún no se manejan.
+         */
+        0,
 
-    const hoja =
-      XLSX.utils
-        .aoa_to_sheet(
-          filas,
-        );
+        0,
 
+        /*
+         * Tercera base / IGV:
+         * aún no se manejan.
+         */
+        0,
+
+        0,
+
+        this.valorNumerico(movimiento.inafecto),
+
+        this.valorNumerico(movimiento.isc),
+
+        this.valorNumerico(movimiento.icbper),
+
+        this.valorNumerico(movimiento.exonerado),
+
+        this.valorNumerico(movimiento.monto),
+
+        this.obtenerMoneda(movimiento),
+
+        this.valorNumerico(movimiento.porcentajeIgv),
+
+        this.obtenerTipoCambio(movimiento),
+
+        /*
+         * D_DETRAC
+         */
+        '',
+
+        /*
+         * F_DETRAC
+         */
+        '',
+
+        this.obtenerGlosa(movimiento),
+      ]),
+    ];
+
+    const hoja = XLSX.utils.aoa_to_sheet(filas);
+
+    /* =======================================================
+       MERGES
+       ======================================================= */
 
     hoja['!merges'] = [
+      XLSX.utils.decode_range('A2:Z2'),
 
-      XLSX.utils
-        .decode_range(
-          'A1:H1',
-        ),
-
-      XLSX.utils
-        .decode_range(
-          'A2:H2',
-        ),
-
-      XLSX.utils
-        .decode_range(
-          'A3:H3',
-        ),
-
+      XLSX.utils.decode_range('A3:Z3'),
     ];
 
+    /* =======================================================
+       ANCHO DE COLUMNAS
+       ======================================================= */
 
     hoja['!cols'] = [
-
-      { wch: 14 },
-
-      { wch: 34 },
-
-      { wch: 18 },
-
-      { wch: 22 },
-
-      { wch: 38 },
-
-      { wch: 16 },
-
-      { wch: 15 },
-
-      { wch: 26 },
-
+      { wch: 10 }, // PERIODO
+      { wch: 7 }, // MES
+      { wch: 8 }, // T_DOC
+      { wch: 15 }, // SERIE
+      { wch: 18 }, // NUMERO
+      { wch: 12 }, // F_DOC
+      { wch: 12 }, // F_VEN
+      { wch: 15 }, // RUC
+      { wch: 38 }, // RAZON SOCIAL
+      { wch: 14 }, // BASE
+      { wch: 12 }, // IGV
+      { wch: 14 }, // BASE 2
+      { wch: 12 }, // IGV 2
+      { wch: 14 }, // BASE 3
+      { wch: 12 }, // IGV 3
+      { wch: 14 }, // INAFECTO
+      { wch: 12 }, // ISC
+      { wch: 12 }, // ICBPER
+      { wch: 14 }, // EXONERADO
+      { wch: 14 }, // TOTAL
+      { wch: 10 }, // MONEDA
+      { wch: 10 }, // P IGV
+      { wch: 10 }, // TC
+      { wch: 16 }, // DETRAC
+      { wch: 14 }, // F DETRAC
+      { wch: 45 }, // GLOSA
     ];
 
+    /* =======================================================
+       ALTURA
+       ======================================================= */
 
-    const ultimaFilaDetalle =
-      5
-      +
-      compras.length;
-
-
-    const filaTotal =
-      7
-      +
-      compras.length;
-
-
-    this.aplicarEstilo(
-      hoja,
-      'A1:H1',
+    hoja['!rows'] = [
       {
+        hpt: 5,
+      },
 
-        fill: {
-          patternType:
-            'solid',
+      {
+        hpt: 22,
+      },
 
-          fgColor: {
-            rgb:
-              '17365D',
+      {
+        hpt: 22,
+      },
+
+      {
+        hpt: 8,
+      },
+
+      {
+        hpt: 32,
+      },
+    ];
+
+    /* =======================================================
+       EMPRESA
+       ======================================================= */
+
+    this.aplicarEstilo(hoja, 'A2:Z2', {
+      font: {
+        name: 'Calibri',
+
+        sz: 11,
+
+        bold: true,
+
+        color: {
+          rgb: '1F2937',
+        },
+      },
+
+      alignment: {
+        horizontal: 'left',
+
+        vertical: 'center',
+      },
+    });
+
+    /* =======================================================
+       TÍTULO
+       ======================================================= */
+
+    this.aplicarEstilo(hoja, 'A3:Z3', {
+      font: {
+        name: 'Calibri',
+
+        sz: 11,
+
+        bold: true,
+
+        color: {
+          rgb: '1F2937',
+        },
+      },
+
+      alignment: {
+        horizontal: 'left',
+
+        vertical: 'center',
+      },
+    });
+
+    /* =======================================================
+       CABECERA
+       ======================================================= */
+
+    this.aplicarEstilo(hoja, 'A5:Z5', {
+      fill: {
+        patternType: 'solid',
+
+        fgColor: {
+          rgb: 'D9E2F3',
+        },
+      },
+
+      font: {
+        name: 'Calibri',
+
+        sz: 9,
+
+        bold: true,
+
+        color: {
+          rgb: '1F2937',
+        },
+      },
+
+      alignment: {
+        horizontal: 'center',
+
+        vertical: 'center',
+
+        wrapText: true,
+      },
+
+      border: {
+        top: {
+          style: 'thin',
+
+          color: {
+            rgb: 'B4C7E7',
           },
         },
 
-        font: {
-
-          bold:
-            true,
-
-          sz:
-            16,
+        bottom: {
+          style: 'thin',
 
           color: {
-            rgb:
-              'FFFFFF',
+            rgb: 'B4C7E7',
           },
+        },
 
+        left: {
+          style: 'thin',
+
+          color: {
+            rgb: 'B4C7E7',
+          },
+        },
+
+        right: {
+          style: 'thin',
+
+          color: {
+            rgb: 'B4C7E7',
+          },
+        },
+      },
+    });
+
+    /* =======================================================
+       DETALLE
+       ======================================================= */
+
+    const primeraFila = 6;
+
+    const ultimaFila = 5 + compras.length;
+
+    for (let fila = primeraFila; fila <= ultimaFila; fila++) {
+      this.aplicarEstilo(hoja, `A${fila}:Z${fila}`, {
+        font: {
+          name: 'Calibri',
+
+          sz: 9,
+
+          color: {
+            rgb: '334155',
+          },
         },
 
         alignment: {
-          vertical:
-            'center',
+          vertical: 'center',
         },
 
-      },
-    );
+        border: {
+          bottom: {
+            style: 'thin',
 
-
-    this.aplicarEstilo(
-      hoja,
-      'A5:H5',
-      {
-
-        fill: {
-
-          patternType:
-            'solid',
-
-          fgColor: {
-            rgb:
-              '2F75B5',
+            color: {
+              rgb: 'E2E8F0',
+            },
           },
-
         },
+      });
 
-        font: {
+      /*
+       * Columnas monetarias:
+       *
+       * J hasta T,
+       * exceptuando U que es moneda.
+       */
 
-          bold:
-            true,
-
-          color: {
-            rgb:
-              'FFFFFF',
-          },
-
-        },
-
-        alignment: {
-
-          horizontal:
-            'center',
-
-          vertical:
-            'center',
-
-        },
-
-      },
-    );
-
-
-    this.aplicarEstilo(
-      hoja,
-      `E${filaTotal}:F${filaTotal}`,
-      {
-
-        fill: {
-
-          patternType:
-            'solid',
-
-          fgColor: {
-            rgb:
-              'E2E8F0',
-          },
-
-        },
-
-        font: {
-          bold:
-            true,
-        },
-
-      },
-    );
-
-
-    for (
-      let fila = 6;
-      fila <=
-      ultimaFilaDetalle;
-      fila++
-    ) {
-
-      const celdaMonto =
-        hoja[
-          `F${fila}`
-        ];
-
-
-      if (
-        celdaMonto
-      ) {
-
-        celdaMonto.z =
-          '#,##0.00';
-
-      }
-
-    }
-
-
-    const celdaTotal =
-      hoja[
-        `F${filaTotal}`
+      const columnasImporte = [
+        'J',
+        'K',
+        'L',
+        'M',
+        'N',
+        'O',
+        'P',
+        'Q',
+        'R',
+        'S',
+        'T',
       ];
 
+      for (const columna of columnasImporte) {
+        const celda = hoja[`${columna}${fila}`];
 
-    if (
-      celdaTotal
-    ) {
+        if (celda) {
+          celda.z = '#,##0.00';
 
-      celdaTotal.z =
-        '#,##0.00';
+          celda.s = {
+            ...celda.s,
 
-    }
+            alignment: {
+              horizontal: 'right',
 
-
-    const libro =
-      XLSX.utils
-        .book_new();
-
-
-    XLSX.utils
-      .book_append_sheet(
-
-        libro,
-
-        hoja,
-
-        'Registro de compras',
-
-      );
-
-
-    XLSX.writeFile(
-
-      libro,
-
-      `registro-compras-${
-        filtros.fechaDesde
-      }-${
-        filtros.fechaHasta
-      }.xlsx`,
-
-    );
-
-  }
-
-
-  private construirFiltro():
-    FiltroMovimientos {
-
-    const datos =
-      this.formulario
-        .getRawValue();
-
-
-    return {
-
-      /*
-       * REGISTRO DE COMPRAS
-       * solamente trabaja con EGRESOS.
-       */
-      tipoMovimiento:
-        2,
-
-
-      fechaDesde:
-        datos.fechaDesde,
-
-
-      fechaHasta:
-        datos.fechaHasta,
-
-
-      cancelado:
-
-        datos.estado
-          === 'pagado'
-
-          ? true
-
-          : datos.estado
-              === 'proyectado'
-
-            ? false
-
-            : undefined,
-
-
-      /*
-       * No mostramos anulados.
-       */
-      soloActivos:
-        true,
-
-    };
-
-  }
-
-
-  private aplicarEstilo(
-
-    hoja:
-      XLSX.WorkSheet,
-
-    rango:
-      string,
-
-    estilo:
-      Record<
-        string,
-        unknown
-      >,
-
-  ): void {
-
-    const limites =
-      XLSX.utils
-        .decode_range(
-          rango,
-        );
-
-
-    for (
-      let fila =
-        limites.s.r;
-
-      fila <=
-      limites.e.r;
-
-      fila++
-    ) {
-
-      for (
-        let columna =
-          limites.s.c;
-
-        columna <=
-        limites.e.c;
-
-        columna++
-      ) {
-
-        const referencia =
-          XLSX.utils
-            .encode_cell({
-
-              r:
-                fila,
-
-              c:
-                columna,
-
-            });
-
-
-        if (
-          !hoja[
-            referencia
-          ]
-        ) {
-
-          hoja[
-            referencia
-          ] = {
-
-            t:
-              's',
-
-            v:
-              '',
-
+              vertical: 'center',
+            },
           };
-
         }
-
-
-        hoja[
-          referencia
-        ].s =
-          estilo;
-
       }
 
+      /*
+       * P_IGV
+       */
+      const porcentaje = hoja[`V${fila}`];
+
+      if (porcentaje) {
+        porcentaje.z = '0.00';
+      }
+
+      /*
+       * Tipo de cambio
+       */
+      const tipoCambio = hoja[`W${fila}`];
+
+      if (tipoCambio) {
+        tipoCambio.z = '0.000';
+      }
     }
 
-  }
+    /* =======================================================
+       AUTOFILTRO
+       ======================================================= */
 
-
-  private obtenerFechasIniciales(): {
-
-    fechaDesde:
-      string;
-
-    fechaHasta:
-      string;
-
-  } {
-
-    const hoy =
-      new Date();
-
-
-    const anio =
-      hoy.getFullYear();
-
-
-    const mes =
-      String(
-        hoy.getMonth()
-        +
-        1,
-      )
-        .padStart(
-          2,
-          '0',
-        );
-
-
-    const dia =
-      String(
-        hoy.getDate(),
-      )
-        .padStart(
-          2,
-          '0',
-        );
-
-
-    return {
-
-      fechaDesde:
-        `${anio}-${mes}-01`,
-
-      fechaHasta:
-        `${anio}-${mes}-${dia}`,
-
+    hoja['!autofilter'] = {
+      ref: `A5:Z${ultimaFila}`,
     };
 
+    /* =======================================================
+       LIBRO
+       ======================================================= */
+
+    const libro = XLSX.utils.book_new();
+
+    XLSX.utils.book_append_sheet(libro, hoja, 'Registro de compras');
+
+    const filtros = this.formulario.getRawValue();
+
+    XLSX.writeFile(
+      libro,
+
+      `registro-compras-${filtros.fechaDesde}-${filtros.fechaHasta}.xlsx`,
+    );
   }
 
+  /* =========================================================
+     CONSTRUIR FILTRO
+     ========================================================= */
+
+  private construirFiltro(): FiltroMovimientos {
+    const datos = this.formulario.getRawValue();
+
+    return {
+      tipoMovimiento: 2,
+
+      fechaDesde: datos.fechaDesde,
+
+      fechaHasta: datos.fechaHasta,
+
+      cancelado:
+        datos.estado === 'pagado'
+          ? true
+          : datos.estado === 'proyectado'
+            ? false
+            : undefined,
+
+      soloActivos: true,
+    };
+  }
+
+  /* =========================================================
+     ESTILO EXCEL
+     ========================================================= */
+
+  private aplicarEstilo(
+    hoja: XLSX.WorkSheet,
+
+    rango: string,
+
+    estilo: Record<string, unknown>,
+  ): void {
+    const limites = XLSX.utils.decode_range(rango);
+
+    for (let fila = limites.s.r; fila <= limites.e.r; fila++) {
+      for (let columna = limites.s.c; columna <= limites.e.c; columna++) {
+        const referencia = XLSX.utils.encode_cell({
+          r: fila,
+
+          c: columna,
+        });
+
+        if (!hoja[referencia]) {
+          hoja[referencia] = {
+            t: 's',
+
+            v: '',
+          };
+        }
+
+        hoja[referencia].s = estilo;
+      }
+    }
+  }
+
+  /* =========================================================
+     FECHAS INICIALES
+     ========================================================= */
+
+  private obtenerFechasIniciales(): {
+    fechaDesde: string;
+
+    fechaHasta: string;
+  } {
+    const hoy = new Date();
+
+    const anio = hoy.getFullYear();
+
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+
+    const dia = String(hoy.getDate()).padStart(2, '0');
+
+    return {
+      fechaDesde: `${anio}-${mes}-01`,
+
+      fechaHasta: `${anio}-${mes}-${dia}`,
+    };
+  }
 }

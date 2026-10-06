@@ -67,7 +67,11 @@
             </div>
 
             <small>
-              Ingresa el dinero disponible al comenzar a usar el sistema.
+              @if (saldoYaConfigurado) {
+                Este saldo ya fue registrado y solo puede consultarse.
+              } @else {
+                Ingresa el dinero disponible al comenzar a usar el sistema.
+              }
             </small>
           </label>
 
@@ -81,8 +85,12 @@
               [max]="fechaInicio"
             />
             <small>
-              Selecciona la fecha desde la cual comenzará el control del flujo
-              de caja. No puede ser una fecha futura.
+              @if (saldoYaConfigurado) {
+                La fecha de apertura ya fue registrada y no puede modificarse.
+              } @else {
+                Selecciona la fecha desde la cual comenzará el control del flujo
+                de caja. No puede ser una fecha futura.
+              }
             </small>
           </label>
 

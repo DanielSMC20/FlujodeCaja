@@ -1,262 +1,430 @@
-<section class="pagina-compras">
+<section class="pagina-registro-compras">
+  <!-- ======================================================
+       ENCABEZADO
+       ====================================================== -->
+
   <header class="pagina-header">
-    <div>
-      <span class="pagina-etiqueta"> Reportes </span>
+    <div class="pagina-header-principal">
+      <div class="pagina-icono">
+        <lucide-icon [img]="iconos.compras" [size]="22" [strokeWidth]="1.8" />
+      </div>
 
-      <h1>Registro de compras</h1>
+      <div>
+        <span class="pagina-eyebrow"> Reportes </span>
 
-      <p>
-        Consulta todos los egresos del periodo con la información del proveedor
-        y comprobante cuando esté disponible.
-      </p>
+        <h1>Registro de Compras</h1>
+
+        <p>
+          Consulta los comprobantes de egresos en el formato utilizado para el
+          registro contable.
+        </p>
+      </div>
     </div>
   </header>
 
-  <!-- =============================================
+  <!-- ======================================================
+       EMPRESA
+       ====================================================== -->
+
+  <section class="empresa-panel">
+    <div>
+      <span class="empresa-label"> Empresa </span>
+
+      <strong>
+        {{ nombreEmpresa }}
+      </strong>
+
+      @if (rucEmpresa) {
+        <small> RUC {{ rucEmpresa }} </small>
+      }
+    </div>
+
+    <div class="empresa-periodo">
+      <span> Periodo consultado </span>
+
+      <strong>
+        {{ periodoSeleccionado }}
+      </strong>
+    </div>
+  </section>
+
+  <!-- ======================================================
        FILTROS
-       ============================================= -->
+       ====================================================== -->
 
-  <article class="tarjeta filtros">
-    <form
-      class="filtros-grid"
-      [formGroup]="formulario"
-      (ngSubmit)="aplicarFiltros()"
-    >
-      <div class="campo">
-        <label for="fechaDesde"> Desde </label>
+  <form class="filtros" [formGroup]="formulario" (ngSubmit)="aplicarFiltros()">
+    <div class="filtro-campo">
+      <label for="fechaDesde"> Desde </label>
 
-        <input id="fechaDesde" type="date" formControlName="fechaDesde" />
-      </div>
+      <input id="fechaDesde" type="date" formControlName="fechaDesde" />
+    </div>
 
-      <div class="campo">
-        <label for="fechaHasta"> Hasta </label>
+    <div class="filtro-campo">
+      <label for="fechaHasta"> Hasta </label>
 
-        <input id="fechaHasta" type="date" formControlName="fechaHasta" />
-      </div>
+      <input id="fechaHasta" type="date" formControlName="fechaHasta" />
+    </div>
 
-      <div class="campo">
-        <label for="estado"> Estado </label>
+    <div class="filtro-campo filtro-estado">
+      <label for="estado"> Estado del egreso </label>
 
-        <select id="estado" formControlName="estado">
-          <option value="todos">Todos</option>
+      <select id="estado" formControlName="estado">
+        <option value="todos">Todos</option>
 
-          <option value="pagado">Pagados</option>
+        <option value="pagado">Pagados</option>
 
-          <option value="proyectado">Proyectados</option>
-        </select>
-      </div>
+        <option value="proyectado">Proyectados</option>
+      </select>
+    </div>
 
-      <div class="acciones-filtros">
-        <button
-          type="button"
-          class="boton-secundario"
-          (click)="limpiarFiltros()"
-        >
-          <lucide-icon [img]="iconos.limpiar" [size]="16" [strokeWidth]="2" />
+    <div class="filtros-acciones">
+      <button type="submit" class="boton boton-buscar" [disabled]="cargando">
+        <lucide-icon [img]="iconos.buscar" [size]="16" [strokeWidth]="1.9" />
 
-          Limpiar
-        </button>
+        Consultar
+      </button>
 
-        <button type="submit" class="boton-principal">
-          <lucide-icon [img]="iconos.buscar" [size]="16" [strokeWidth]="2" />
+      <button
+        type="button"
+        class="boton boton-limpiar"
+        [disabled]="cargando"
+        (click)="limpiarFiltros()"
+      >
+        <lucide-icon [img]="iconos.limpiar" [size]="16" [strokeWidth]="1.9" />
 
-          Buscar
-        </button>
-      </div>
-    </form>
+        Limpiar
+      </button>
+    </div>
+  </form>
 
-    @if (errorFiltro) {
-      <p class="mensaje-error">
-        {{ errorFiltro }}
-      </p>
-    }
-  </article>
-
-  <!-- =============================================
-       CARGA
-       ============================================= -->
-
-  @if (cargando) {
-    <div class="estado-carga">
-      <span class="estado-carga-punto"></span>
-
-      Consultando registro de compras...
+  @if (errorFiltro) {
+    <div class="mensaje-error">
+      {{ errorFiltro }}
     </div>
   }
 
-  <!-- =============================================
-       RESULTADO
-       ============================================= -->
+  <!-- ======================================================
+       CONTENIDO
+       ====================================================== -->
 
   @if (compras$ | async; as compras) {
-    <!-- RESUMEN -->
+    <!-- ====================================================
+         RESUMEN
+         ==================================================== -->
 
-    <div class="resumen-grid">
-      <article class="indicador">
-        <span> Registros </span>
+    <section class="resumen">
+      <article class="resumen-card">
+        <span> Comprobantes </span>
 
-        <strong class="valor-neutro">
+        <strong>
           {{ compras.length }}
         </strong>
 
-        <small> Egresos encontrados </small>
+        <small> Registros encontrados </small>
       </article>
 
-      <article class="indicador">
-        <span> Total de compras </span>
+      <article class="resumen-card">
+        <span> Base imponible </span>
+
+        <strong>
+          {{ totalBaseImponible(compras) | monedaSol }}
+        </strong>
+
+        <small> Base gravada registrada </small>
+      </article>
+
+      <article class="resumen-card">
+        <span> IGV </span>
+
+        <strong>
+          {{ totalIgv(compras) | monedaSol }}
+        </strong>
+
+        <small> Impuesto registrado </small>
+      </article>
+
+      <article class="resumen-card">
+        <span> Total compras </span>
 
         <strong>
           {{ totalCompras(compras) | monedaSol }}
         </strong>
 
-        <small> Importe del periodo </small>
+        <small> Importe total </small>
       </article>
+    </section>
 
-      <article class="indicador">
-        <span> Pagadas </span>
+    <!-- ====================================================
+         CABECERA DE TABLA
+         ==================================================== -->
 
-        <strong class="valor-pagado">
-          {{ totalPagado(compras) | monedaSol }}
-        </strong>
-
-        <small> Egresos cancelados </small>
-      </article>
-
-      <article class="indicador">
-        <span> Proyectadas </span>
-
-        <strong class="valor-proyectado">
-          {{ totalProyectado(compras) | monedaSol }}
-        </strong>
-
-        <small> Egresos pendientes </small>
-      </article>
-    </div>
-
-    <!-- =========================================
-         TABLA
-         ========================================= -->
-
-    <article class="tarjeta tarjeta-tabla">
-      <header class="tabla-header">
+    <section class="registro-panel">
+      <header class="registro-header">
         <div>
-          <h2>Detalle de compras</h2>
+          <h2>Detalle del registro</h2>
 
           <p>
-            Los datos del comprobante se muestran cuando fueron registrados.
+            Las columnas siguen la estructura entregada por el contador.
+            Desplázate horizontalmente para revisar toda la información.
           </p>
         </div>
 
         <button
           type="button"
-          class="boton-excel"
-          [disabled]="compras.length === 0 || cargando"
+          class="boton-exportar"
+          [disabled]="!compras.length"
           (click)="exportarExcel(compras)"
         >
-          <lucide-icon [img]="iconos.excel" [size]="17" [strokeWidth]="2" />
+          <lucide-icon [img]="iconos.excel" [size]="17" [strokeWidth]="1.9" />
 
           Exportar Excel
         </button>
       </header>
 
-      @if (compras.length > 0) {
-        <div class="tabla-contenedor">
-          <table>
-            <thead>
-              <tr>
-                <th>Fecha</th>
+      <!-- ==================================================
+           TABLA
+           ================================================== -->
 
-                <th>Proveedor</th>
+      @if (cargando) {
+        <div class="tabla-estado">
+          <span class="cargando-indicador"> </span>
 
-                <th>RUC</th>
-
-                <th>Comprobante</th>
-
-                <th>Concepto</th>
-
-                <th class="texto-derecha">Importe</th>
-
-                <th>Estado</th>
-
-                <th>Origen</th>
-              </tr>
-            </thead>
-
-            <tbody>
-              @for (movimiento of compras; track movimiento.id) {
-                <tr>
-                  <td class="fecha">
-                    {{ formatearFecha(movimiento.fechaMovimiento) }}
-                  </td>
-
-                  <td class="proveedor">
-                    {{ obtenerProveedor(movimiento) }}
-                  </td>
-
-                  <td>
-                    {{ obtenerRuc(movimiento) }}
-                  </td>
-
-                  <td>
-                    <div class="comprobante">
-                      <strong>
-                        {{ obtenerComprobante(movimiento) }}
-                      </strong>
-
-                      @if (movimiento.tipoComprobanteDescripcion) {
-                        <small>
-                          {{ movimiento.tipoComprobanteDescripcion }}
-                        </small>
-                      }
-                    </div>
-                  </td>
-
-                  <td class="concepto">
-                    <strong>
-                      {{ obtenerConcepto(movimiento) }}
-                    </strong>
-
-                    <small>
-                      {{ movimiento.categoria }}
-                    </small>
-                  </td>
-
-                  <td class="texto-derecha importe">
-                    {{ movimiento.monto | monedaSol }}
-                  </td>
-
-                  <td>
-                    <span
-                      class="badge-estado"
-                      [ngClass]="claseEstado(movimiento)"
-                    >
-                      {{ obtenerEstado(movimiento) }}
-                    </span>
-                  </td>
-
-                  <td>
-                    {{ obtenerOrigen(movimiento) }}
-                  </td>
-                </tr>
-              }
-            </tbody>
-          </table>
+          <strong> Consultando registro de compras... </strong>
         </div>
       } @else {
-        <div class="estado-vacio">
-          <span class="estado-vacio-icono">
-            <lucide-icon
-              [img]="iconos.compras"
-              [size]="24"
-              [strokeWidth]="1.8"
-            />
-          </span>
+        @if (compras.length) {
+          <div class="tabla-scroll">
+            <table class="registro-tabla">
+              <thead>
+                <tr>
+                  <th>PERIODO</th>
 
-          <strong> No existen compras para los filtros seleccionados </strong>
+                  <th>MES</th>
 
-          <p>Modifica el periodo o el estado y vuelve a consultar.</p>
-        </div>
+                  <th>T_DOC</th>
+
+                  <th>SERIE</th>
+
+                  <th>NUMERO</th>
+
+                  <th>F_DOC</th>
+
+                  <th>F_VEN</th>
+
+                  <th>RUC</th>
+
+                  <th class="columna-proveedor">RAZON_SOCIAL</th>
+
+                  <th class="numero">BASE_IMP</th>
+
+                  <th class="numero">IGV</th>
+
+                  <th class="numero columna-secundaria">BASE_IMP2</th>
+
+                  <th class="numero columna-secundaria">IGV2</th>
+
+                  <th class="numero columna-secundaria">BASE_IMP3</th>
+
+                  <th class="numero columna-secundaria">IGV3</th>
+
+                  <th class="numero">INAFECTO</th>
+
+                  <th class="numero">ISC</th>
+
+                  <th class="numero">ICBPER</th>
+
+                  <th class="numero">EXONERADO</th>
+
+                  <th class="numero columna-total">TOTAL</th>
+
+                  <th>MONEDA</th>
+
+                  <th class="numero">P_IGV</th>
+
+                  <th class="numero">T_C</th>
+
+                  <th class="columna-secundaria">D_DETRAC</th>
+
+                  <th class="columna-secundaria">F_DETRAC</th>
+
+                  <th class="columna-glosa">GLOSA</th>
+                </tr>
+              </thead>
+
+              <tbody>
+                @for (movimiento of compras; track movimiento.id) {
+                  <tr>
+                    <td class="centrado">
+                      {{ obtenerPeriodo(movimiento) }}
+                    </td>
+
+                    <td class="centrado">
+                      {{ obtenerMes(movimiento) }}
+                    </td>
+
+                    <td class="centrado">
+                      <span class="tipo-documento">
+                        {{ obtenerTipoDocumento(movimiento) }}
+                      </span>
+                    </td>
+
+                    <td>
+                      {{ obtenerSerie(movimiento) }}
+                    </td>
+
+                    <td>
+                      {{ obtenerNumero(movimiento) }}
+                    </td>
+
+                    <td class="fecha">
+                      {{
+                        formatearFecha(
+                          movimiento.fechaComprobante ??
+                            movimiento.fechaMovimiento
+                        )
+                      }}
+                    </td>
+
+                    <td class="fecha">
+                      {{
+                        movimiento.fechaVencimiento
+                          ? formatearFecha(movimiento.fechaVencimiento)
+                          : "—"
+                      }}
+                    </td>
+
+                    <td class="ruc">
+                      {{ obtenerRuc(movimiento) }}
+                    </td>
+
+                    <td
+                      class="proveedor"
+                      [title]="obtenerProveedor(movimiento)"
+                    >
+                      {{ obtenerProveedor(movimiento) }}
+                    </td>
+
+                    <td class="numero">
+                      {{
+                        valorNumerico(movimiento.baseImponible)
+                          | number: "1.2-2"
+                      }}
+                    </td>
+
+                    <td class="numero">
+                      {{ valorNumerico(movimiento.igv) | number: "1.2-2" }}
+                    </td>
+
+                    <td class="numero columna-secundaria">0.00</td>
+
+                    <td class="numero columna-secundaria">0.00</td>
+
+                    <td class="numero columna-secundaria">0.00</td>
+
+                    <td class="numero columna-secundaria">0.00</td>
+
+                    <td class="numero">
+                      {{ valorNumerico(movimiento.inafecto) | number: "1.2-2" }}
+                    </td>
+
+                    <td class="numero">
+                      {{ valorNumerico(movimiento.isc) | number: "1.2-2" }}
+                    </td>
+
+                    <td class="numero">
+                      {{ valorNumerico(movimiento.icbper) | number: "1.2-2" }}
+                    </td>
+
+                    <td class="numero">
+                      {{
+                        valorNumerico(movimiento.exonerado) | number: "1.2-2"
+                      }}
+                    </td>
+
+                    <td class="numero total">
+                      {{ valorNumerico(movimiento.monto) | number: "1.2-2" }}
+                    </td>
+
+                    <td class="centrado">
+                      <span class="moneda">
+                        {{ obtenerMoneda(movimiento) }}
+                      </span>
+                    </td>
+
+                    <td class="numero">
+                      {{
+                        valorNumerico(movimiento.porcentajeIgv)
+                          | number: "1.0-2"
+                      }}
+                    </td>
+
+                    <td class="numero">
+                      {{ obtenerTipoCambio(movimiento) | number: "1.3-3" }}
+                    </td>
+
+                    <td class="centrado columna-secundaria">—</td>
+
+                    <td class="centrado columna-secundaria">—</td>
+
+                    <td class="glosa" [title]="obtenerGlosa(movimiento)">
+                      {{ obtenerGlosa(movimiento) }}
+                    </td>
+                  </tr>
+                }
+              </tbody>
+
+              <tfoot>
+                <tr>
+                  <td colspan="9" class="total-etiqueta">TOTALES</td>
+
+                  <td class="numero total">
+                    {{ totalBaseImponible(compras) | number: "1.2-2" }}
+                  </td>
+
+                  <td class="numero total">
+                    {{ totalIgv(compras) | number: "1.2-2" }}
+                  </td>
+
+                  <td colspan="4" class="columna-secundaria"></td>
+
+                  <td class="numero total">
+                    {{ totalInafecto(compras) | number: "1.2-2" }}
+                  </td>
+
+                  <td></td>
+
+                  <td></td>
+
+                  <td></td>
+
+                  <td class="numero total total-general">
+                    {{ totalCompras(compras) | number: "1.2-2" }}
+                  </td>
+
+                  <td colspan="6"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        } @else {
+          <div class="tabla-vacia">
+            <div class="tabla-vacia-icono">
+              <lucide-icon
+                [img]="iconos.compras"
+                [size]="24"
+                [strokeWidth]="1.7"
+              />
+            </div>
+
+            <h3>No hay compras para mostrar</h3>
+
+            <p>
+              No se encontraron comprobantes para el periodo y estado
+              seleccionados.
+            </p>
+          </div>
+        }
       }
-    </article>
+    </section>
   }
 </section>

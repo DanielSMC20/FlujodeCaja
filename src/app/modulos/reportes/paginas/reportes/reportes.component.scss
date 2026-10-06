@@ -2,91 +2,252 @@
   display: block;
 }
 
+
 .pagina-reportes {
   display: flex;
+
   flex-direction: column;
 
   gap: 1.15rem;
 }
 
+
+/* =========================================================
+   CABECERA Y SELECTOR
+========================================================= */
+
+.reportes-cabecera-superior {
+  display: flex;
+
+  align-items: center;
+
+  justify-content: space-between;
+
+  gap: 1rem;
+}
+
+
+.selector-reportes {
+  display: inline-flex;
+
+  align-items: center;
+
+  gap: 0.3rem;
+
+  width: fit-content;
+
+  padding: 0.3rem;
+
+  border:
+    1px solid
+    #e2e8f0;
+
+  border-radius: 12px;
+
+  background: #f8fafc;
+}
+
+
+.selector-reportes button {
+  min-height: 38px;
+
+  padding:
+    0
+    1rem;
+
+  border: 0;
+
+  border-radius: 9px;
+
+  background: transparent;
+
+  color: #64748b;
+
+  font-family: inherit;
+
+  font-size: 0.75rem;
+
+  font-weight: 650;
+
+  cursor: pointer;
+
+  transition:
+    background
+      0.16s ease,
+    color
+      0.16s ease,
+    box-shadow
+      0.16s ease;
+}
+
+
+.selector-reportes
+button:hover:not(:disabled) {
+  background: #ffffff;
+
+  color: #0f172a;
+}
+
+
+.selector-reportes
+button.activo {
+  background: #ffffff;
+
+  color: #1d4ed8;
+
+  box-shadow:
+    0 1px 3px
+    rgba(
+      15,
+      23,
+      42,
+      0.1
+    );
+}
+
+
+.selector-reportes
+button:disabled {
+  cursor: default;
+
+  opacity: 1;
+}
+
+
+/* =========================================================
+   CABECERA
+========================================================= */
+
 .pagina-etiqueta {
   color: #2563eb;
 
   font-size: 0.65rem;
+
   font-weight: 700;
 
   letter-spacing: 0.12em;
+
   text-transform: uppercase;
 }
 
+
 .pagina-header h1 {
-  margin: 0.3rem 0 0;
+  margin:
+    0.3rem
+    0
+    0;
 
   color: #0f172a;
 
   font-size: 1.55rem;
+
   font-weight: 700;
 
-  letter-spacing: -0.035em;
+  letter-spacing:
+    -0.035em;
 }
 
+
 .pagina-header p {
-  margin: 0.4rem 0 0;
+  margin:
+    0.4rem
+    0
+    0;
 
   color: #64748b;
 
   font-size: 0.78rem;
 }
 
+
+/* =========================================================
+   TARJETAS
+========================================================= */
+
 .tarjeta {
   padding: 1.2rem;
 
-  border: 1px solid #e2e8f0;
+  border:
+    1px solid
+    #e2e8f0;
+
   border-radius: 16px;
 
   background: #ffffff;
 
-  box-shadow: 0 3px 10px rgba(15, 23, 42, 0.025);
+  box-shadow:
+    0 3px 10px
+    rgba(
+      15,
+      23,
+      42,
+      0.025
+    );
 }
+
 
 .filtros {
   padding: 1rem;
 }
 
+
+/* =========================================================
+   FILTROS
+========================================================= */
+
 .filtros-grid {
   display: grid;
 
-  grid-template-columns: repeat(5, minmax(135px, 1fr)) auto;
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(
+        135px,
+        1fr
+      )
+    )
+    auto;
 
   align-items: end;
 
   gap: 0.75rem;
 }
 
+
 .campo {
   min-width: 0;
 
   display: flex;
+
   flex-direction: column;
 
   gap: 0.35rem;
 }
 
+
 .campo label {
   color: #475569;
 
   font-size: 0.64rem;
+
   font-weight: 700;
 }
+
 
 .campo input,
 .campo select {
   width: 100%;
+
   height: 40px;
 
-  padding: 0 0.7rem;
+  padding:
+    0
+    0.7rem;
 
-  border: 1px solid #dbe3ed;
+  border:
+    1px solid
+    #dbe3ed;
+
   border-radius: 9px;
 
   outline: none;
@@ -96,8 +257,10 @@
   color: #334155;
 
   font-family: inherit;
+
   font-size: 0.68rem;
 }
+
 
 .campo input:focus,
 .campo select:focus {
@@ -105,8 +268,16 @@
 
   background: #ffffff;
 
-  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.08);
+  box-shadow:
+    0 0 0 3px
+    rgba(
+      59,
+      130,
+      246,
+      0.08
+    );
 }
+
 
 .acciones-filtros {
   display: flex;
@@ -114,16 +285,25 @@
   gap: 0.45rem;
 }
 
+
+/* =========================================================
+   BOTONES
+========================================================= */
+
 .boton-principal,
 .boton-secundario {
   height: 40px;
 
-  padding: 0 0.8rem;
+  padding:
+    0
+    0.8rem;
 
   border-radius: 9px;
 
   font-family: inherit;
+
   font-size: 0.66rem;
+
   font-weight: 700;
 
   white-space: nowrap;
@@ -131,58 +311,103 @@
   cursor: pointer;
 }
 
+
 .boton-principal {
-  border: 1px solid #2563eb;
+  border:
+    1px solid
+    #2563eb;
 
   background: #2563eb;
 
   color: #ffffff;
 }
 
+
 .boton-secundario {
-  border: 1px solid #dbe3ed;
+  border:
+    1px solid
+    #dbe3ed;
 
   background: #ffffff;
 
   color: #64748b;
 }
 
+
+/* =========================================================
+   ACTUALIZACION AUTOMATICA
+========================================================= */
+
+.actualizacion-automatica {
+  display: inline-flex;
+
+  align-items: center;
+
+  min-height: 40px;
+
+  padding:
+    0
+    0.75rem;
+
+  border-radius: 9px;
+
+  background: #ecfdf5;
+
+  color: #15803d;
+
+  font-size: 0.64rem;
+
+  font-weight: 700;
+
+  white-space: nowrap;
+}
+
+
+/* =========================================================
+   RESUMEN
+========================================================= */
+
 .resumen-grid {
   display: grid;
-  grid-template-columns: repeat(5, minmax(0, 1fr));
+
+  grid-template-columns:
+    repeat(
+      5,
+      minmax(
+        0,
+        1fr
+      )
+    );
+
   gap: 0.85rem;
 }
 
-.indicador small {
-  display: block;
-  margin-top: 0.4rem;
-  color: #94a3b8;
-  font-size: 0.66rem;
-  line-height: 1.35;
-}
-
-.indicador strong.proyectado {
-  color: #d97706;
-}
 
 .indicador {
   display: flex;
+
   flex-direction: column;
 
   padding: 1rem;
 
-  border: 1px solid #e2e8f0;
+  border:
+    1px solid
+    #e2e8f0;
+
   border-radius: 14px;
 
   background: #ffffff;
 }
 
+
 .indicador span {
   color: #64748b;
 
   font-size: 0.64rem;
+
   font-weight: 600;
 }
+
 
 .indicador strong {
   margin-top: 0.4rem;
@@ -190,30 +415,70 @@
   color: #334155;
 
   font-size: 1.2rem;
+
   font-weight: 700;
 
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric:
+    tabular-nums;
 }
+
+
+.indicador small {
+  display: block;
+
+  margin-top: 0.4rem;
+
+  color: #94a3b8;
+
+  font-size: 0.66rem;
+
+  line-height: 1.35;
+}
+
+
+.indicador
+strong.proyectado {
+  color: #d97706;
+}
+
 
 .ingreso {
-  color: #16a34a !important;
+  color:
+    #16a34a
+    !important;
 }
+
 
 .egreso {
-  color: #dc2626 !important;
+  color:
+    #dc2626
+    !important;
 }
+
 
 .proyectado {
-  color: #b45309 !important;
+  color:
+    #b45309
+    !important;
 }
 
+
 .movimientos {
-  color: #2563eb !important;
+  color:
+    #2563eb
+    !important;
 }
+
+
+/* =========================================================
+   TABLA HEADER
+========================================================= */
 
 .tabla-header {
   display: flex;
+
   align-items: center;
+
   justify-content: space-between;
 
   gap: 1rem;
@@ -221,22 +486,33 @@
   margin-bottom: 1rem;
 }
 
+
 .tabla-header h2 {
   margin: 0;
 
   color: #1e293b;
 
   font-size: 0.9rem;
+
   font-weight: 700;
 }
 
+
 .tabla-header p {
-  margin: 0.25rem 0 0;
+  margin:
+    0.25rem
+    0
+    0;
 
   color: #94a3b8;
 
   font-size: 0.66rem;
 }
+
+
+/* =========================================================
+   EXPORTACIONES
+========================================================= */
 
 .exportaciones {
   display: flex;
@@ -244,12 +520,18 @@
   gap: 0.45rem;
 }
 
+
 .exportaciones button {
   height: 36px;
 
-  padding: 0 0.75rem;
+  padding:
+    0
+    0.75rem;
 
-  border: 1px solid #dbe3ed;
+  border:
+    1px solid
+    #dbe3ed;
+
   border-radius: 8px;
 
   background: #ffffff;
@@ -257,42 +539,45 @@
   color: #475569;
 
   font-family: inherit;
+
   font-size: 0.63rem;
+
   font-weight: 700;
 
   cursor: pointer;
 }
 
+
 .exportaciones button:hover {
   border-color: #93c5fd;
+
   color: #1d4ed8;
+
   background: #eff6ff;
 }
 
-.badge-proyectado {
-  background: #fffbeb !important;
-  color: #b45309 !important;
+
+.exportaciones button:disabled {
+  opacity: 0.55;
+
+  cursor: not-allowed;
 }
 
-@media print {
-  .pagina-header,
-  .filtros,
-  .exportaciones {
-    display: none !important;
-  }
 
-  .tarjeta,
-  .indicador {
-    box-shadow: none;
-  }
-}
+/* =========================================================
+   TABLA
+========================================================= */
 
 .tabla-contenedor {
   overflow-x: auto;
 
-  border: 1px solid #e2e8f0;
+  border:
+    1px solid
+    #e2e8f0;
+
   border-radius: 12px;
 }
+
 
 table {
   width: 100%;
@@ -300,16 +585,21 @@ table {
   border-collapse: collapse;
 }
 
+
 thead {
   background: #f8fafc;
 }
 
+
 th {
-  padding: 0.72rem 0.8rem;
+  padding:
+    0.72rem
+    0.8rem;
 
   color: #64748b;
 
   font-size: 0.61rem;
+
   font-weight: 700;
 
   text-align: left;
@@ -317,23 +607,31 @@ th {
   white-space: nowrap;
 }
 
-td {
-  padding: 0.78rem 0.8rem;
 
-  border-top: 1px solid #f1f5f9;
+td {
+  padding:
+    0.78rem
+    0.8rem;
+
+  border-top:
+    1px solid
+    #f1f5f9;
 
   color: #475569;
 
   font-size: 0.68rem;
 }
 
+
 tbody tr:hover {
   background: #fafcff;
 }
 
+
 .texto-derecha {
   text-align: right;
 }
+
 
 .descripcion {
   max-width: 300px;
@@ -341,28 +639,41 @@ tbody tr:hover {
   overflow: hidden;
 
   text-overflow: ellipsis;
+
   white-space: nowrap;
 }
+
 
 .monto {
   font-weight: 700;
 
   white-space: nowrap;
 
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric:
+    tabular-nums;
 }
+
+
+/* =========================================================
+   BADGES
+========================================================= */
 
 .badge {
   display: inline-flex;
+
   align-items: center;
 
-  padding: 0.22rem 0.5rem;
+  padding:
+    0.22rem
+    0.5rem;
 
   border-radius: 999px;
 
   font-size: 0.59rem;
+
   font-weight: 700;
 }
+
 
 .badge-ingreso {
   background: #ecfdf3;
@@ -370,29 +681,51 @@ tbody tr:hover {
   color: #15803d;
 }
 
+
 .badge-egreso {
   background: #fef2f2;
 
   color: #b91c1c;
 }
 
+
+.badge-proyectado {
+  background:
+    #fffbeb
+    !important;
+
+  color:
+    #b45309
+    !important;
+}
+
+
+/* =========================================================
+   ESTADO VACIO
+========================================================= */
+
 .estado-vacio {
   min-height: 260px;
 
   display: flex;
+
   flex-direction: column;
 
   align-items: center;
+
   justify-content: center;
 
   text-align: center;
 }
 
+
 .estado-vacio-icono {
   width: 48px;
+
   height: 48px;
 
   display: grid;
+
   place-items: center;
 
   margin-bottom: 0.8rem;
@@ -404,10 +737,14 @@ tbody tr:hover {
   color: #94a3b8;
 }
 
-.estado-vacio-icono lucide-icon {
+
+.estado-vacio-icono
+lucide-icon {
   width: 21px;
+
   height: 21px;
 }
+
 
 .estado-vacio strong {
   color: #475569;
@@ -415,262 +752,32 @@ tbody tr:hover {
   font-size: 0.75rem;
 }
 
+
 .estado-vacio p {
-  margin: 0.3rem 0 0;
+  margin:
+    0.3rem
+    0
+    0;
 
   color: #94a3b8;
 
   font-size: 0.66rem;
 }
 
-@media (max-width: 1100px) {
-  .filtros-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
 
-  .acciones-filtros {
-    grid-column: 1 / -1;
+/* =========================================================
+   ESTADO CARGA
+========================================================= */
 
-    justify-content: flex-end;
-  }
-}
-
-@media (max-width: 800px) {
-  .resumen-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 600px) {
-  .filtros-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .acciones-filtros {
-    grid-column: auto;
-  }
-
-  .boton-principal,
-  .boton-secundario {
-    flex: 1;
-  }
-
-  .resumen-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .tabla-header {
-    align-items: flex-start;
-    flex-direction: column;
-  }
-}
-.actualizacion-automatica {
-  display: inline-flex;
-  align-items: center;
-
-  min-height: 40px;
-  padding: 0 0.75rem;
-
-  border-radius: 9px;
-
-  background: #ecfdf5;
-  color: #15803d;
-
-  font-size: 0.64rem;
-  font-weight: 700;
-
-  white-space: nowrap;
-}
-.cabecera-impresion,
-.pie-impresion {
-  display: none;
-}
-
-@page {
-  size: A4 landscape;
-  margin: 12mm;
-}
-
-@media print {
-  :host {
-    display: block;
-
-    color: #0f172a;
-
-    print-color-adjust: exact;
-    -webkit-print-color-adjust: exact;
-  }
-
-  .pagina-header,
-  .filtros,
-  .exportaciones {
-    display: none !important;
-  }
-
-  .cabecera-impresion {
-    display: flex;
-    align-items: flex-start;
-    justify-content: space-between;
-
-    gap: 2rem;
-
-    padding-bottom: 1rem;
-    margin-bottom: 1rem;
-
-    border-bottom: 2px solid #2563eb;
-  }
-
-  .cabecera-empresa span {
-    color: #2563eb;
-
-    font-size: 8pt;
-    font-weight: 700;
-
-    letter-spacing: 0.12em;
-    text-transform: uppercase;
-  }
-
-  .cabecera-empresa h1 {
-    margin: 0.3rem 0;
-
-    color: #0f172a;
-
-    font-size: 18pt;
-  }
-
-  .cabecera-empresa p {
-    margin: 0.15rem 0;
-
-    color: #475569;
-
-    font-size: 9pt;
-  }
-
-  .cabecera-periodo {
-    display: flex;
-    flex-direction: column;
-    align-items: flex-end;
-
-    gap: 0.25rem;
-
-    text-align: right;
-  }
-
-  .cabecera-periodo span,
-  .cabecera-periodo small {
-    color: #64748b;
-
-    font-size: 8pt;
-  }
-
-  .cabecera-periodo strong {
-    color: #1e293b;
-
-    font-size: 10pt;
-  }
-
-  .pagina-reportes {
-    gap: 0.75rem;
-  }
-
-  .resumen-grid {
-    grid-template-columns:
-      repeat(5, minmax(0, 1fr));
-
-    gap: 0.35rem;
-  }
-
-  .indicador {
-    padding: 0.65rem;
-
-    border-radius: 6px;
-
-    break-inside: avoid;
-  }
-
-  .indicador span {
-    font-size: 7pt;
-  }
-
-  .indicador strong {
-    font-size: 11pt;
-  }
-
-  .reporte-tabla {
-    padding: 0;
-
-    border: 0;
-
-    box-shadow: none;
-  }
-
-  .tabla-header {
-    margin: 0.6rem 0;
-  }
-
-  .tabla-contenedor {
-    overflow: visible;
-
-    border-radius: 0;
-  }
-
-  table {
-    font-size: 8pt;
-  }
-
-  thead {
-    display: table-header-group;
-
-    background: #eaf1ff !important;
-  }
-
-  th {
-    padding: 0.45rem;
-
-    color: #1e3a8a !important;
-
-    font-size: 7pt;
-  }
-
-  td {
-    padding: 0.45rem;
-
-    font-size: 7.5pt;
-  }
-
-  tr {
-    break-inside: avoid;
-  }
-
-  .pie-impresion {
-    display: flex;
-    justify-content: space-between;
-
-    margin-top: 1rem;
-    padding-top: 0.6rem;
-
-    border-top: 1px solid #cbd5e1;
-
-    color: #64748b;
-
-    font-size: 7pt;
-  }
-}
-@media (max-width: 1200px) {
-  .resumen-grid {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-  }
-}
-
-@media (max-width: 700px) {
-  .resumen-grid {
-    grid-template-columns: 1fr;
-  }
-}
 .estado-carga {
-  padding: 0.8rem 1rem;
+  padding:
+    0.8rem
+    1rem;
 
-  border: 1px solid #dbeafe;
+  border:
+    1px solid
+    #dbeafe;
+
   border-radius: 10px;
 
   background: #eff6ff;
@@ -678,13 +785,21 @@ tbody tr:hover {
   color: #1d4ed8;
 
   font-size: 0.7rem;
+
   font-weight: 700;
 }
 
-.campo-checkbox .checkbox-control {
+
+/* =========================================================
+   CHECKBOX
+========================================================= */
+
+.campo-checkbox
+.checkbox-control {
   min-height: 40px;
 
   display: flex;
+
   align-items: center;
 
   gap: 0.5rem;
@@ -692,10 +807,15 @@ tbody tr:hover {
   cursor: pointer;
 }
 
-.campo-checkbox .checkbox-control input {
+
+.campo-checkbox
+.checkbox-control
+input {
   width: 16px;
+
   height: 16px;
 }
+
 
 .motivo-anulacion {
   display: block;
@@ -711,8 +831,391 @@ tbody tr:hover {
   line-height: 1.35;
 }
 
-.exportaciones button:disabled {
-  opacity: 0.55;
 
-  cursor: not-allowed;
+/* =========================================================
+   IMPRESION OCULTA
+========================================================= */
+
+.cabecera-impresion,
+.pie-impresion {
+  display: none;
+}
+
+
+/* =========================================================
+   RESPONSIVE
+========================================================= */
+
+@media (
+  max-width: 1200px
+) {
+
+  .resumen-grid {
+    grid-template-columns:
+      repeat(
+        3,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+
+}
+
+
+@media (
+  max-width: 1100px
+) {
+
+  .filtros-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+
+
+  .acciones-filtros {
+    grid-column:
+      1 / -1;
+
+    justify-content:
+      flex-end;
+  }
+
+}
+
+
+@media (
+  max-width: 800px
+) {
+
+  .resumen-grid {
+    grid-template-columns:
+      repeat(
+        2,
+        minmax(
+          0,
+          1fr
+        )
+      );
+  }
+
+}
+
+
+@media (
+  max-width: 700px
+) {
+
+  .resumen-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+}
+
+
+@media (
+  max-width: 600px
+) {
+
+  .reportes-cabecera-superior {
+    align-items: stretch;
+
+    flex-direction: column;
+  }
+
+
+  .selector-reportes {
+    width: 100%;
+  }
+
+
+  .selector-reportes button {
+    flex: 1;
+  }
+
+
+  .filtros-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .acciones-filtros {
+    grid-column: auto;
+  }
+
+
+  .boton-principal,
+  .boton-secundario {
+    flex: 1;
+  }
+
+
+  .resumen-grid {
+    grid-template-columns:
+      1fr;
+  }
+
+
+  .tabla-header {
+    align-items:
+      flex-start;
+
+    flex-direction:
+      column;
+  }
+
+}
+
+
+/* =========================================================
+   IMPRESION
+========================================================= */
+
+@page {
+  size: A4 landscape;
+
+  margin: 12mm;
+}
+
+
+@media print {
+
+  :host {
+    display: block;
+
+    color: #0f172a;
+
+    print-color-adjust:
+      exact;
+
+    -webkit-print-color-adjust:
+      exact;
+  }
+
+
+  .reportes-cabecera-superior,
+  .pagina-header,
+  .filtros,
+  .exportaciones {
+    display:
+      none
+      !important;
+  }
+
+
+  .cabecera-impresion {
+    display: flex;
+
+    align-items:
+      flex-start;
+
+    justify-content:
+      space-between;
+
+    gap: 2rem;
+
+    padding-bottom: 1rem;
+
+    margin-bottom: 1rem;
+
+    border-bottom:
+      2px solid
+      #2563eb;
+  }
+
+
+  .cabecera-empresa span {
+    color: #2563eb;
+
+    font-size: 8pt;
+
+    font-weight: 700;
+
+    letter-spacing:
+      0.12em;
+
+    text-transform:
+      uppercase;
+  }
+
+
+  .cabecera-empresa h1 {
+    margin:
+      0.3rem
+      0;
+
+    color: #0f172a;
+
+    font-size: 18pt;
+  }
+
+
+  .cabecera-empresa p {
+    margin:
+      0.15rem
+      0;
+
+    color: #475569;
+
+    font-size: 9pt;
+  }
+
+
+  .cabecera-periodo {
+    display: flex;
+
+    flex-direction:
+      column;
+
+    align-items:
+      flex-end;
+
+    gap: 0.25rem;
+
+    text-align: right;
+  }
+
+
+  .cabecera-periodo span,
+  .cabecera-periodo small {
+    color: #64748b;
+
+    font-size: 8pt;
+  }
+
+
+  .cabecera-periodo strong {
+    color: #1e293b;
+
+    font-size: 10pt;
+  }
+
+
+  .pagina-reportes {
+    gap: 0.75rem;
+  }
+
+
+  .resumen-grid {
+    grid-template-columns:
+      repeat(
+        5,
+        minmax(
+          0,
+          1fr
+        )
+      );
+
+    gap: 0.35rem;
+  }
+
+
+  .indicador {
+    padding: 0.65rem;
+
+    border-radius: 6px;
+
+    break-inside: avoid;
+  }
+
+
+  .indicador span {
+    font-size: 7pt;
+  }
+
+
+  .indicador strong {
+    font-size: 11pt;
+  }
+
+
+  .reporte-tabla {
+    padding: 0;
+
+    border: 0;
+
+    box-shadow: none;
+  }
+
+
+  .tabla-header {
+    margin:
+      0.6rem
+      0;
+  }
+
+
+  .tabla-contenedor {
+    overflow: visible;
+
+    border-radius: 0;
+  }
+
+
+  table {
+    font-size: 8pt;
+  }
+
+
+  thead {
+    display:
+      table-header-group;
+
+    background:
+      #eaf1ff
+      !important;
+  }
+
+
+  th {
+    padding: 0.45rem;
+
+    color:
+      #1e3a8a
+      !important;
+
+    font-size: 7pt;
+  }
+
+
+  td {
+    padding: 0.45rem;
+
+    font-size: 7.5pt;
+  }
+
+
+  tr {
+    break-inside: avoid;
+  }
+
+
+  .pie-impresion {
+    display: flex;
+
+    justify-content:
+      space-between;
+
+    margin-top: 1rem;
+
+    padding-top: 0.6rem;
+
+    border-top:
+      1px solid
+      #cbd5e1;
+
+    color: #64748b;
+
+    font-size: 7pt;
+  }
+
 }

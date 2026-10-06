@@ -2,16 +2,17 @@
   <header class="dashboard-header">
     <div class="dashboard-title">
       <span class="dashboard-eyebrow">
-        <lucide-icon
-          [img]="iconos.periodo"
-          [size]="15"
-          [strokeWidth]="2"
-        />
+        <lucide-icon [img]="iconos.periodo" [size]="15" [strokeWidth]="2" />
+
         {{ etiquetaPeriodoSeleccionado }}
       </span>
 
-      <h1>Dashboard financiero</h1>
-      <p>Consulta el comportamiento real de los ingresos y egresos de tu empresa.</p>
+      <h1>Resumen del flujo de caja</h1>
+
+      <p>
+        Consulta rápidamente la posición de caja de la empresa y los compromisos
+        pendientes del periodo.
+      </p>
     </div>
 
     <app-filtro-periodo
@@ -20,131 +21,183 @@
     />
   </header>
 
-  <section class="acciones-rapidas" aria-label="Acciones rápidas">
-    <div class="acciones-introduccion">
-      <span>Acciones rápidas</span>
-      <strong>¿Qué deseas registrar?</strong>
-      <p>Accede a las tareas más utilizadas sin salir del panel.</p>
-    </div>
+  @if (resumen$ | async; as vista) {
+    <section class="resumen-panel" aria-label="Resumen del flujo de caja">
+      <header class="resumen-panel__header">
+        <div>
+          <span> Resumen financiero </span>
 
-    <div class="acciones-enlaces">
-      @if (puedeGestionarMovimientos) {
-      <a routerLink="/movimientos/nuevo" class="accion-rapida accion-principal">
-        <span class="accion-icono">
-          <lucide-icon [img]="iconos.nuevo" [size]="18" [strokeWidth]="2" />
-        </span>
+          <h2>Situación de caja del periodo</h2>
+        </div>
+
+        <a routerLink="/flujo-caja" class="enlace-flujo">
+          Ver flujo detallado
+
+          <lucide-icon [img]="iconos.siguiente" [size]="16" [strokeWidth]="2" />
+        </a>
+      </header>
+
+      <div class="resumen-grid">
+        <!-- ==================================================
+             SALDO INICIAL
+        =================================================== -->
+
+        <article class="resumen-card resumen-card--opening">
+          <div class="resumen-card__titulo">
+            <span> Saldo inicial </span>
+
+            <span class="estado-consulta"> Solo consulta </span>
+          </div>
+
+          <strong>
+            {{ vista.resumen.saldoInicialReal | monedaSol }}
+          </strong>
+
+          <small>
+            Punto de partida del periodo. No se considera un ingreso.
+          </small>
+        </article>
+
+        <!-- ==================================================
+             INGRESOS
+        =================================================== -->
+
+        <article class="resumen-card resumen-card--income">
+          <span> Ingresos </span>
+
+          <strong>
+            {{ vista.resumen.totalIngresos | monedaSol }}
+          </strong>
+
+          <small> Entradas reales registradas durante el periodo. </small>
+        </article>
+
+        <!-- ==================================================
+             EGRESOS PAGADOS
+        =================================================== -->
+
+        <article class="resumen-card resumen-card--expense-paid">
+          <span> Egresos pagados </span>
+
+          <strong>
+            {{ vista.resumen.totalEgresosPagados | monedaSol }}
+          </strong>
+
+          <small> Pagos que ya fueron ejecutados. </small>
+        </article>
+
+        <!-- ==================================================
+             EGRESOS PROYECTADOS
+        =================================================== -->
+
+        <article class="resumen-card resumen-card--expense-projected">
+          <span> Egresos proyectados </span>
+
+          <strong>
+            {{ vista.resumen.totalEgresosProyectados | monedaSol }}
+          </strong>
+
+          <small>
+            Compromisos pendientes considerados para planificación.
+          </small>
+        </article>
+
+        <!-- ==================================================
+             SALDO FINAL REAL
+        =================================================== -->
+
+        <article class="resumen-card resumen-card--final">
+          <span> Saldo final real </span>
+
+          <strong [class.valor-negativo]="vista.resumen.saldoFinalReal < 0">
+            {{ vista.resumen.saldoFinalReal | monedaSol }}
+          </strong>
+
+          <small>
+            Saldo disponible considerando únicamente pagos realizados.
+          </small>
+        </article>
+
+        <!-- ==================================================
+             SALDO PROYECTADO
+        =================================================== -->
+
+        <article class="resumen-card resumen-card--projected">
+          <span> Saldo proyectado </span>
+
+          <strong
+            [class.valor-negativo]="vista.resumen.saldoFinalProyectado < 0"
+          >
+            {{ vista.resumen.saldoFinalProyectado | monedaSol }}
+          </strong>
+
+          <small>
+            Saldo estimado considerando también los egresos pendientes.
+          </small>
+        </article>
+      </div>
+
+      <!-- ==================================================
+           INFORMACIÓN DEL SALDO INICIAL
+      =================================================== -->
+
+      <div class="saldo-inicial-ayuda">
+        <div class="saldo-inicial-ayuda__icono">
+          <lucide-icon [img]="iconos.saldo" [size]="20" [strokeWidth]="1.9" />
+        </div>
+
+        <div>
+          <strong> Saldo inicial de la empresa </strong>
+
+          <p>
+            Se registra una sola vez durante la configuración inicial. Después
+            permanece como dato de consulta para evitar modificaciones
+            accidentales que puedan descuadrar el flujo.
+          </p>
+        </div>
+
+        @if (esAdministrador) {
+          <a routerLink="/configuracion" class="enlace-configuracion">
+            <lucide-icon
+              [img]="iconos.configuracion"
+              [size]="16"
+              [strokeWidth]="2"
+            />
+
+            Consultar apertura
+          </a>
+        }
+      </div>
+    </section>
+
+    <!-- ==================================================
+         ACCESOS
+    =================================================== -->
+
+    <section class="accesos-secundarios" aria-label="Accesos de análisis">
+      <a routerLink="/flujo-caja">
+        <lucide-icon [img]="iconos.flujo" [size]="19" [strokeWidth]="2" />
+
         <span>
-          <strong>Nuevo movimiento</strong>
-          <small>Registrar ingreso o egreso</small>
+          <strong> Flujo de caja </strong>
+
+          <small> Revisa el detalle diario y los egresos proyectados. </small>
         </span>
+
+        <lucide-icon [img]="iconos.siguiente" [size]="17" [strokeWidth]="2" />
       </a>
 
-      <a routerLink="/movimientos/egresos-masivos" class="accion-rapida">
-        <span class="accion-icono">
-          <lucide-icon [img]="iconos.importar" [size]="18" [strokeWidth]="2" />
-        </span>
+      <a routerLink="/reportes">
+        <lucide-icon [img]="iconos.periodo" [size]="19" [strokeWidth]="2" />
+
         <span>
-          <strong>Importar egresos</strong>
-          <small>Cargar desde una plantilla Excel</small>
+          <strong> Reportes </strong>
+
+          <small> Consulta información financiera y registros. </small>
         </span>
+
+        <lucide-icon [img]="iconos.siguiente" [size]="17" [strokeWidth]="2" />
       </a>
-    }
-      <a routerLink="/movimientos" class="accion-rapida">
-        <span class="accion-icono">
-          <lucide-icon
-            [img]="iconos.movimientos"
-            [size]="18"
-            [strokeWidth]="2"
-          />
-        </span>
-        <span>
-          <strong>Ver movimientos</strong>
-          <small>Buscar, filtrar y revisar registros</small>
-        </span>
-      </a>
-    
-    </div>
-  </section>
-
-  @if (resumen$ | async; as resumen) {
-    <div class="kpi-grid">
-      <app-tarjeta-indicador
-        titulo="Ingresos del periodo"
-        [valor]="resumen.ingresosMes | monedaSol"
-        textoSecundario="Ventas registradas por Efectivo y POS"
-        tono="success"
-        icono="ingresos"
-      />
-
-      <app-tarjeta-indicador
-        titulo="Egresos pagados"
-        [valor]="resumen.egresosMes | monedaSol"
-        textoSecundario="Salidas que ya afectaron la caja"
-        tono="danger"
-        icono="egresos"
-      />
-
-      <app-tarjeta-indicador
-        titulo="Saldo real"
-        [valor]="resumen.saldoAcumulado | monedaSol"
-        textoSecundario="Incluye el saldo de apertura"
-        [tono]="resumen.saldoAcumulado >= 0 ? 'info' : 'danger'"
-        icono="saldo"
-      />
-
-      <app-tarjeta-indicador
-        titulo="Saldo proyectado"
-        [valor]="resumen.saldoProyectado | monedaSol"
-        [textoSecundario]="'Pendiente: ' + (resumen.egresosProyectados | monedaSol)"
-        tono="accent"
-        icono="saldo"
-      />
-    </div>
-  }
-
-  <div class="seccion-encabezado">
-    <div>
-      <span>Análisis visual</span>
-      <h2>Comportamiento del periodo</h2>
-    </div>
-    <p>Los indicadores se actualizan cuando cambias el periodo.</p>
-  </div>
-
-  <div class="graficos-principales">
-    @if (comparacionSemanal$ | async; as comparacionSemanal) {
-      <div class="grafico-ingresos">
-        <app-grafico-ingresos-egresos [data]="comparacionSemanal" />
-      </div>
-    }
-
-    @if (netoDiario$ | async; as netoDiario) {
-      <div class="grafico-neto">
-        <app-grafico-neto-diario [data]="netoDiario" />
-      </div>
-    }
-
-    @if (distribucionEgresos$ | async; as distribucionEgresos) {
-      <div class="grafico-egresos">
-        <app-grafico-egresos-categoria [data]="distribucionEgresos" />
-      </div>
-    }
-  </div>
-
-  <div class="seccion-encabezado seccion-actividad">
-    <div>
-      <span>Actividad reciente</span>
-      <h2>Detalle de movimientos</h2>
-    </div>
-    <p>Revisa los últimos registros del periodo seleccionado.</p>
-  </div>
-
-  @if (flujoCaja$ | async; as flujoCaja) {
-    <div class="resumen-inferior">
-      <app-tabla-flujo-diario [data]="flujoCaja" />
-
-      @if (ultimosMovimientos$ | async; as ultimosMovimientos) {
-        <app-ultimos-movimientos [data]="ultimosMovimientos" />
-      }
-    </div>
+    </section>
   }
 </section>

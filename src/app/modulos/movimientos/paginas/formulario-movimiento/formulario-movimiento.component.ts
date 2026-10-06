@@ -108,21 +108,18 @@ export class FormularioMovimientoComponent {
   private readonly configuracionFinancieraService = inject(
     ConfiguracionFinancieraService,
   );
-  private readonly sesionUsuarioService =
-  inject(SesionUsuarioService);
+  private readonly sesionUsuarioService = inject(SesionUsuarioService);
 
-get puedeConfirmarPagos(): boolean {
-  return this.sesionUsuarioService.puedeConfirmarPagos;
-}
+  get puedeConfirmarPagos(): boolean {
+    return this.sesionUsuarioService.puedeConfirmarPagos;
+  }
 
   private readonly comprobanteXmlService = inject(ComprobanteXmlService);
 
   readonly constanteService = inject(ConstanteService);
-  readonly mediosPago$ =
-  this.constanteService.obtenerConstante(200);
+  readonly mediosPago$ = this.constanteService.obtenerConstante(200);
 
-readonly tiposComprobante$ =
-  this.constanteService.obtenerConstante(300);
+  readonly tiposComprobante$ = this.constanteService.obtenerConstante(300);
 
   /* ======================================================
      ESTADO GENERAL
@@ -155,14 +152,29 @@ readonly tiposComprobante$ =
   nombreArchivoXml = '';
   hashArchivoXml = '';
 
-
   camposCompletadosXml = 0;
 
   errorXml = '';
 
-  /* ======================================================
-     FORMULARIO
-     ====================================================== */
+
+private fechaVencimientoXml?: string;
+
+private baseImponibleXml = 0;
+
+private igvXml = 0;
+
+private inafectoXml = 0;
+
+private iscXml = 0;
+
+private icbperXml = 0;
+
+private exoneradoXml = 0;
+
+private porcentajeIgvXml?: number;
+
+private tipoCambioXml?: number;
+
 
   readonly formulario = this.formBuilder.nonNullable.group({
     tipoMovimiento: [1, [Validators.required]],
@@ -483,17 +495,19 @@ readonly tiposComprobante$ =
 
   get etiquetaFechaMovimiento(): string {
     if (this.esEgresoProyectadoEnEdicion) {
-      return 'Fecha proyectada';
+      return 'Fecha de vencimiento / proyectada';
     }
 
     if (
       this.tipoMovimientoSeleccionado === 2 &&
       this.estadoEgresoSeleccionado === 0
     ) {
-      return 'Fecha proyectada';
+      return 'Fecha de vencimiento / proyectada';
     }
 
-    return this.tipoMovimientoSeleccionado === 2 ? 'Fecha de pago' : 'Fecha';
+    return this.tipoMovimientoSeleccionado === 2
+      ? 'Fecha real de pago'
+      : 'Fecha del ingreso';
   }
 
   /* ======================================================
@@ -520,10 +534,7 @@ readonly tiposComprobante$ =
     this.formulario.controls.tipoMovimiento.setValue(tipoMovimiento);
   }
 
-  seleccionarEstadoEgreso(
-    estado: FlagCancelado,
-  ): void {
-
+  seleccionarEstadoEgreso(estado: FlagCancelado): void {
     if (!this.mostrarSelectorEstadoEgreso) {
       return;
     }
@@ -603,7 +614,6 @@ readonly tiposComprobante$ =
     this.nombreArchivoXml = '';
     this.hashArchivoXml = '';
 
-
     this.camposCompletadosXml = 0;
 
     this.errorXml = '';
@@ -634,8 +644,36 @@ readonly tiposComprobante$ =
           this.nombreArchivoXml = resultado.nombreArchivo;
           this.hashArchivoXml = resultado.hashXml;
 
-
           this.camposCompletadosXml = resultado.camposEncontrados;
+          this.hashArchivoXml =
+  resultado.hashXml;
+
+this.fechaVencimientoXml =
+  resultado.fechaVencimiento;
+
+this.baseImponibleXml =
+  resultado.baseImponible ?? 0;
+
+this.igvXml =
+  resultado.igv ?? 0;
+
+this.inafectoXml =
+  resultado.inafecto ?? 0;
+
+this.iscXml =
+  resultado.isc ?? 0;
+
+this.icbperXml =
+  resultado.icbper ?? 0;
+
+this.exoneradoXml =
+  resultado.exonerado ?? 0;
+
+this.porcentajeIgvXml =
+  resultado.porcentajeIgv;
+
+this.tipoCambioXml =
+  resultado.tipoCambio;
 
           /* ------------------------------------------
                FECHA DE EMISIÓN
@@ -730,7 +768,6 @@ readonly tiposComprobante$ =
           this.nombreArchivoXml = '';
           this.hashArchivoXml = '';
 
-
           this.camposCompletadosXml = 0;
 
           this.errorXml =
@@ -764,47 +801,83 @@ readonly tiposComprobante$ =
      QUITAR XML
      ====================================================== */
 
-  quitarXml(): void {
-    this.xmlProcesado = false;
+quitarXml(): void {
+  this.xmlProcesado = false;
 
-    this.nombreArchivoXml = '';
-      this.hashArchivoXml = '';
+  this.nombreArchivoXml = '';
 
+  this.camposCompletadosXml = 0;
 
-    this.camposCompletadosXml = 0;
+  this.errorXml = '';
 
-    this.errorXml = '';
-  }
+  this.hashArchivoXml = '';
+
+  this.fechaVencimientoXml = undefined;
+
+  this.baseImponibleXml = 0;
+
+  this.igvXml = 0;
+
+  this.inafectoXml = 0;
+
+  this.iscXml = 0;
+
+  this.icbperXml = 0;
+
+  this.exoneradoXml = 0;
+
+  this.porcentajeIgvXml = undefined;
+
+  this.tipoCambioXml = undefined;
+}
 
   /* ======================================================
      LIMPIAR DATOS XML
      ====================================================== */
 
-  private limpiarDatosXml(): void {
-    this.xmlProcesado = false;
+private limpiarDatosXml(): void {
+  this.xmlProcesado = false;
 
-    this.nombreArchivoXml = '';
-      this.hashArchivoXml = '';
+  this.nombreArchivoXml = '';
 
+  this.camposCompletadosXml = 0;
 
-    this.camposCompletadosXml = 0;
+  this.errorXml = '';
 
-    this.errorXml = '';
+  this.hashArchivoXml = '';
 
-    this.formulario.patchValue({
-      tipoComprobante: 5,
+  this.fechaVencimientoXml = undefined;
 
-      fechaComprobante: '',
+  this.baseImponibleXml = 0;
 
-      serieComprobante: '',
+  this.igvXml = 0;
 
-      numeroComprobante: '',
+  this.inafectoXml = 0;
 
-      documentoEmisor: '',
+  this.iscXml = 0;
 
-      razonSocialEmisor: '',
-    });
-  }
+  this.icbperXml = 0;
+
+  this.exoneradoXml = 0;
+
+  this.porcentajeIgvXml = undefined;
+
+  this.tipoCambioXml = undefined;
+
+  this.formulario.patchValue({
+    tipoComprobante: 5,
+
+    fechaComprobante: '',
+
+    serieComprobante: '',
+
+    numeroComprobante: '',
+
+    documentoEmisor: '',
+
+    razonSocialEmisor: '',
+  });
+}
 
   /* ======================================================
      GUARDAR MOVIMIENTO
@@ -913,6 +986,51 @@ readonly tiposComprobante$ =
         ? datos.razonSocialEmisor.trim() || undefined
         : undefined,
 
+        fechaVencimiento:
+  tieneComprobante && this.xmlProcesado
+    ? this.fechaVencimientoXml
+    : undefined,
+
+baseImponible:
+  tieneComprobante && this.xmlProcesado
+    ? this.baseImponibleXml
+    : undefined,
+
+igv:
+  tieneComprobante && this.xmlProcesado
+    ? this.igvXml
+    : undefined,
+
+inafecto:
+  tieneComprobante && this.xmlProcesado
+    ? this.inafectoXml
+    : undefined,
+
+isc:
+  tieneComprobante && this.xmlProcesado
+    ? this.iscXml
+    : undefined,
+
+icbper:
+  tieneComprobante && this.xmlProcesado
+    ? this.icbperXml
+    : undefined,
+
+exonerado:
+  tieneComprobante && this.xmlProcesado
+    ? this.exoneradoXml
+    : undefined,
+
+porcentajeIgv:
+  tieneComprobante && this.xmlProcesado
+    ? this.porcentajeIgvXml
+    : undefined,
+
+tipoCambio:
+  tieneComprobante && this.xmlProcesado
+    ? this.tipoCambioXml
+    : undefined,
+
       observacion: datos.observacion.trim() || undefined,
 
       archivoXmlNombre:
@@ -920,7 +1038,7 @@ readonly tiposComprobante$ =
           ? this.nombreArchivoXml
           : undefined,
 
-          hashXml:
+hashXml:
   tieneComprobante && this.xmlProcesado
     ? this.hashArchivoXml
     : undefined,
@@ -1084,24 +1202,74 @@ readonly tiposComprobante$ =
               relacionada con XML.
             */
 
-          if (movimiento.origenRegistro === 2 || movimiento.archivoXmlNombre) {
-            this.xmlProcesado = true;
+if (
+  movimiento.origenRegistro === 2 ||
+  movimiento.archivoXmlNombre
+) {
+  this.xmlProcesado = true;
 
-            this.nombreArchivoXml =
-              movimiento.archivoXmlNombre ?? 'Comprobante XML';
+  this.nombreArchivoXml =
+    movimiento.archivoXmlNombre ??
+    'Comprobante XML';
 
-  this.hashArchivoXml = movimiento.hashXml ?? '';
+  this.hashArchivoXml =
+    movimiento.hashXml ?? '';
 
-            this.camposCompletadosXml = 0;
-          } else {
-            this.xmlProcesado = false;
+  this.fechaVencimientoXml =
+    movimiento.fechaVencimiento ?? undefined;
 
-            this.nombreArchivoXml = '';
-              this.hashArchivoXml = '';
+  this.baseImponibleXml =
+    movimiento.baseImponible ?? 0;
 
+  this.igvXml =
+    movimiento.igv ?? 0;
 
-            this.camposCompletadosXml = 0;
-          }
+  this.inafectoXml =
+    movimiento.inafecto ?? 0;
+
+  this.iscXml =
+    movimiento.isc ?? 0;
+
+  this.icbperXml =
+    movimiento.icbper ?? 0;
+
+  this.exoneradoXml =
+    movimiento.exonerado ?? 0;
+
+  this.porcentajeIgvXml =
+    movimiento.porcentajeIgv ?? undefined;
+
+  this.tipoCambioXml =
+    movimiento.tipoCambio ?? undefined;
+
+  this.camposCompletadosXml = 0;
+} else {
+  this.xmlProcesado = false;
+
+  this.nombreArchivoXml = '';
+
+  this.hashArchivoXml = '';
+
+  this.fechaVencimientoXml = undefined;
+
+  this.baseImponibleXml = 0;
+
+  this.igvXml = 0;
+
+  this.inafectoXml = 0;
+
+  this.iscXml = 0;
+
+  this.icbperXml = 0;
+
+  this.exoneradoXml = 0;
+
+  this.porcentajeIgvXml = undefined;
+
+  this.tipoCambioXml = undefined;
+
+  this.camposCompletadosXml = 0;
+}
 
           this.formulario.markAsPristine();
 

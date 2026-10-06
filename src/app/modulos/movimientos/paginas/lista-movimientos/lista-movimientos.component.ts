@@ -446,6 +446,38 @@ cargandoMovimientos = false;
      FECHA
      ====================================================== */
 
+  fechaVisible(
+  movimiento: Movimiento,
+): string {
+  if (movimiento.tipoMovimiento === 1) {
+    return movimiento.fechaMovimiento;
+  }
+
+  if (movimiento.bCancelado === 0) {
+    return (
+      movimiento.fechaProyectada ??
+      movimiento.fechaMovimiento
+    );
+  }
+
+  return (
+    movimiento.fechaPago ??
+    movimiento.fechaMovimiento
+  );
+}
+
+etiquetaFecha(
+  movimiento: Movimiento,
+): string {
+  if (movimiento.tipoMovimiento === 1) {
+    return 'Ingreso';
+  }
+
+  return movimiento.bCancelado === 0
+    ? 'Vencimiento / proyectada'
+    : 'Pago real';
+}
+
   formatearFecha(fecha: string): string {
     const partes = fecha.split('-');
 

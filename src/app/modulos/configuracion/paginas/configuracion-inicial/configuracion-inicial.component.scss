@@ -214,6 +214,22 @@ form {
   color: #475569;
 }
 
+.campo input:disabled {
+  background: #f8fafc;
+  color: #64748b;
+  cursor: not-allowed;
+  opacity: 1;
+}
+
+.entrada-monto:has(input:disabled) {
+  background: #f8fafc;
+  border-color: #dbe3ef;
+}
+
+.entrada-monto:has(input:disabled) span {
+  color: #64748b;
+}
+
 .campo small {
   color: #94a3b8;
   font-size: 0.64rem;

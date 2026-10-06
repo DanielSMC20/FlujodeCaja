@@ -156,7 +156,7 @@
           <table>
             <thead>
               <tr>
-                <th>Fecha</th>
+                <th>Fecha aplicable</th>
 
                 <th>Movimiento</th>
 
@@ -177,9 +177,21 @@
                 <tr>
                   <!-- Fecha -->
 
-                  <td class="columna-fecha">
-                    {{ formatearFecha(movimiento.fechaMovimiento) }}
-                  </td>
+<td class="columna-fecha">
+
+  <strong>
+    {{
+      formatearFecha(
+        fechaVisible(movimiento)
+      )
+    }}
+  </strong>
+
+  <small>
+    {{ etiquetaFecha(movimiento) }}
+  </small>
+
+</td>
 
                   <!-- Movimiento -->
 

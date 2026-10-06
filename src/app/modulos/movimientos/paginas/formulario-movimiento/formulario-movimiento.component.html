@@ -173,7 +173,7 @@
         @if (mostrarFechaPago) {
           <div class="campo fecha-pago-campo">
             <label for="fechaPago">
-              Fecha de pago
+              Fecha real de pago
 
               <span> * </span>
             </label>
@@ -187,11 +187,11 @@
             />
 
             <small class="campo-ayuda">
-              Esta fecha se enviará al registro de pago del egreso.
+  Indica la fecha en que el dinero salió efectivamente de caja.
             </small>
 
             @if (mostrarError("fechaPago")) {
-              <small class="error"> La fecha de pago es obligatoria. </small>
+              <small class="error">   La fecha real de pago es obligatoria. </small>
             }
           </div>
         }

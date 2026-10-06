@@ -1,478 +1,347 @@
 <section class="pagina-detalle">
-  @if (cargandoMovimiento) {
-    <div class="movimiento-no-encontrado">
-      <div class="no-encontrado-icono">
-        <lucide-icon
-          [img]="iconos.noEncontrado"
-          [size]="22"
-          [strokeWidth]="1.8"
-        />
+  @if (movimiento$ | async; as movimiento) {
+    <!-- =========================================================
+         ENCABEZADO
+         ========================================================= -->
+
+    <header class="pagina-header">
+      <div class="header-principal">
+        <a
+          routerLink="/movimientos"
+          class="boton-volver"
+          aria-label="Volver a movimientos"
+        >
+          <lucide-icon [img]="iconos.volver" [size]="17" [strokeWidth]="1.9" />
+        </a>
+
+        <div>
+          <h1>Detalle del movimiento</h1>
+
+          <p>Consulta la información financiera y de registro.</p>
+        </div>
       </div>
 
-      <h2>Cargando movimiento...</h2>
-
-      <p>Consultando la información del registro.</p>
-    </div>
-  } @else {
-    @if (movimiento$ | async; as movimiento) {
-      <header class="pagina-header">
-        <div class="header-principal">
+      <div class="header-acciones">
+        @if (puedeEditar(movimiento)) {
           <a
-            routerLink="/movimientos"
-            class="boton-volver"
-            aria-label="Volver a movimientos"
+            class="boton-editar"
+            [routerLink]="['/movimientos', movimiento.id, 'editar']"
           >
             <lucide-icon
-              [img]="iconos.volver"
-              [size]="17"
+              [img]="iconos.editar"
+              [size]="16"
               [strokeWidth]="1.9"
             />
+
+            Editar movimiento
           </a>
+        }
 
-          <div>
-            <h1>Detalle del movimiento</h1>
-
-            <p>Consulta la información financiera y de registro.</p>
-          </div>
-        </div>
-
-        <div class="header-acciones">
-          @if (puedeEditar(movimiento)) {
-            <a
-              class="boton-editar"
-              [routerLink]="['/movimientos', movimiento.id, 'editar']"
-            >
-              <lucide-icon
-                [img]="iconos.editar"
-                [size]="16"
-                [strokeWidth]="1.9"
-              />
-
-              Editar movimiento
-            </a>
-          }
-
-          @if (puedeAnular(movimiento)) {
-            <button
-              type="button"
-              class="boton-anular"
-              [disabled]="procesandoAnulacion"
-              (click)="anularMovimiento(movimiento)"
-            >
-              <lucide-icon
-                [img]="iconos.anular"
-                [size]="16"
-                [strokeWidth]="1.9"
-              />
-
-              {{ procesandoAnulacion ? "Anulando..." : "Anular registro" }}
-            </button>
-          }
-        </div>
-      </header>
-
-      <!-- =========================================================
-           RESUMEN DEL MOVIMIENTO
-      ========================================================== -->
-
-      <article class="resumen-movimiento">
-        <div
-          class="resumen-icono"
-          [class.icono-ingreso]="esIngreso(movimiento)"
-          [class.icono-egreso]="esEgreso(movimiento)"
-        >
-          @if (esIngreso(movimiento)) {
+        @if (puedeAnular(movimiento)) {
+          <button
+            type="button"
+            class="boton-anular"
+            [disabled]="procesandoAnulacion"
+            (click)="anularMovimiento(movimiento)"
+          >
             <lucide-icon
-              [img]="iconos.ingreso"
-              [size]="20"
+              [img]="iconos.anular"
+              [size]="16"
               [strokeWidth]="1.9"
             />
-          } @else {
-            <lucide-icon
-              [img]="iconos.egreso"
-              [size]="20"
-              [strokeWidth]="1.9"
-            />
-          }
-        </div>
 
-        <div class="resumen-informacion">
-          <div class="resumen-etiquetas">
+            {{ procesandoAnulacion ? "Anulando..." : "Anular registro" }}
+          </button>
+        }
+      </div>
+    </header>
+
+    <!-- =========================================================
+         RESUMEN DEL MOVIMIENTO
+         ========================================================= -->
+
+    <article class="resumen-movimiento">
+      <div
+        class="resumen-icono"
+        [class.icono-ingreso]="esIngreso(movimiento)"
+        [class.icono-egreso]="esEgreso(movimiento)"
+      >
+        @if (esIngreso(movimiento)) {
+          <lucide-icon [img]="iconos.ingreso" [size]="20" [strokeWidth]="1.9" />
+        } @else {
+          <lucide-icon [img]="iconos.egreso" [size]="20" [strokeWidth]="1.9" />
+        }
+      </div>
+
+      <div class="resumen-informacion">
+        <div class="resumen-etiquetas">
+          <span
+            class="badge-tipo"
+            [class.badge-ingreso]="esIngreso(movimiento)"
+            [class.badge-egreso]="esEgreso(movimiento)"
+          >
+            {{ etiquetaTipoMovimiento(movimiento.tipoMovimiento) }}
+          </span>
+
+          @if (esEgreso(movimiento)) {
             <span
-              class="badge-tipo"
-              [class.badge-ingreso]="esIngreso(movimiento)"
-              [class.badge-egreso]="esEgreso(movimiento)"
+              class="badge-estado"
+              [class.estado-proyectado]="esProyectado(movimiento)"
+              [class.estado-pagado]="!esProyectado(movimiento)"
             >
-              {{ etiquetaTipoMovimiento(movimiento.tipoMovimiento) }}
+              {{ estadoEgreso(movimiento) }}
             </span>
+          }
 
-            @if (esEgreso(movimiento)) {
-              <span
-                class="badge-estado"
-                [class.estado-proyectado]="esProyectado(movimiento)"
-                [class.estado-pagado]="!esProyectado(movimiento)"
-              >
-                {{ estadoEgreso(movimiento) }}
-              </span>
-            }
+          @if (fueRegistradoConXml(movimiento)) {
+            <span class="badge-xml">
+              <lucide-icon [img]="iconos.xml" [size]="13" [strokeWidth]="1.9" />
 
-            @if (fueRegistradoConXml(movimiento)) {
-              <span class="badge-xml">
-                <lucide-icon
-                  [img]="iconos.xml"
-                  [size]="13"
-                  [strokeWidth]="1.9"
-                />
+              XML
+            </span>
+          }
+        </div>
 
-                XML
-              </span>
-            }
+        <h2>
+          {{ movimiento.descripcion }}
+        </h2>
+
+        <div class="resumen-meta">
+          <span>
+            {{ movimiento.categoria }}
+          </span>
+
+          <span class="separador"> • </span>
+
+          <span>
+            {{ formatearFecha(movimiento.fechaMovimiento) }}
+          </span>
+        </div>
+      </div>
+
+      <div
+        class="resumen-monto"
+        [class.monto-ingreso]="esIngreso(movimiento)"
+        [class.monto-egreso]="esEgreso(movimiento)"
+      >
+        {{ esIngreso(movimiento) ? "+" : "-" }}
+
+        {{ movimiento.monto | monedaSol }}
+      </div>
+    </article>
+
+    <!-- =========================================================
+         INGRESO
+         ========================================================= -->
+
+    @if (esIngreso(movimiento)) {
+      <article class="tarjeta-detalle tarjeta-ingreso">
+        <header class="tarjeta-header">
+          <div>
+            <span class="tarjeta-eyebrow"> Ingreso registrado </span>
+
+            <h2>Datos del ingreso</h2>
+
+            <p>Información necesaria para identificar la entrada de dinero.</p>
           </div>
+        </header>
 
-          <h2>
-            {{ movimiento.descripcion }}
-          </h2>
+        <div class="detalle-grid detalle-grid-ingreso">
+          <div class="detalle-item">
+            <span class="detalle-label"> Fecha del ingreso </span>
 
-          <div class="resumen-meta">
-            <span>
-              {{ movimiento.categoria }}
-            </span>
-
-            <span class="separador"> • </span>
-
-            <span>
+            <strong>
               {{ formatearFecha(movimiento.fechaMovimiento) }}
-            </span>
+            </strong>
+          </div>
+
+          <div class="detalle-item">
+            <span class="detalle-label"> Medio de ingreso </span>
+
+            <strong>
+              {{ etiquetaMedioPago(movimiento.medioPago) }}
+            </strong>
+          </div>
+
+          <div class="detalle-item">
+            <span class="detalle-label"> Origen del registro </span>
+
+            <strong>
+              {{
+                movimiento.origenRegistroDescripcion ||
+                  etiquetaOrigen(movimiento.origenRegistro)
+              }}
+            </strong>
+          </div>
+
+          <div class="detalle-item">
+            <span class="detalle-label"> Registrado por </span>
+
+            <strong>
+              {{ movimiento.usuarioRegistro || "No registrado" }}
+            </strong>
+          </div>
+
+          <div class="detalle-item">
+            <span class="detalle-label"> Fecha de registro </span>
+
+            <strong>
+              {{ formatearFechaHora(movimiento.fechaRegistro) }}
+            </strong>
           </div>
         </div>
 
-        <div
-          class="resumen-monto"
-          [class.monto-ingreso]="esIngreso(movimiento)"
-          [class.monto-egreso]="esEgreso(movimiento)"
-        >
-          {{ esIngreso(movimiento) ? "+" : "-" }}
+        @if (tieneObservacion(movimiento)) {
+          <div class="observacion-integrada">
+            <span class="detalle-label"> Observación </span>
 
-          {{ movimiento.monto | monedaSol }}
-        </div>
+            <p>
+              {{ movimiento.observacion }}
+            </p>
+          </div>
+        }
       </article>
-
+    } @else {
       <!-- =========================================================
-           INGRESO
-      ========================================================== -->
+           DATOS FINANCIEROS DEL EGRESO
+           ========================================================= -->
 
-      @if (esIngreso(movimiento)) {
-        <article class="tarjeta-detalle tarjeta-ingreso">
-          <header class="tarjeta-header">
-            <div>
-              <span class="tarjeta-eyebrow"> Ingreso registrado </span>
+      <article class="tarjeta-detalle">
+        <header class="tarjeta-header">
+          <div>
+            <span class="tarjeta-eyebrow"> Seguimiento del egreso </span>
 
-              <h2>Datos del ingreso</h2>
+            <h2>Datos financieros</h2>
 
-              <p>
-                Información necesaria para identificar la entrada de dinero.
-              </p>
-            </div>
-          </header>
+            <p>Información utilizada para controlar la salida de dinero.</p>
+          </div>
+        </header>
 
-          <div class="detalle-grid detalle-grid-ingreso">
+        <div class="detalle-grid">
+          <div class="detalle-item">
+            <span class="detalle-label"> Clasificador </span>
+
+            <strong>
+              {{ movimiento.categoria }}
+            </strong>
+          </div>
+
+          <div class="detalle-item">
+            <span class="detalle-label"> Estado </span>
+
+            <strong
+              class="estado-texto"
+              [class.texto-proyectado]="esProyectado(movimiento)"
+              [class.texto-pagado]="!esProyectado(movimiento)"
+            >
+              {{ estadoEgreso(movimiento) }}
+            </strong>
+          </div>
+
+          <div class="detalle-item">
+            <span class="detalle-label"> Medio de pago </span>
+
+            <strong>
+              {{ etiquetaMedioPago(movimiento.medioPago) }}
+            </strong>
+          </div>
+
+          @if (esProyectado(movimiento)) {
             <div class="detalle-item">
-              <span class="detalle-label"> Fecha del ingreso </span>
-
-              <strong>
-                {{ formatearFecha(movimiento.fechaMovimiento) }}
-              </strong>
-            </div>
-
-            <div class="detalle-item">
-              <span class="detalle-label"> Medio de ingreso </span>
-
-              <strong>
-                {{ etiquetaMedioPago(movimiento.medioPago) }}
-              </strong>
-            </div>
-
-            <div class="detalle-item">
-              <span class="detalle-label"> Origen del registro </span>
+              <span class="detalle-label">
+                Fecha de vencimiento / proyectada
+              </span>
 
               <strong>
                 {{
-                  movimiento.origenRegistroDescripcion ||
-                    etiquetaOrigen(movimiento.origenRegistro)
+                  formatearFecha(
+                    movimiento.fechaProyectada ?? movimiento.fechaMovimiento
+                  )
                 }}
               </strong>
             </div>
-
-            <div class="detalle-item">
-              <span class="detalle-label"> Registrado por </span>
-
-              <strong>
-                {{ movimiento.usuarioRegistro || "No registrado" }}
-              </strong>
-            </div>
-
-            <div class="detalle-item">
-              <span class="detalle-label"> Fecha de registro </span>
-
-              <strong>
-                {{ formatearFechaHora(movimiento.fechaRegistro) }}
-              </strong>
-            </div>
-          </div>
-
-          @if (tieneObservacion(movimiento)) {
-            <div class="observacion-integrada">
-              <span class="detalle-label"> Observación </span>
-
-              <p>
-                {{ movimiento.observacion }}
-              </p>
-            </div>
-          }
-        </article>
-      } @else {
-        <!-- =========================================================
-             DATOS FINANCIEROS DEL EGRESO
-        ========================================================== -->
-
-        <article class="tarjeta-detalle">
-          <header class="tarjeta-header">
-            <div>
-              <span class="tarjeta-eyebrow"> Seguimiento del egreso </span>
-
-              <h2>Datos financieros</h2>
-
-              <p>Información utilizada para controlar la salida de dinero.</p>
-            </div>
-          </header>
-
-          <div class="detalle-grid">
-            <div class="detalle-item">
-              <span class="detalle-label"> Clasificador </span>
-
-              <strong>
-                {{ movimiento.categoria }}
-              </strong>
-            </div>
-
-            <div class="detalle-item">
-              <span class="detalle-label"> Estado </span>
-
-              <strong
-                class="estado-texto"
-                [class.texto-proyectado]="esProyectado(movimiento)"
-                [class.texto-pagado]="!esProyectado(movimiento)"
-              >
-                {{ estadoEgreso(movimiento) }}
-              </strong>
-            </div>
-
-            <div class="detalle-item">
-              <span class="detalle-label"> Medio de pago </span>
-
-              <strong>
-                {{ etiquetaMedioPago(movimiento.medioPago) }}
-              </strong>
-            </div>
-
-            <div class="detalle-item">
-              <span class="detalle-label"> Fecha del movimiento </span>
-
-              <strong>
-                {{ formatearFecha(movimiento.fechaMovimiento) }}
-              </strong>
-            </div>
-
-            @if (esProyectado(movimiento)) {
+          } @else {
+            @if (movimiento.fechaProyectada) {
               <div class="detalle-item">
-                <span class="detalle-label"> Fecha proyectada </span>
+                <span class="detalle-label">
+                  Fecha de vencimiento / proyectada
+                </span>
 
                 <strong>
                   {{ formatearFecha(movimiento.fechaProyectada) }}
                 </strong>
               </div>
-            } @else {
-              <div class="detalle-item">
-                <span class="detalle-label"> Fecha de pago </span>
-
-                <strong>
-                  {{ formatearFecha(movimiento.fechaPago) }}
-                </strong>
-              </div>
             }
 
-            @if (!tieneComprobante(movimiento)) {
-              <div class="detalle-item sin-comprobante-compacto">
-                <span class="detalle-label"> Comprobante </span>
-
-                <strong> Sin comprobante </strong>
-              </div>
-            }
-          </div>
-        </article>
-
-        <!-- =========================================================
-             COMPROBANTE
-        ========================================================== -->
-
-        @if (tieneComprobante(movimiento)) {
-          <article class="tarjeta-detalle">
-            <header class="tarjeta-header">
-              <div>
-                <span class="tarjeta-eyebrow"> Documento de sustento </span>
-
-                <h2>Comprobante</h2>
-
-                <p>Información asociada al egreso registrado.</p>
-              </div>
-            </header>
-
-            <div class="detalle-grid">
-              <div class="detalle-item">
-                <span class="detalle-label"> Tipo de comprobante </span>
-
-                <strong>
-                  {{ etiquetaComprobante(movimiento.tipoComprobante) }}
-                </strong>
-              </div>
-
-              <div class="detalle-item">
-                <span class="detalle-label"> Fecha del comprobante </span>
-
-                <strong>
-                  {{ formatearFecha(movimiento.fechaComprobante) }}
-                </strong>
-              </div>
-
-              <div class="detalle-item">
-                <span class="detalle-label"> Serie y número </span>
-
-                <strong>
-                  {{ obtenerNumeroComprobante(movimiento) }}
-                </strong>
-              </div>
-
-              <div class="detalle-item">
-                <span class="detalle-label"> RUC / Documento del emisor </span>
-
-                <strong>
-                  {{ movimiento.documentoEmisor || "No registrado" }}
-                </strong>
-              </div>
-
-              <div class="detalle-item detalle-item-ancho">
-                <span class="detalle-label"> Proveedor / Emisor </span>
-
-                <strong>
-                  {{ movimiento.razonSocialEmisor || "No registrado" }}
-                </strong>
-              </div>
-            </div>
-          </article>
-        }
-
-        <!-- =========================================================
-             XML
-        ========================================================== -->
-
-        @if (fueRegistradoConXml(movimiento)) {
-          <article class="tarjeta-detalle tarjeta-xml">
-            <header class="tarjeta-header">
-              <div>
-                <span class="tarjeta-eyebrow"> Carga automatizada </span>
-
-                <h2>Registro asistido por XML</h2>
-
-                <p>
-                  Los datos del comprobante fueron procesados por el sistema.
-                </p>
-              </div>
-
-              <span class="xml-estado"> Procesado </span>
-            </header>
-
-            <div class="archivo-xml">
-              <div class="archivo-icono">
-                <lucide-icon
-                  [img]="iconos.xml"
-                  [size]="20"
-                  [strokeWidth]="1.8"
-                />
-              </div>
-
-              <div>
-                <span> Archivo utilizado </span>
-
-                <strong>
-                  {{ movimiento.archivoXmlNombre || "XML procesado" }}
-                </strong>
-              </div>
-            </div>
-          </article>
-        }
-
-        <!-- =========================================================
-             OBSERVACIÓN
-        ========================================================== -->
-
-        @if (tieneObservacion(movimiento)) {
-          <article class="tarjeta-detalle">
-            <header class="tarjeta-header">
-              <div>
-                <span class="tarjeta-eyebrow">
-                  Información complementaria
-                </span>
-
-                <h2>Observación</h2>
-              </div>
-            </header>
-
-            <p class="observacion-texto">
-              {{ movimiento.observacion }}
-            </p>
-          </article>
-        }
-
-        <!-- =========================================================
-             TRAZABILIDAD
-        ========================================================== -->
-
-        <article class="tarjeta-detalle">
-          <header class="tarjeta-header">
-            <div>
-              <span class="tarjeta-eyebrow"> Trazabilidad </span>
-
-              <h2>Información de registro</h2>
-
-              <p>Datos de control y auditoría del movimiento.</p>
-            </div>
-          </header>
-
-          <div class="detalle-grid auditoria-grid">
             <div class="detalle-item">
-              <span class="detalle-label"> Registrado por </span>
-
-              <strong>
-                {{ movimiento.usuarioRegistro || "No registrado" }}
-              </strong>
-            </div>
-
-            <div class="detalle-item">
-              <span class="detalle-label"> Fecha de registro </span>
-
-              <strong>
-                {{ formatearFechaHora(movimiento.fechaRegistro) }}
-              </strong>
-            </div>
-
-            <div class="detalle-item">
-              <span class="detalle-label"> Origen del registro </span>
+              <span class="detalle-label"> Fecha real de pago </span>
 
               <strong>
                 {{
-                  movimiento.origenRegistroDescripcion ||
-                    etiquetaOrigen(movimiento.origenRegistro)
+                  formatearFecha(
+                    movimiento.fechaPago ?? movimiento.fechaMovimiento
+                  )
                 }}
+              </strong>
+            </div>
+          }
+        </div>
+      </article>
+
+      <!-- =========================================================
+           COMPROBANTE
+           ========================================================= -->
+
+      @if (tieneComprobante(movimiento)) {
+        <article class="tarjeta-detalle">
+          <header class="tarjeta-header">
+            <div>
+              <span class="tarjeta-eyebrow"> Documento de sustento </span>
+
+              <h2>Comprobante</h2>
+
+              <p>Información asociada al egreso registrado.</p>
+            </div>
+          </header>
+
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <span class="detalle-label"> Tipo de comprobante </span>
+
+              <strong>
+                {{ etiquetaComprobante(movimiento.tipoComprobante) }}
+              </strong>
+            </div>
+
+            <div class="detalle-item">
+              <span class="detalle-label"> Fecha del comprobante </span>
+
+              <strong>
+                {{ formatearFecha(movimiento.fechaComprobante) }}
+              </strong>
+            </div>
+
+            <div class="detalle-item">
+              <span class="detalle-label"> Serie y número </span>
+
+              <strong>
+                {{ obtenerNumeroComprobante(movimiento) }}
+              </strong>
+            </div>
+
+            <div class="detalle-item">
+              <span class="detalle-label"> RUC / Documento del emisor </span>
+
+              <strong>
+                {{ movimiento.documentoEmisor || "No registrado" }}
+              </strong>
+            </div>
+
+            <div class="detalle-item detalle-item-ancho">
+              <span class="detalle-label"> Proveedor / Emisor </span>
+
+              <strong>
+                {{ movimiento.razonSocialEmisor || "No registrado" }}
               </strong>
             </div>
           </div>
@@ -480,19 +349,239 @@
       }
 
       <!-- =========================================================
-           PIE
-      ========================================================== -->
+           DATOS TRIBUTARIOS
+           ========================================================= -->
 
-      <footer class="pagina-footer">
-        <a routerLink="/movimientos" class="boton-secundario">
-          Volver a movimientos
-        </a>
-      </footer>
-    } @else {
+      @if (tieneComprobante(movimiento)) {
+        <article class="tarjeta-detalle">
+          <header class="tarjeta-header">
+            <div>
+              <span class="tarjeta-eyebrow"> Información tributaria </span>
+
+              <h2>Detalle tributario</h2>
+
+              <p>Importes obtenidos del comprobante electrónico.</p>
+            </div>
+          </header>
+
+          <div class="detalle-grid">
+            <div class="detalle-item">
+              <span class="detalle-label"> Base imponible </span>
+
+              <strong>
+                {{ movimiento.baseImponible ?? 0 | monedaSol }}
+              </strong>
+            </div>
+
+            <div class="detalle-item">
+              <span class="detalle-label"> IGV </span>
+
+              <strong>
+                {{ movimiento.igv ?? 0 | monedaSol }}
+              </strong>
+            </div>
+
+            <div class="detalle-item">
+              <span class="detalle-label"> Inafecto </span>
+
+              <strong>
+                {{ movimiento.inafecto ?? 0 | monedaSol }}
+              </strong>
+            </div>
+
+            <div class="detalle-item">
+              <span class="detalle-label"> Exonerado </span>
+
+              <strong>
+                {{ movimiento.exonerado ?? 0 | monedaSol }}
+              </strong>
+            </div>
+
+            <div class="detalle-item">
+              <span class="detalle-label"> ISC </span>
+
+              <strong>
+                {{ movimiento.isc ?? 0 | monedaSol }}
+              </strong>
+            </div>
+
+            <div class="detalle-item">
+              <span class="detalle-label"> ICBPER </span>
+
+              <strong>
+                {{ movimiento.icbper ?? 0 | monedaSol }}
+              </strong>
+            </div>
+
+            <div class="detalle-item">
+              <span class="detalle-label"> Porcentaje IGV </span>
+
+              <strong>
+                {{
+                  movimiento.porcentajeIgv != null
+                    ? movimiento.porcentajeIgv + "%"
+                    : "No registrado"
+                }}
+              </strong>
+            </div>
+
+            <div class="detalle-item">
+              <span class="detalle-label"> Tipo de cambio </span>
+
+              <strong>
+                {{
+                  movimiento.tipoCambio != null
+                    ? movimiento.tipoCambio
+                    : "No registrado"
+                }}
+              </strong>
+            </div>
+
+            @if (movimiento.fechaVencimiento) {
+              <div class="detalle-item">
+                <span class="detalle-label"> Vencimiento del comprobante </span>
+
+                <strong>
+                  {{ formatearFecha(movimiento.fechaVencimiento) }}
+                </strong>
+              </div>
+            }
+          </div>
+        </article>
+      }
+
       <!-- =========================================================
-           ERROR / NO ENCONTRADO
-      ========================================================== -->
+           XML
+           ========================================================= -->
 
+      @if (fueRegistradoConXml(movimiento)) {
+        <article class="tarjeta-detalle tarjeta-xml">
+          <header class="tarjeta-header">
+            <div>
+              <span class="tarjeta-eyebrow"> Carga automatizada </span>
+
+              <h2>Registro asistido por XML</h2>
+
+              <p>Los datos del comprobante fueron procesados por el sistema.</p>
+            </div>
+
+            <span class="xml-estado"> Procesado </span>
+          </header>
+
+          <div class="archivo-xml">
+            <div class="archivo-icono">
+              <lucide-icon [img]="iconos.xml" [size]="20" [strokeWidth]="1.8" />
+            </div>
+
+            <div>
+              <span> Archivo utilizado </span>
+
+              <strong>
+                {{ movimiento.archivoXmlNombre || "XML procesado" }}
+              </strong>
+            </div>
+          </div>
+        </article>
+      }
+
+      <!-- =========================================================
+           OBSERVACIÓN
+           ========================================================= -->
+
+      @if (tieneObservacion(movimiento)) {
+        <article class="tarjeta-detalle">
+          <header class="tarjeta-header">
+            <div>
+              <span class="tarjeta-eyebrow"> Información complementaria </span>
+
+              <h2>Observación</h2>
+            </div>
+          </header>
+
+          <p class="observacion-texto">
+            {{ movimiento.observacion }}
+          </p>
+        </article>
+      }
+
+      <!-- =========================================================
+           TRAZABILIDAD
+           ========================================================= -->
+
+      <article class="tarjeta-detalle">
+        <header class="tarjeta-header">
+          <div>
+            <span class="tarjeta-eyebrow"> Trazabilidad </span>
+
+            <h2>Información de registro</h2>
+
+            <p>Datos de control y auditoría del movimiento.</p>
+          </div>
+        </header>
+
+        <div class="detalle-grid auditoria-grid">
+          <div class="detalle-item">
+            <span class="detalle-label"> Registrado por </span>
+
+            <strong>
+              {{ movimiento.usuarioRegistro || "No registrado" }}
+            </strong>
+          </div>
+
+          <div class="detalle-item">
+            <span class="detalle-label"> Fecha de registro </span>
+
+            <strong>
+              {{ formatearFechaHora(movimiento.fechaRegistro) }}
+            </strong>
+          </div>
+
+          <div class="detalle-item">
+            <span class="detalle-label"> Origen del registro </span>
+
+            <strong>
+              {{
+                movimiento.origenRegistroDescripcion ||
+                  etiquetaOrigen(movimiento.origenRegistro)
+              }}
+            </strong>
+          </div>
+        </div>
+      </article>
+    }
+
+    <!-- =========================================================
+         PIE
+         ========================================================= -->
+
+    <footer class="pagina-footer">
+      <a routerLink="/movimientos" class="boton-secundario">
+        Volver a movimientos
+      </a>
+    </footer>
+  } @else {
+    <!-- =========================================================
+         LOADING / ERROR / NO ENCONTRADO
+         IMPORTANTE:
+         movimiento$ ya fue evaluado arriba, por eso el GET sí
+         se ejecuta aunque cargandoMovimiento sea true.
+         ========================================================= -->
+
+    @if (cargandoMovimiento) {
+      <div class="movimiento-no-encontrado">
+        <div class="no-encontrado-icono">
+          <lucide-icon
+            [img]="iconos.noEncontrado"
+            [size]="22"
+            [strokeWidth]="1.8"
+          />
+        </div>
+
+        <h2>Cargando movimiento...</h2>
+
+        <p>Consultando la información del registro.</p>
+      </div>
+    } @else {
       <div class="movimiento-no-encontrado">
         <div class="no-encontrado-icono">
           <lucide-icon
@@ -509,7 +598,7 @@
               : "Movimiento no encontrado"
           }}
         </h2>
-
+        
         <p>
           {{
             errorCargaMovimiento

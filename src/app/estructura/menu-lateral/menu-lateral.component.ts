@@ -21,7 +21,7 @@ import {
   Tags,
   LucideAngularModule,
   LucideIconData,
-  ReceiptText,
+  
 } from 'lucide-angular';
 
 import { AuthService } from '../../core/auth/auth.service';
@@ -85,11 +85,7 @@ export class MenuLateralComponent {
       path: '/reportes',
       icon: FileChartColumn,
     },
-    {
-      label: 'Registro de compras',
-      path: '/reportes/compras',
-      icon: ReceiptText,
-    },
+
   ];
 
   readonly opcionesGestion: OpcionMenu[] = [

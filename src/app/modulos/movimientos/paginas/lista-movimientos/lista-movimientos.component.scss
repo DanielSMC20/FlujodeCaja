@@ -472,6 +472,29 @@ tbody tr:hover {
   white-space: nowrap;
 }
 
+.columna-fecha strong,
+.columna-fecha small {
+  display: block;
+}
+
+.columna-fecha strong {
+  color: #334155;
+
+  font-size: 0.74rem;
+
+  font-weight: 650;
+
+  font-variant-numeric: tabular-nums;
+}
+
+.columna-fecha small {
+  margin-top: 0.18rem;
+
+  color: #94a3b8;
+
+  font-size: 0.6rem;
+}
+
 /* =========================================================
    BADGES
    ========================================================= */

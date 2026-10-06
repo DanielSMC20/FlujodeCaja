@@ -64,6 +64,7 @@ export class ConfiguracionInicialComponent implements OnInit {
 
   guardando = false;
   errorGuardado = '';
+  saldoYaConfigurado = false;
 
   readonly formulario = this.formBuilder.nonNullable.group({
     saldoInicial: [0, [Validators.required, Validators.min(0)]],
@@ -85,13 +86,33 @@ export class ConfiguracionInicialComponent implements OnInit {
       egresos: this.categoriaService.listarCategoriasPorTipo(2).pipe(take(1)),
     }).subscribe({
       next: ({ configuracion, ingresos, egresos }) => {
+        if (configuracion?.configuracionInicialCompletada === true) {
+          this.saldoYaConfigurado = true;
+
+          this.formulario.patchValue({
+            saldoInicial: configuracion.saldoInicial,
+            fechaSaldoInicial: configuracion.fechaSaldoInicial,
+          });
+
+          this.formulario.controls.saldoInicial.disable({
+            emitEvent: false,
+          });
+
+          this.formulario.controls.fechaSaldoInicial.disable({
+            emitEvent: false,
+          });
+        }
+
         if (
           configuracion?.configuracionInicialCompletada === true &&
           this.existeClasificadorVentas(ingresos) &&
           egresos.length > 0
         ) {
           void this.router.navigateByUrl('/inicio');
+          return;
         }
+
+        this.changeDetectorRef.markForCheck();
       },
       error: () => {
         // La pantalla queda disponible para que el usuario pueda completar

@@ -20,32 +20,54 @@ import { SesionEmpresaService } from './sesion-empresa.service';
 
 interface MovimientoBackendResponse {
   id: number;
+
   tipoMovimiento: number;
   tipoMovimientoDescripcion?: string | null;
+
   categoriaId: number;
   categoria: string;
+
   fechaMovimiento: string;
   fechaProyectada?: string | null;
   fechaPago?: string | null;
+
   cancelado?: boolean | null;
+
   descripcion: string;
   monto: number;
+
   medioPago?: number | null;
   medioPagoDescripcion?: string | null;
+
   tipoComprobante?: number | null;
   tipoComprobanteDescripcion?: string | null;
+
   moneda?: number | null;
   monedaDescripcion?: string | null;
   monedaAbreviatura?: string | null;
+
   origenRegistro?: number | null;
   origenRegistroDescripcion?: string | null;
+
   observacion?: string | null;
   activo?: boolean | null;
   fechaComprobante?: string | null;
+  fechaVencimiento?: string | null;
+
   serieComprobante?: string | null;
   numeroComprobante?: string | null;
+
   documentoEmisor?: string | null;
   razonSocialEmisor?: string | null;
+  baseImponible?: number | null;
+  igv?: number | null;
+  inafecto?: number | null;
+  isc?: number | null;
+  icbper?: number | null;
+  exonerado?: number | null;
+
+  porcentajeIgv?: number | null;
+  tipoCambio?: number | null;
   archivoXmlNombre?: string | null;
   hashXml?: string | null;
   usuarioRegistroId?: number | null;
@@ -141,39 +163,118 @@ export class MovimientoService {
       );
   }
 
-  actualizarMovimiento(
-    id: number,
-    request: RegistrarMovimientoRequest,
-  ): Observable<Movimiento> {
-    return this.http
-      .put<MovimientoBackendResponse>(
-        `${API_CONFIG.baseUrl}/movimientos/${id}`,
-        {
-          categoriaId: request.categoriaId,
-          fechaMovimiento: request.fechaMovimiento || null,
-          fechaProyectada: request.fechaProyectada || null,
-          descripcion: request.descripcion.trim(),
-          monto: Number(request.monto),
-          medioPago: request.medioPago ?? null,
-          tipoComprobante: request.tipoComprobante ?? null,
-          moneda: request.moneda ?? 1,
-          observacion: request.observacion?.trim() || null,
-          fechaComprobante: request.fechaComprobante || null,
-          serieComprobante: request.serieComprobante?.trim() || null,
-          numeroComprobante: request.numeroComprobante?.trim() || null,
-          documentoEmisor: request.documentoEmisor?.trim() || null,
-          razonSocialEmisor: request.razonSocialEmisor?.trim() || null,
-          archivoXmlNombre: request.archivoXmlNombre?.trim() || null,
-          hashXml: request.hashXml?.trim() || null,
-        },
-      )
-      .pipe(
-        map((response) => this.mapearMovimiento(response)),
-        catchError((error: HttpErrorResponse) =>
-          throwError(() => new Error(this.obtenerMensajeError(error))),
-        ),
-      );
-  }
+actualizarMovimiento(
+  id: number,
+  request: RegistrarMovimientoRequest,
+): Observable<Movimiento> {
+
+  return this.http
+    .put<MovimientoBackendResponse>(
+      `${API_CONFIG.baseUrl}/movimientos/${id}`,
+      {
+        categoriaId:
+          request.categoriaId,
+
+        fechaMovimiento:
+          request.fechaMovimiento || null,
+
+        fechaProyectada:
+          request.fechaProyectada || null,
+
+        descripcion:
+          request.descripcion.trim(),
+
+        monto:
+          Number(request.monto),
+
+        medioPago:
+          request.medioPago ?? null,
+
+        tipoComprobante:
+          request.tipoComprobante ?? null,
+
+        moneda:
+          request.moneda ?? 1,
+
+        observacion:
+          request.observacion?.trim() || null,
+
+        /* =============================================
+           COMPROBANTE
+           ============================================= */
+
+        fechaComprobante:
+          request.fechaComprobante || null,
+
+        fechaVencimiento:
+          request.fechaVencimiento || null,
+
+        serieComprobante:
+          request.serieComprobante?.trim() || null,
+
+        numeroComprobante:
+          request.numeroComprobante?.trim() || null,
+
+        documentoEmisor:
+          request.documentoEmisor?.trim() || null,
+
+        razonSocialEmisor:
+          request.razonSocialEmisor?.trim() || null,
+
+        /* =============================================
+           DATOS TRIBUTARIOS
+           ============================================= */
+
+        baseImponible:
+          request.baseImponible ?? null,
+
+        igv:
+          request.igv ?? null,
+
+        inafecto:
+          request.inafecto ?? null,
+
+        isc:
+          request.isc ?? null,
+
+        icbper:
+          request.icbper ?? null,
+
+        exonerado:
+          request.exonerado ?? null,
+
+        porcentajeIgv:
+          request.porcentajeIgv ?? null,
+
+        tipoCambio:
+          request.tipoCambio ?? null,
+
+        /* =============================================
+           XML
+           ============================================= */
+
+        archivoXmlNombre:
+          request.archivoXmlNombre?.trim() || null,
+
+        hashXml:
+          request.hashXml?.trim() || null,
+      },
+    )
+    .pipe(
+      map((response) =>
+        this.mapearMovimiento(response)
+      ),
+
+      catchError((error: HttpErrorResponse) =>
+        throwError(
+          () =>
+            new Error(
+              this.obtenerMensajeError(error)
+            )
+        )
+      ),
+    );
+}
 
   marcarEgresoComoCancelado(
     movimientoId: number,
@@ -257,83 +358,282 @@ export class MovimientoService {
       );
   }
 
-  private construirPayloadRegistro(request: RegistrarMovimientoRequest) {
-    const cancelado: boolean | null =
-      request.tipoMovimiento === 2
-        ? (request.cancelado ?? request.bCancelado === 1)
-        : null;
+private construirPayloadRegistro(request: RegistrarMovimientoRequest) {
+  const cancelado: boolean | null =
+    request.tipoMovimiento === 2
+      ? (request.cancelado ?? request.bCancelado === 1)
+      : null;
 
-    return {
-      tipoMovimiento: request.tipoMovimiento,
-      categoriaId: request.categoriaId,
-      fechaMovimiento: request.fechaMovimiento || null,
-      fechaProyectada:
-        request.tipoMovimiento === 2 && cancelado === false
-          ? request.fechaProyectada || request.fechaMovimiento || null
-          : request.fechaProyectada || null,
-      fechaPago:
-        request.tipoMovimiento === 2 && cancelado === true
-          ? request.fechaPago || request.fechaMovimiento || null
-          : request.fechaPago || null,
-      cancelado,
-      descripcion: request.descripcion.trim(),
-      monto: Number(request.monto),
-      medioPago: request.medioPago ?? null,
-      tipoComprobante: request.tipoComprobante ?? null,
-      moneda: request.moneda ?? 1,
-      observacion: request.observacion?.trim() || null,
-      fechaComprobante: request.fechaComprobante || null,
-      serieComprobante: request.serieComprobante?.trim() || null,
-      numeroComprobante: request.numeroComprobante?.trim() || null,
-      documentoEmisor: request.documentoEmisor?.trim() || null,
-      razonSocialEmisor: request.razonSocialEmisor?.trim() || null,
-      archivoXmlNombre: request.archivoXmlNombre?.trim() || null,
-      hashXml: request.hashXml?.trim() || null,
-    };
-  }
+  return {
+    tipoMovimiento: request.tipoMovimiento,
 
-  private mapearMovimiento(response: MovimientoBackendResponse): Movimiento {
-    const cancelado = response.cancelado ?? true;
+    categoriaId: request.categoriaId,
 
-    return {
-      id: response.id,
-      empresaId: this.sesionEmpresaService.empresaActualId,
-      tipoMovimiento: response.tipoMovimiento,
-      tipoMovimientoDescripcion:
-        response.tipoMovimientoDescripcion ?? undefined,
-      categoriaId: response.categoriaId,
-      categoria: response.categoria,
-      fechaMovimiento: response.fechaMovimiento,
-      fechaProyectada: response.fechaProyectada ?? null,
-      fechaPago: response.fechaPago ?? null,
-      bCancelado: cancelado ? 1 : 0,
-      cancelado,
-      descripcion: response.descripcion,
-      monto: Number(response.monto),
-      medioPago: response.medioPago ?? 9,
-      medioPagoDescripcion: response.medioPagoDescripcion ?? undefined,
-      tipoComprobante: response.tipoComprobante ?? 5,
-      tipoComprobanteDescripcion:
-        response.tipoComprobanteDescripcion ?? undefined,
-      moneda: response.moneda ?? 1,
-      monedaDescripcion: response.monedaDescripcion ?? undefined,
-      monedaAbreviatura: response.monedaAbreviatura ?? undefined,
-      origenRegistro: response.origenRegistro ?? 1,
-      origenRegistroDescripcion:
-        response.origenRegistroDescripcion ?? undefined,
-      observacion: response.observacion ?? null,
-      activo: response.activo ?? true,
-      fechaComprobante: response.fechaComprobante ?? null,
-      serieComprobante: response.serieComprobante ?? null,
-      numeroComprobante: response.numeroComprobante ?? null,
-      documentoEmisor: response.documentoEmisor ?? null,
-      razonSocialEmisor: response.razonSocialEmisor ?? null,
-      archivoXmlNombre: response.archivoXmlNombre ?? null,
-      hashXml: response.hashXml ?? null,
-      usuarioRegistro: response.usuarioRegistro ?? null,
-      fechaRegistro: response.fechaRegistro ?? null,
-    };
-  }
+    fechaMovimiento:
+      request.fechaMovimiento || null,
+
+    fechaProyectada:
+      request.tipoMovimiento === 2 && cancelado === false
+        ? request.fechaProyectada ||
+          request.fechaMovimiento ||
+          null
+        : request.fechaProyectada || null,
+
+    fechaPago:
+      request.tipoMovimiento === 2 && cancelado === true
+        ? request.fechaPago ||
+          request.fechaMovimiento ||
+          null
+        : request.fechaPago || null,
+
+    cancelado,
+
+    descripcion:
+      request.descripcion.trim(),
+
+    monto:
+      Number(request.monto),
+
+    medioPago:
+      request.medioPago ?? null,
+
+    tipoComprobante:
+      request.tipoComprobante ?? null,
+
+    moneda:
+      request.moneda ?? 1,
+
+    observacion:
+      request.observacion?.trim() || null,
+
+    /* =====================================================
+       COMPROBANTE
+       ===================================================== */
+
+    fechaComprobante:
+      request.fechaComprobante || null,
+
+    fechaVencimiento:
+      request.fechaVencimiento || null,
+
+    serieComprobante:
+      request.serieComprobante?.trim() || null,
+
+    numeroComprobante:
+      request.numeroComprobante?.trim() || null,
+
+    documentoEmisor:
+      request.documentoEmisor?.trim() || null,
+
+    razonSocialEmisor:
+      request.razonSocialEmisor?.trim() || null,
+
+    /* =====================================================
+       DATOS TRIBUTARIOS
+       ===================================================== */
+
+    baseImponible:
+      request.baseImponible ?? null,
+
+    igv:
+      request.igv ?? null,
+
+    inafecto:
+      request.inafecto ?? null,
+
+    isc:
+      request.isc ?? null,
+
+    icbper:
+      request.icbper ?? null,
+
+    exonerado:
+      request.exonerado ?? null,
+
+    porcentajeIgv:
+      request.porcentajeIgv ?? null,
+
+    tipoCambio:
+      request.tipoCambio ?? null,
+
+    /* =====================================================
+       XML
+       ===================================================== */
+
+    archivoXmlNombre:
+      request.archivoXmlNombre?.trim() || null,
+
+    hashXml:
+      request.hashXml?.trim() || null,
+  };
+}
+
+private mapearMovimiento(
+  response: MovimientoBackendResponse,
+): Movimiento {
+
+  const cancelado =
+    response.cancelado ?? true;
+
+  return {
+    id:
+      response.id,
+
+    empresaId:
+      this.sesionEmpresaService.empresaActualId,
+
+    tipoMovimiento:
+      response.tipoMovimiento,
+
+    tipoMovimientoDescripcion:
+      response.tipoMovimientoDescripcion ?? undefined,
+
+    categoriaId:
+      response.categoriaId,
+
+    categoria:
+      response.categoria,
+
+    fechaMovimiento:
+      response.fechaMovimiento,
+
+    fechaProyectada:
+      response.fechaProyectada ?? null,
+
+    fechaPago:
+      response.fechaPago ?? null,
+
+    bCancelado:
+      cancelado ? 1 : 0,
+
+    cancelado,
+
+    descripcion:
+      response.descripcion,
+
+    monto:
+      Number(response.monto),
+
+    medioPago:
+      response.medioPago ?? 9,
+
+    medioPagoDescripcion:
+      response.medioPagoDescripcion ?? undefined,
+
+    tipoComprobante:
+      response.tipoComprobante ?? 5,
+
+    tipoComprobanteDescripcion:
+      response.tipoComprobanteDescripcion ?? undefined,
+
+    moneda:
+      response.moneda ?? 1,
+
+    monedaDescripcion:
+      response.monedaDescripcion ?? undefined,
+
+    monedaAbreviatura:
+      response.monedaAbreviatura ?? undefined,
+
+    origenRegistro:
+      response.origenRegistro ?? 1,
+
+    origenRegistroDescripcion:
+      response.origenRegistroDescripcion ?? undefined,
+
+    observacion:
+      response.observacion ?? null,
+
+    activo:
+      response.activo ?? true,
+
+    /* =============================================
+       COMPROBANTE
+       ============================================= */
+
+    fechaComprobante:
+      response.fechaComprobante ?? null,
+
+    fechaVencimiento:
+      response.fechaVencimiento ?? null,
+
+    serieComprobante:
+      response.serieComprobante ?? null,
+
+    numeroComprobante:
+      response.numeroComprobante ?? null,
+
+    documentoEmisor:
+      response.documentoEmisor ?? null,
+
+    razonSocialEmisor:
+      response.razonSocialEmisor ?? null,
+
+    /* =============================================
+       DATOS TRIBUTARIOS
+       ============================================= */
+
+    baseImponible:
+      response.baseImponible != null
+        ? Number(response.baseImponible)
+        : null,
+
+    igv:
+      response.igv != null
+        ? Number(response.igv)
+        : null,
+
+    inafecto:
+      response.inafecto != null
+        ? Number(response.inafecto)
+        : null,
+
+    isc:
+      response.isc != null
+        ? Number(response.isc)
+        : null,
+
+    icbper:
+      response.icbper != null
+        ? Number(response.icbper)
+        : null,
+
+    exonerado:
+      response.exonerado != null
+        ? Number(response.exonerado)
+        : null,
+
+    porcentajeIgv:
+      response.porcentajeIgv != null
+        ? Number(response.porcentajeIgv)
+        : null,
+
+    tipoCambio:
+      response.tipoCambio != null
+        ? Number(response.tipoCambio)
+        : null,
+
+    /* =============================================
+       XML
+       ============================================= */
+
+    archivoXmlNombre:
+      response.archivoXmlNombre ?? null,
+
+    hashXml:
+      response.hashXml ?? null,
+
+    /* =============================================
+       AUDITORÍA
+       ============================================= */
+
+    usuarioRegistro:
+      response.usuarioRegistro ?? null,
+
+    fechaRegistro:
+      response.fechaRegistro ?? null,
+  };
+}
 
   private obtenerMensajeError(error: HttpErrorResponse): string {
     const apiError = error.error as ApiErrorResponse | null;
