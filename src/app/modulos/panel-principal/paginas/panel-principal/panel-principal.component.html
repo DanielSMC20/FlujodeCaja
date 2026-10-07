@@ -1,203 +1,699 @@
 <section class="dashboard">
-  <header class="dashboard-header">
-    <div class="dashboard-title">
-      <span class="dashboard-eyebrow">
-        <lucide-icon [img]="iconos.periodo" [size]="15" [strokeWidth]="2" />
 
-        {{ etiquetaPeriodoSeleccionado }}
+  <!-- =====================================================
+       ENCABEZADO
+       ===================================================== -->
+
+  <header class="dashboard-header">
+
+    <div class="dashboard-title">
+
+      <span class="dashboard-eyebrow">
+        <lucide-icon
+          [img]="iconos.periodo"
+          [size]="15"
+          [strokeWidth]="2"
+        />
+
+        Resumen financiero
       </span>
 
-      <h1>Resumen del flujo de caja</h1>
+      <h1>
+        Resumen del flujo de caja
+      </h1>
 
       <p>
-        Consulta rápidamente la posición de caja de la empresa y los compromisos
-        pendientes del periodo.
+        Compara el comportamiento financiero de la empresa
+        durante los últimos tres años.
       </p>
+
     </div>
 
-    <app-filtro-periodo
-      [value]="periodoSeleccionado"
-      (valueChange)="cambiarPeriodo($event)"
-    />
+
+    <div class="periodo-comparado">
+
+      <span>
+        Periodo comparado
+      </span>
+
+      <strong>
+        {{ anioDesde }}
+        —
+        {{ anioActual }}
+      </strong>
+
+      <small>
+        Últimos 3 años
+      </small>
+
+    </div>
+
   </header>
 
-  @if (resumen$ | async; as vista) {
-    <section class="resumen-panel" aria-label="Resumen del flujo de caja">
-      <header class="resumen-panel__header">
-        <div>
-          <span> Resumen financiero </span>
 
-          <h2>Situación de caja del periodo</h2>
-        </div>
+  <!-- =====================================================
+       CONTENIDO
+       ===================================================== -->
 
-        <a routerLink="/flujo-caja" class="enlace-flujo">
-          Ver flujo detallado
+  @if (
+    resumenAnual$ | async;
+    as resumen
+  ) {
 
-          <lucide-icon [img]="iconos.siguiente" [size]="16" [strokeWidth]="2" />
-        </a>
-      </header>
+    @if (
+      resumen.length > 0
+    ) {
 
-      <div class="resumen-grid">
-        <!-- ==================================================
-             SALDO INICIAL
-        =================================================== -->
+      <section class="resumen-panel">
 
-        <article class="resumen-card resumen-card--opening">
-          <div class="resumen-card__titulo">
-            <span> Saldo inicial </span>
+        <!-- ===============================================
+             CABECERA DEL PANEL
+             =============================================== -->
 
-            <span class="estado-consulta"> Solo consulta </span>
+        <header class="resumen-panel__header">
+
+          <div>
+
+            <span>
+              Comparativo anual
+            </span>
+
+            <h2>
+              Situación del flujo de caja
+            </h2>
+
+            <p>
+              Ingresos, egresos y saldos agrupados
+              por ejercicio.
+            </p>
+
           </div>
 
-          <strong>
-            {{ vista.resumen.saldoInicialReal | monedaSol }}
-          </strong>
 
-          <small>
-            Punto de partida del periodo. No se considera un ingreso.
-          </small>
-        </article>
-
-        <!-- ==================================================
-             INGRESOS
-        =================================================== -->
-
-        <article class="resumen-card resumen-card--income">
-          <span> Ingresos </span>
-
-          <strong>
-            {{ vista.resumen.totalIngresos | monedaSol }}
-          </strong>
-
-          <small> Entradas reales registradas durante el periodo. </small>
-        </article>
-
-        <!-- ==================================================
-             EGRESOS PAGADOS
-        =================================================== -->
-
-        <article class="resumen-card resumen-card--expense-paid">
-          <span> Egresos pagados </span>
-
-          <strong>
-            {{ vista.resumen.totalEgresosPagados | monedaSol }}
-          </strong>
-
-          <small> Pagos que ya fueron ejecutados. </small>
-        </article>
-
-        <!-- ==================================================
-             EGRESOS PROYECTADOS
-        =================================================== -->
-
-        <article class="resumen-card resumen-card--expense-projected">
-          <span> Egresos proyectados </span>
-
-          <strong>
-            {{ vista.resumen.totalEgresosProyectados | monedaSol }}
-          </strong>
-
-          <small>
-            Compromisos pendientes considerados para planificación.
-          </small>
-        </article>
-
-        <!-- ==================================================
-             SALDO FINAL REAL
-        =================================================== -->
-
-        <article class="resumen-card resumen-card--final">
-          <span> Saldo final real </span>
-
-          <strong [class.valor-negativo]="vista.resumen.saldoFinalReal < 0">
-            {{ vista.resumen.saldoFinalReal | monedaSol }}
-          </strong>
-
-          <small>
-            Saldo disponible considerando únicamente pagos realizados.
-          </small>
-        </article>
-
-        <!-- ==================================================
-             SALDO PROYECTADO
-        =================================================== -->
-
-        <article class="resumen-card resumen-card--projected">
-          <span> Saldo proyectado </span>
-
-          <strong
-            [class.valor-negativo]="vista.resumen.saldoFinalProyectado < 0"
+          <a
+            routerLink="/flujo-caja"
+            class="enlace-flujo"
           >
-            {{ vista.resumen.saldoFinalProyectado | monedaSol }}
-          </strong>
 
-          <small>
-            Saldo estimado considerando también los egresos pendientes.
-          </small>
-        </article>
-      </div>
+            Ver flujo de caja
 
-      <!-- ==================================================
-           INFORMACIÓN DEL SALDO INICIAL
-      =================================================== -->
-
-      <div class="saldo-inicial-ayuda">
-        <div class="saldo-inicial-ayuda__icono">
-          <lucide-icon [img]="iconos.saldo" [size]="20" [strokeWidth]="1.9" />
-        </div>
-
-        <div>
-          <strong> Saldo inicial de la empresa </strong>
-
-          <p>
-            Se registra una sola vez durante la configuración inicial. Después
-            permanece como dato de consulta para evitar modificaciones
-            accidentales que puedan descuadrar el flujo.
-          </p>
-        </div>
-
-        @if (esAdministrador) {
-          <a routerLink="/configuracion" class="enlace-configuracion">
             <lucide-icon
-              [img]="iconos.configuracion"
+              [img]="iconos.siguiente"
               [size]="16"
               [strokeWidth]="2"
             />
 
-            Consultar apertura
           </a>
-        }
-      </div>
-    </section>
 
-    <!-- ==================================================
-         ACCESOS
-    =================================================== -->
+        </header>
 
-    <section class="accesos-secundarios" aria-label="Accesos de análisis">
-      <a routerLink="/flujo-caja">
-        <lucide-icon [img]="iconos.flujo" [size]="19" [strokeWidth]="2" />
+
+        <!-- ===============================================
+             TABLA
+             =============================================== -->
+
+        <div class="tabla-contenedor">
+
+          <table class="tabla-resumen">
+
+            <thead>
+
+              <tr>
+
+                <th class="columna-concepto">
+                  Concepto
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <th>
+
+                    <div class="encabezado-anio">
+
+                      <strong>
+                        {{ fila.anio }}
+                      </strong>
+
+
+                      @if (
+                        fila.anio === anioActual
+                      ) {
+
+                        <span>
+                          Actual
+                        </span>
+
+                      }
+
+                    </div>
+
+                  </th>
+
+                }
+
+              </tr>
+
+            </thead>
+
+
+            <tbody>
+
+              <!-- =========================================
+                   SALDO INICIAL
+                   ========================================= -->
+
+              <tr class="fila-saldo-inicial">
+
+                <th>
+                  Saldo inicial
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <td
+                    [class.valor-negativo]="
+                      fila.saldoInicial < 0
+                    "
+                  >
+
+                    {{
+                      fila.saldoInicial
+                        | monedaSol
+                    }}
+
+                  </td>
+
+                }
+
+              </tr>
+
+
+              <tr class="fila-separador">
+                <td
+                  [attr.colspan]="
+                    resumen.length + 1
+                  "
+                ></td>
+              </tr>
+
+
+              <!-- =========================================
+                   INGRESOS
+                   ========================================= -->
+
+              <tr class="fila-seccion fila-seccion--ingreso">
+
+                <th>
+                  Ingresos
+                </th>
+
+                <td
+                  [attr.colspan]="
+                    resumen.length
+                  "
+                >
+                  Entradas de efectivo registradas
+                  durante el ejercicio
+                </td>
+
+              </tr>
+
+
+              <tr class="fila-ingreso">
+
+                <th>
+                  Ingresos corrientes
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <td>
+                    {{
+                      fila.ingresosCorrientes
+                        | monedaSol
+                    }}
+                  </td>
+
+                }
+
+              </tr>
+
+
+              <tr class="fila-ingreso">
+
+                <th>
+                  Ingresos no corrientes
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <td>
+                    {{
+                      fila.ingresosNoCorrientes
+                        | monedaSol
+                    }}
+                  </td>
+
+                }
+
+              </tr>
+
+
+              <tr class="fila-ingreso">
+
+                <th>
+                  Ingresos financieros
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <td>
+                    {{
+                      fila.ingresosFinancieros
+                        | monedaSol
+                    }}
+                  </td>
+
+                }
+
+              </tr>
+
+
+              <tr class="fila-total fila-total--ingresos">
+
+                <th>
+                  Total ingresos
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <td>
+                    {{
+                      fila.totalIngresos
+                        | monedaSol
+                    }}
+                  </td>
+
+                }
+
+              </tr>
+
+
+              <tr class="fila-separador">
+                <td
+                  [attr.colspan]="
+                    resumen.length + 1
+                  "
+                ></td>
+              </tr>
+
+
+              <!-- =========================================
+                   EGRESOS
+                   ========================================= -->
+
+              <tr class="fila-seccion fila-seccion--egreso">
+
+                <th>
+                  Egresos
+                </th>
+
+                <td
+                  [attr.colspan]="
+                    resumen.length
+                  "
+                >
+                  Salidas efectivamente pagadas
+                  durante el ejercicio
+                </td>
+
+              </tr>
+
+
+              <tr class="fila-egreso">
+
+                <th>
+                  Egresos corrientes
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <td>
+                    {{
+                      fila.egresosCorrientes
+                        | monedaSol
+                    }}
+                  </td>
+
+                }
+
+              </tr>
+
+
+              <tr class="fila-egreso">
+
+                <th>
+                  Egresos no corrientes
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <td>
+                    {{
+                      fila.egresosNoCorrientes
+                        | monedaSol
+                    }}
+                  </td>
+
+                }
+
+              </tr>
+
+
+              <tr class="fila-egreso">
+
+                <th>
+                  Egresos financieros
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <td>
+                    {{
+                      fila.egresosFinancieros
+                        | monedaSol
+                    }}
+                  </td>
+
+                }
+
+              </tr>
+
+
+              <tr class="fila-total fila-total--egresos">
+
+                <th>
+                  Total egresos
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <td>
+                    {{
+                      fila.totalEgresos
+                        | monedaSol
+                    }}
+                  </td>
+
+                }
+
+              </tr>
+
+
+              <tr class="fila-separador">
+                <td
+                  [attr.colspan]="
+                    resumen.length + 1
+                  "
+                ></td>
+              </tr>
+
+
+              <!-- =========================================
+                   RESULTADOS
+                   ========================================= -->
+
+              <tr class="fila-saldo-final">
+
+                <th>
+
+                  <strong>
+                    Saldo final
+                  </strong>
+
+                  <small>
+                    Saldo inicial + ingresos − egresos
+                  </small>
+
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <td
+                    [class.valor-negativo]="
+                      fila.saldoFinal < 0
+                    "
+                  >
+
+                    {{
+                      fila.saldoFinal
+                        | monedaSol
+                    }}
+
+                  </td>
+
+                }
+
+              </tr>
+
+
+              <tr class="fila-saldo-operativo">
+
+                <th>
+
+                  <strong>
+                    Saldo operativo
+                  </strong>
+
+                  <small>
+                    Ingresos − egresos
+                  </small>
+
+                </th>
+
+
+                @for (
+                  fila of resumen;
+                  track fila.anio
+                ) {
+
+                  <td
+                    [class.valor-negativo]="
+                      fila.saldoOperativo < 0
+                    "
+                  >
+
+                    {{
+                      fila.saldoOperativo
+                        | monedaSol
+                    }}
+
+                  </td>
+
+                }
+
+              </tr>
+
+            </tbody>
+
+          </table>
+
+        </div>
+
+
+        <!-- ===============================================
+             NOTA
+             =============================================== -->
+
+        <div class="nota-resumen">
+
+          <div class="nota-resumen__icono">
+
+            <lucide-icon
+              [img]="iconos.periodo"
+              [size]="18"
+              [strokeWidth]="2"
+            />
+
+          </div>
+
+
+          <div>
+
+            <strong>
+              Cómo leer este resumen
+            </strong>
+
+            <p>
+              El saldo operativo representa la diferencia
+              entre ingresos y egresos del año. El saldo
+              final incorpora además el saldo inicial.
+              Los egresos proyectados pendientes no se
+              incluyen como egresos realizados.
+            </p>
+
+          </div>
+
+        </div>
+
+      </section>
+
+
+      <!-- =================================================
+           ACCESOS
+           ================================================= -->
+
+      <section
+        class="accesos-secundarios"
+        aria-label="Accesos rápidos"
+      >
+
+        <a
+          routerLink="/flujo-caja"
+        >
+
+          <span class="acceso-icono">
+
+            <lucide-icon
+              [img]="iconos.flujo"
+              [size]="19"
+              [strokeWidth]="2"
+            />
+
+          </span>
+
+
+          <span>
+
+            <strong>
+              Flujo de caja
+            </strong>
+
+            <small>
+              Revisa el detalle diario,
+              movimientos y egresos proyectados.
+            </small>
+
+          </span>
+
+
+          <lucide-icon
+            [img]="iconos.siguiente"
+            [size]="17"
+            [strokeWidth]="2"
+          />
+
+        </a>
+
+
+        <a
+          routerLink="/reportes"
+        >
+
+          <span class="acceso-icono">
+
+            <lucide-icon
+              [img]="iconos.periodo"
+              [size]="19"
+              [strokeWidth]="2"
+            />
+
+          </span>
+
+
+          <span>
+
+            <strong>
+              Reportes
+            </strong>
+
+            <small>
+              Consulta movimientos,
+              periodos y registro de compras.
+            </small>
+
+          </span>
+
+
+          <lucide-icon
+            [img]="iconos.siguiente"
+            [size]="17"
+            [strokeWidth]="2"
+          />
+
+        </a>
+
+      </section>
+
+    }
+
+    @else {
+
+      <section class="estado-vacio">
 
         <span>
-          <strong> Flujo de caja </strong>
-
-          <small> Revisa el detalle diario y los egresos proyectados. </small>
+          No hay información disponible
         </span>
 
-        <lucide-icon [img]="iconos.siguiente" [size]="17" [strokeWidth]="2" />
-      </a>
+        <h2>
+          Aún no existen movimientos
+          para mostrar
+        </h2>
 
-      <a routerLink="/reportes">
-        <lucide-icon [img]="iconos.periodo" [size]="19" [strokeWidth]="2" />
+        <p>
+          Cuando la empresa registre sus movimientos,
+          aquí aparecerá el comparativo de los últimos
+          tres años.
+        </p>
 
-        <span>
-          <strong> Reportes </strong>
+      </section>
 
-          <small> Consulta información financiera y registros. </small>
-        </span>
+    }
 
-        <lucide-icon [img]="iconos.siguiente" [size]="17" [strokeWidth]="2" />
-      </a>
-    </section>
   }
+
 </section>

@@ -38,164 +38,96 @@
         </div>
       </div>
 
-      <span class="modo-lectura">Solo lectura</span>
+  
     </article>
     @if (configuracionFinanciera$ | async; as configuracion) {
+      <article class="tarjeta saldo-apertura-consulta">
+        <header class="tarjeta-header">
+          <span class="tarjeta-icono tarjeta-icono-verde">
+            <lucide-icon
+              [img]="iconos.saldoInicial"
+              [size]="20"
+              [strokeWidth]="1.9"
+            />
+          </span>
 
-  <article class="tarjeta saldo-apertura-consulta">
+          <div>
+            <h2>Saldo de apertura</h2>
 
-    <header class="tarjeta-header">
-
-      <span class="tarjeta-icono tarjeta-icono-verde">
-
-        <lucide-icon
-          [img]="iconos.saldoInicial"
-          [size]="20"
-          [strokeWidth]="1.9"
-        />
-
-      </span>
-
-      <div>
-
-        <h2>
-          Saldo de apertura
-        </h2>
-
-        <p>
-          Punto de partida registrado para el flujo de caja
-          de la empresa.
-        </p>
-
-      </div>
-
-      <span class="badge-solo-consulta">
-        Solo consulta
-      </span>
-
-    </header>
+            <p>
+              Punto de partida registrado para el flujo de caja de la empresa.
+            </p>
+          </div>
 
 
-    <div class="saldo-apertura-grid">
+        </header>
 
-      <div class="saldo-apertura-item">
+        <div class="saldo-apertura-grid">
+          <div class="saldo-apertura-item">
+            <span class="saldo-apertura-icono">
+              <lucide-icon
+                [img]="iconos.saldoInicial"
+                [size]="19"
+                [strokeWidth]="1.9"
+              />
+            </span>
 
-        <span class="saldo-apertura-icono">
+            <div>
+              <small> Saldo inicial </small>
 
-          <lucide-icon
-            [img]="iconos.saldoInicial"
-            [size]="19"
-            [strokeWidth]="1.9"
-          />
+<strong class="saldo-apertura-monto">
+  {{ configuracion.saldoInicial | monedaSol }}
+</strong>
+            </div>
+          </div>
 
-        </span>
+          <div class="saldo-apertura-item">
+            <span class="saldo-apertura-icono saldo-apertura-icono-azul">
+              <lucide-icon
+                [img]="iconos.fechaApertura"
+                [size]="19"
+                [strokeWidth]="1.9"
+              />
+            </span>
 
-        <div>
+            <div>
+              <small> Fecha de apertura </small>
 
-          <small>
-            Saldo inicial
-          </small>
+              <strong>
+                {{
+                  configuracion.fechaSaldoInicial | date: "dd/MM/yyyy" : "UTC"
+                }}
+              </strong>
+            </div>
+          </div>
 
-          <strong class="saldo-apertura-monto">
+          <div class="saldo-apertura-item">
+            <span class="saldo-apertura-icono saldo-apertura-icono-neutro">
+              <lucide-icon
+                [img]="iconos.moneda"
+                [size]="19"
+                [strokeWidth]="1.9"
+              />
+            </span>
 
-            {{
-              configuracion.saldoInicial
-                | currency:
-                    "PEN":
-                    "symbol":
-                    "1.2-2":
-                    "es-PE"
-            }}
+            <div>
+              <small> Moneda </small>
 
-          </strong>
-
+              <strong> Soles (PEN) </strong>
+            </div>
+          </div>
         </div>
 
-      </div>
+        <div class="saldo-apertura-nota">
+          <lucide-icon [img]="iconos.correcto" [size]="17" [strokeWidth]="2" />
 
-
-      <div class="saldo-apertura-item">
-
-        <span class="saldo-apertura-icono saldo-apertura-icono-azul">
-
-          <lucide-icon
-            [img]="iconos.fechaApertura"
-            [size]="19"
-            [strokeWidth]="1.9"
-          />
-
-        </span>
-
-        <div>
-
-          <small>
-            Fecha de apertura
-          </small>
-
-          <strong>
-
-            {{
-              configuracion.fechaSaldoInicial
-                | date:
-                    "dd/MM/yyyy":
-                    "UTC"
-            }}
-
-          </strong>
-
+          <p>
+            Este saldo se registró una sola vez y se utiliza como punto de
+            partida del flujo de caja. No se considera un ingreso.
+          </p>
         </div>
-
-      </div>
-
-
-      <div class="saldo-apertura-item">
-
-        <span class="saldo-apertura-icono saldo-apertura-icono-neutro">
-
-          <lucide-icon
-            [img]="iconos.moneda"
-            [size]="19"
-            [strokeWidth]="1.9"
-          />
-
-        </span>
-
-        <div>
-
-          <small>
-            Moneda
-          </small>
-
-          <strong>
-            Soles (PEN)
-          </strong>
-
-        </div>
-
-      </div>
-
-    </div>
-
-
-    <div class="saldo-apertura-nota">
-
-      <lucide-icon
-        [img]="iconos.correcto"
-        [size]="17"
-        [strokeWidth]="2"
-      />
-
-      <p>
-        Este saldo se registró una sola vez y se utiliza como
-        punto de partida del flujo de caja. No se considera
-        un ingreso.
-      </p>
-
-    </div>
-
-  </article>
-
-}
+      </article>
+    }
 
     <div class="configuracion-grid">
       <article class="tarjeta datos-generales">

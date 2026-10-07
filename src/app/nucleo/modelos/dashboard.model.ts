@@ -54,3 +54,26 @@ export interface NetoDiario {
   ingresos: number[];
   egresos: number[];
 }
+
+/* =========================================================
+   RESUMEN ANUAL - ÚLTIMOS 3 AÑOS
+   ========================================================= */
+
+export interface DashboardResumenAnual {
+  anio: number;
+
+  saldoInicial: number;
+
+  ingresosCorrientes: number;
+  ingresosNoCorrientes: number;
+  ingresosFinancieros: number;
+  totalIngresos: number;
+
+  egresosCorrientes: number;
+  egresosNoCorrientes: number;
+  egresosFinancieros: number;
+  totalEgresos: number;
+
+  saldoFinal: number;
+  saldoOperativo: number;
+}
