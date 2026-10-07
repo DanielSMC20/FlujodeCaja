@@ -43,6 +43,30 @@ interface LoginBackendResponse {
   debeCambiarPassword: boolean;
 }
 
+interface MiCuentaBackendResponse {
+  usuarioId: number;
+  correo: string;
+  nombres: string;
+  apellidos: string;
+  nombreCompleto: string;
+  correoVerificado: boolean;
+  debeCambiarPassword: boolean;
+  ultimoAcceso: string | null;
+
+  empresa: {
+    id: number;
+    ruc: string | null;
+    razonSocial: string;
+    nombreComercial: string;
+    monedaBase: number;
+    monedaBaseDescripcion: string;
+    monedaBaseAbreviatura: string;
+    zonaHoraria: string;
+  };
+
+  roles: string[];
+}
+
 interface ApiErrorResponse {
   message?: string;
 }
@@ -56,7 +80,7 @@ export class AuthService {
   private readonly router = inject(Router);
   private readonly sesionEmpresaService = inject(SesionEmpresaService);
   private readonly sesionUsuarioService = inject(SesionUsuarioService);
-
+private contextoSincronizado = false;
   private readonly tokenStorageKey = 'fc_access_token_v2';
   private readonly expiryStorageKey = 'fc_expires_at_v2';
   private readonly emailStorageKey = 'fc_user_email_v2';
@@ -137,6 +161,7 @@ export class AuthService {
             response.usuario.correo,
             response.debeCambiarPassword === true,
           );
+          this.contextoSincronizado = true;
         }),
         map(() => void 0),
         catchError((error: HttpErrorResponse) =>
@@ -293,6 +318,9 @@ restablecerPassword(
     localStorage.removeItem(this.expiryStorageKey);
     localStorage.removeItem(this.emailStorageKey);
     localStorage.removeItem(this.passwordChangeStorageKey);
+    
+      this.contextoSincronizado = false;
+
 
     this.authenticatedSubject.next(false);
     this.expiresAtSubject.next(null);
@@ -394,4 +422,96 @@ restablecerPassword(
       return null;
     }
   }
+
+  sincronizarContextoSesion(): Observable<void> {
+  if (!this.isAuthenticated()) {
+    return throwError(
+      () => new Error('La sesión no es válida.'),
+    );
+  }
+
+  if (this.contextoSincronizado) {
+    return new Observable<void>((subscriber) => {
+      subscriber.next();
+      subscriber.complete();
+    });
+  }
+
+  return this.http
+    .get<MiCuentaBackendResponse>(
+      `${API_CONFIG.baseUrl}/cuenta`,
+    )
+    .pipe(
+      tap((response) => {
+        const empresa: EmpresaSesion = {
+          id: response.empresa.id,
+          ruc: response.empresa.ruc,
+          razonSocial: response.empresa.razonSocial,
+          nombreComercial: response.empresa.nombreComercial,
+          monedaBase: response.empresa.monedaBase,
+          monedaBaseDescripcion:
+            response.empresa.monedaBaseDescripcion,
+          monedaBaseAbreviatura:
+            response.empresa.monedaBaseAbreviatura,
+          zonaHoraria: response.empresa.zonaHoraria,
+          activa: true,
+        };
+
+        const usuario: UsuarioSesion = {
+          id: response.usuarioId,
+          empresaId: response.empresa.id,
+          nombres: response.nombres,
+          apellidos: response.apellidos,
+          correo: response.correo,
+          correoVerificado:
+            response.correoVerificado === true,
+          activo: true,
+          ultimoAcceso: response.ultimoAcceso,
+          roles: (response.roles ?? []).map(
+            (rol, index) => ({
+              id: index + 1,
+              codigo: rol,
+              nombre: this.formatearRol(rol),
+            }),
+          ),
+        };
+
+        this.sesionEmpresaService.establecerEmpresa(
+          empresa,
+        );
+
+        this.sesionUsuarioService.establecerUsuario(
+          usuario,
+        );
+
+        this.passwordChangeRequiredSubject.next(
+          response.debeCambiarPassword === true,
+        );
+
+        localStorage.setItem(
+          this.passwordChangeStorageKey,
+          String(
+            response.debeCambiarPassword === true,
+          ),
+        );
+
+        this.contextoSincronizado = true;
+      }),
+
+      map(() => void 0),
+
+      catchError((error: HttpErrorResponse) => {
+        this.contextoSincronizado = false;
+
+        return throwError(
+          () =>
+            new Error(
+              error.status === 0
+                ? 'No se pudo conectar con el servidor.'
+                : 'No se pudo validar la sesión actual.',
+            ),
+        );
+      }),
+    );
+}
 }

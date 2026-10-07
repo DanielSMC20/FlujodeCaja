@@ -239,27 +239,23 @@
             Saldo negativo
           </span>
         </div>
-
-        <span class="cashflow-scroll-help">
-        Los egresos proyectados pueden reprogramarse entre fechas.
-        </span>
+        @if (puedeGestionarMovimientos) {
+          <span class="cashflow-scroll-help">
+            Los egresos proyectados pueden reprogramarse entre fechas.
+          </span>
+        }
       </div>
 
       <!-- ===============================================
            MATRIZ
            =============================================== -->
       @if (vista.columnas.length > 0) {
-        <div class="cashflow-table-wrap"
-  #cashflowTableWrap
-  class="cashflow-table-wrap"
-
-  (dragover)="
-    manejarAutoScrollArrastre($event)
-  "
-
-  (dragleave)="
-    detenerAutoScrollSiSale($event)
-  ">
+        <div
+          class="cashflow-table-wrap"
+          #cashflowTableWrap
+          (dragover)="manejarAutoScrollArrastre($event)"
+          (dragleave)="detenerAutoScrollSiSale($event)"
+        >
           <table class="cashflow-grid">
             <!-- =========================================
                  CABECERA DE FECHAS
@@ -386,11 +382,16 @@
                             <span
                               class="importe-egreso importe-egreso--proyectado"
                               [class.importe-egreso--arrastrable]="
-                                columna.tipo === 'dia'
+                                columna.tipo === 'dia' &&
+                                puedeGestionarMovimientos
                               "
-                              [draggable]="columna.tipo === 'dia'"
+                              [draggable]="
+                                columna.tipo === 'dia' &&
+                                puedeGestionarMovimientos
+                              "
                               [title]="
-                                columna.tipo === 'dia'
+                                columna.tipo === 'dia' &&
+                                puedeGestionarMovimientos
                                   ? movimiento.descripcion +
                                     ' - Arrastra para cambiar la fecha proyectada'
                                   : movimiento.descripcion + ' - Proyectado'

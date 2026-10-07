@@ -3376,7 +3376,7 @@ export class ReportesComponent {
 
 
       documento.text(
-        'Flujo Claro | Gestión financiera',
+        'Flujo de Caja para Gerentes | Gestión financiera',
         margen,
         altoPagina - 6,
       );
@@ -3413,7 +3413,7 @@ export class ReportesComponent {
         nombreEmpresa,
 
       creator:
-        'Flujo Claro',
+        'Flujo de Caja para Gerentes',
     });
 
 

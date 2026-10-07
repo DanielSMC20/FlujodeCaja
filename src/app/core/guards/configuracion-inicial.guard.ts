@@ -1,6 +1,7 @@
 import { inject } from '@angular/core';
 import { CanActivateFn, Router } from '@angular/router';
 import { catchError, forkJoin, map, of, take } from 'rxjs';
+import { SesionUsuarioService } from '../../nucleo/servicios/sesion-usuario.service';
 
 import { CategoriaService } from '../../nucleo/servicios/categoria.service';
 import { ConfiguracionFinancieraService } from '../../nucleo/servicios/configuracion-financiera.service';
@@ -11,6 +12,7 @@ export const configuracionInicialGuard: CanActivateFn = () => {
   const categoriaService = inject(CategoriaService);
   const router = inject(Router);
   const authService = inject(AuthService);
+  const sesionUsuarioService = inject(SesionUsuarioService);
 
   if (authService.requiereCambioPassword()) {
     return router.createUrlTree(['/cuenta/cambiar-password']);
@@ -31,9 +33,15 @@ export const configuracionInicialGuard: CanActivateFn = () => {
         tieneVentas &&
         egresos.length > 0;
 
-      return configurado
-        ? true
-        : router.createUrlTree(['/configuracion-inicial']);
+      if (configurado) {
+  return true;
+}
+
+if (sesionUsuarioService.esAdministrador) {
+  return router.createUrlTree(['/configuracion-inicial']);
+}
+
+return router.createUrlTree(['/login']);
     }),
     catchError(() => of(router.createUrlTree(['/configuracion-inicial']))),
   );

@@ -4,10 +4,11 @@ import {
   ChangeDetectorRef,
   Component,
   DestroyRef,
-    ElementRef,
+  ElementRef,
   ViewChild,
   inject,
 } from '@angular/core';
+import { SesionUsuarioService } from '../../../../nucleo/servicios/sesion-usuario.service';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import {
@@ -119,24 +120,23 @@ interface DetalleEgresoCelda {
 })
 export class FlujoCajaComponent {
   readonly ChartNoAxesCombined = ChartNoAxesCombined;
-@ViewChild('cashflowTableWrap')
-private cashflowTableWrap?: ElementRef<HTMLDivElement>;
+  @ViewChild('cashflowTableWrap')
+  private cashflowTableWrap?: ElementRef<HTMLDivElement>;
   private readonly flujoCajaService = inject(FlujoCajaService);
   private readonly movimientoService = inject(MovimientoService);
   private readonly categoriaService = inject(CategoriaService);
   private readonly configuracionService = inject(
     ConfiguracionFinancieraService,
   );
+  private readonly sesionUsuarioService = inject(SesionUsuarioService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
   private readonly destroyRef = inject(DestroyRef);
   private readonly formBuilder = inject(FormBuilder);
-  private autoScrollFrameId:
-  number | null = null;
+  private autoScrollFrameId: number | null = null;
 
-private posicionXArrastre = 0;
+  private posicionXArrastre = 0;
 
-private direccionAutoScroll:
-  -1 | 0 | 1 = 0;
+  private direccionAutoScroll: -1 | 0 | 1 = 0;
 
   private readonly fechasIniciales = this.obtenerFechasIniciales();
 
@@ -1135,43 +1135,48 @@ private direccionAutoScroll:
     movimiento: MovimientoCeldaMatriz,
     filaId: string,
   ): void {
-    if (movimiento.estado !== 'proyectado' || this.reprogramandoEgreso) {
+    if (
+      !this.puedeGestionarMovimientos ||
+      movimiento.estado !== 'proyectado' ||
+      this.reprogramandoEgreso
+    ) {
       event.preventDefault();
       return;
     }
 
     this.movimientoArrastrado = movimiento;
-
     this.filaArrastradaId = filaId;
+
     this.detenerAutoScroll();
 
     if (event.dataTransfer) {
       event.dataTransfer.effectAllowed = 'move';
-
       event.dataTransfer.setData('text/plain', String(movimiento.id));
     }
   }
-  permitirSoltarProyectado(
-    event: DragEvent,
-    columna: ColumnaMatriz,
-    filaId: string,
-  ): void {
-    if (
-      !this.movimientoArrastrado ||
-      columna.tipo !== 'dia' ||
-      filaId !== this.filaArrastradaId
-    ) {
-      return;
-    }
 
-    event.preventDefault();
-
-    if (event.dataTransfer) {
-      event.dataTransfer.dropEffect = 'move';
-    }
-
-    this.celdaDestinoArrastre = `${filaId}_${columna.id}`;
+permitirSoltarProyectado(
+  event: DragEvent,
+  columna: ColumnaMatriz,
+  filaId: string,
+): void {
+  if (
+    !this.puedeGestionarMovimientos ||
+    !this.movimientoArrastrado ||
+    columna.tipo !== 'dia' ||
+    filaId !== this.filaArrastradaId
+  ) {
+    return;
   }
+
+  event.preventDefault();
+
+  if (event.dataTransfer) {
+    event.dataTransfer.dropEffect = 'move';
+  }
+
+  this.celdaDestinoArrastre = `${filaId}_${columna.id}`;
+}
   salirDestinoArrastre(filaId: string, columnaId: string): void {
     const clave = `${filaId}_${columnaId}`;
 
@@ -1179,14 +1184,19 @@ private direccionAutoScroll:
       this.celdaDestinoArrastre = null;
     }
   }
-  async soltarProyectado(
-    event: DragEvent,
-    columna: ColumnaMatriz,
-    filaId: string,
-  ): Promise<void> {
-    event.preventDefault();
+async soltarProyectado(
+  event: DragEvent,
+  columna: ColumnaMatriz,
+  filaId: string,
+): Promise<void> {
+  event.preventDefault();
 
-    const movimiento = this.movimientoArrastrado;
+  if (!this.puedeGestionarMovimientos) {
+    this.finalizarArrastre();
+    return;
+  }
+
+  const movimiento = this.movimientoArrastrado;
 
     this.celdaDestinoArrastre = null;
 
@@ -1307,363 +1317,223 @@ private direccionAutoScroll:
       });
   }
   finalizarArrastre(): void {
+    this.detenerAutoScroll();
 
-  this.detenerAutoScroll();
+    this.movimientoArrastrado = null;
 
+    this.filaArrastradaId = null;
 
-  this.movimientoArrastrado =
-    null;
-
-
-  this.filaArrastradaId =
-    null;
-
-
-  this.celdaDestinoArrastre =
-    null;
-}
-esDestinoArrastre(
-  filaId: string,
-  columnaId: string,
-): boolean {
-
-  return (
-    this.celdaDestinoArrastre
-    ===
-    `${filaId}_${columnaId}`
-  );
-}
-
-arrastrandoMatriz = false;
-
-private pointerMatrizId: number | null = null;
-
-private posicionInicialXMatriz = 0;
-
-private scrollInicialMatriz = 0;
-
-iniciarDesplazamientoMatriz(
-  event: PointerEvent,
-): void {
-
-  /*
-   * Solo botón izquierdo del mouse.
-   */
-  if (
-    event.pointerType === 'mouse'
-    &&
-    event.button !== 0
-  ) {
-    return;
+    this.celdaDestinoArrastre = null;
+  }
+  esDestinoArrastre(filaId: string, columnaId: string): boolean {
+    return this.celdaDestinoArrastre === `${filaId}_${columnaId}`;
   }
 
+  arrastrandoMatriz = false;
 
-  const objetivo =
-    event.target as HTMLElement;
+  private pointerMatrizId: number | null = null;
 
+  private posicionInicialXMatriz = 0;
 
-  /*
-   * IMPORTANTE:
-   *
-   * Si agarramos un egreso proyectado,
-   * NO queremos mover la matriz.
-   *
-   * Ahí debe funcionar el drag & drop
-   * para cambiar su fecha.
-   */
-  if (
-    objetivo.closest(
-      '.importe-egreso--proyectado'
-    )
-    ||
-    objetivo.closest(
-      'button'
-    )
-    ||
-    objetivo.closest(
-      'input'
-    )
-    ||
-    objetivo.closest(
-      'a'
-    )
-    ||
-    objetivo.closest(
-      'select'
-    )
-    ||
-    objetivo.closest(
-      'textarea'
-    )
-  ) {
-    return;
-  }
+  private scrollInicialMatriz = 0;
 
-
-  const contenedor =
-    event.currentTarget as HTMLDivElement;
-
-
-  this.arrastrandoMatriz =
-    true;
-
-
-  this.pointerMatrizId =
-    event.pointerId;
-
-
-  this.posicionInicialXMatriz =
-    event.clientX;
-
-
-  this.scrollInicialMatriz =
-    contenedor.scrollLeft;
-
-
-  /*
-   * Esta es la parte importante.
-   *
-   * Aunque el cursor se mueva rápido
-   * o salga temporalmente del contenedor,
-   * seguimos recibiendo el movimiento.
-   */
-  contenedor.setPointerCapture(
-    event.pointerId
-  );
-}
-
-desplazarMatriz(
-  event: PointerEvent,
-): void {
-
-  if (
-    !this.arrastrandoMatriz
-    ||
-    this.pointerMatrizId
-      !==
-      event.pointerId
-  ) {
-    return;
-  }
-
-
-  const contenedor =
-    event.currentTarget as HTMLDivElement;
-
-
-  /*
-   * Distancia recorrida desde
-   * que empezó el arrastre.
-   */
-  const desplazamiento =
-    event.clientX
-    -
-    this.posicionInicialXMatriz;
-
-
-  /*
-   * Si arrastras el mouse hacia la izquierda:
-   * avanzamos hacia la derecha.
-   *
-   * Si arrastras hacia la derecha:
-   * regresamos hacia la izquierda.
-   */
-  contenedor.scrollLeft =
-    this.scrollInicialMatriz
-    -
-    desplazamiento;
-
-
-  event.preventDefault();
-}
-finalizarDesplazamientoMatriz(
-  event: PointerEvent,
-): void {
-
-  const contenedor =
-    event.currentTarget as HTMLDivElement;
-
-
-  if (
-    contenedor.hasPointerCapture(
-      event.pointerId
-    )
-  ) {
-
-    contenedor.releasePointerCapture(
-      event.pointerId
-    );
-  }
-
-
-  this.cancelarDesplazamientoMatriz();
-}
-cancelarDesplazamientoMatriz(): void {
-
-  this.arrastrandoMatriz =
-    false;
-
-  this.pointerMatrizId =
-    null;
-
-  this.posicionInicialXMatriz =
-    0;
-
-  this.scrollInicialMatriz =
-    0;
-}
-manejarAutoScrollArrastre(event: DragEvent): void {
-  if (!this.movimientoArrastrado) {
-    return;
-  }
-
-  const contenedor = this.cashflowTableWrap?.nativeElement;
-
-  if (!contenedor) {
-    return;
-  }
-
-  event.preventDefault();
-
-  this.posicionXArrastre = event.clientX;
-
-  const rect = contenedor.getBoundingClientRect();
-
-  // Ancho real de la columna sticky "Concepto"
-  const anchoConcepto =
-    contenedor
-      .querySelector<HTMLElement>('.cashflow-concept')
-      ?.getBoundingClientRect().width ?? 0;
-
-  const zonaBorde = 100;
-
-  // La zona izquierda empieza DESPUÉS de la columna sticky
-  const limiteIzquierdo = rect.left + anchoConcepto + zonaBorde;
-  const limiteDerecho = rect.right - zonaBorde;
-
-  if (event.clientX < limiteIzquierdo) {
-    this.direccionAutoScroll = -1;
-    this.iniciarAutoScroll();
-    return;
-  }
-
-  if (event.clientX > limiteDerecho) {
-    this.direccionAutoScroll = 1;
-    this.iniciarAutoScroll();
-    return;
-  }
-
-  this.direccionAutoScroll = 0;
-  this.detenerAutoScroll();
-}
-private iniciarAutoScroll(): void {
-
-  if (
-    this.autoScrollFrameId !== null
-  ) {
-    return;
-  }
-
-
-  const ejecutar = () => {
-
-    const contenedor =
-      this.cashflowTableWrap
-        ?.nativeElement;
-
-
-    if (
-      !contenedor
-      ||
-      !this.movimientoArrastrado
-      ||
-      this.direccionAutoScroll === 0
-    ) {
-
-      this.detenerAutoScroll();
-
+  iniciarDesplazamientoMatriz(event: PointerEvent): void {
+    /*
+     * Solo botón izquierdo del mouse.
+     */
+    if (event.pointerType === 'mouse' && event.button !== 0) {
       return;
     }
 
+    const objetivo = event.target as HTMLElement;
 
     /*
-     * Velocidad horizontal.
+     * IMPORTANTE:
+     *
+     * Si agarramos un egreso proyectado,
+     * NO queremos mover la matriz.
+     *
+     * Ahí debe funcionar el drag & drop
+     * para cambiar su fecha.
      */
-    const velocidad = 14;
+    if (
+      objetivo.closest('.importe-egreso--proyectado') ||
+      objetivo.closest('button') ||
+      objetivo.closest('input') ||
+      objetivo.closest('a') ||
+      objetivo.closest('select') ||
+      objetivo.closest('textarea')
+    ) {
+      return;
+    }
 
+    const contenedor = event.currentTarget as HTMLDivElement;
 
-    contenedor.scrollLeft +=
-      this.direccionAutoScroll
-      *
-      velocidad;
+    this.arrastrandoMatriz = true;
 
+    this.pointerMatrizId = event.pointerId;
 
-    this.autoScrollFrameId =
-      requestAnimationFrame(
-        ejecutar,
-      );
-  };
+    this.posicionInicialXMatriz = event.clientX;
 
+    this.scrollInicialMatriz = contenedor.scrollLeft;
 
-  this.autoScrollFrameId =
-    requestAnimationFrame(
-      ejecutar,
-    );
-}
-
-private detenerAutoScroll(): void {
-
-  if (
-    this.autoScrollFrameId !== null
-  ) {
-
-    cancelAnimationFrame(
-      this.autoScrollFrameId,
-    );
-
-
-    this.autoScrollFrameId =
-      null;
+    /*
+     * Esta es la parte importante.
+     *
+     * Aunque el cursor se mueva rápido
+     * o salga temporalmente del contenedor,
+     * seguimos recibiendo el movimiento.
+     */
+    contenedor.setPointerCapture(event.pointerId);
   }
 
+  desplazarMatriz(event: PointerEvent): void {
+    if (!this.arrastrandoMatriz || this.pointerMatrizId !== event.pointerId) {
+      return;
+    }
 
-  this.direccionAutoScroll =
-    0;
-}
-detenerAutoScrollSiSale(
-  event: DragEvent,
-): void {
+    const contenedor = event.currentTarget as HTMLDivElement;
 
-  const contenedor =
-    this.cashflowTableWrap
-      ?.nativeElement;
+    /*
+     * Distancia recorrida desde
+     * que empezó el arrastre.
+     */
+    const desplazamiento = event.clientX - this.posicionInicialXMatriz;
 
+    /*
+     * Si arrastras el mouse hacia la izquierda:
+     * avanzamos hacia la derecha.
+     *
+     * Si arrastras hacia la derecha:
+     * regresamos hacia la izquierda.
+     */
+    contenedor.scrollLeft = this.scrollInicialMatriz - desplazamiento;
 
-  if (!contenedor) {
-    return;
+    event.preventDefault();
+  }
+  finalizarDesplazamientoMatriz(event: PointerEvent): void {
+    const contenedor = event.currentTarget as HTMLDivElement;
+
+    if (contenedor.hasPointerCapture(event.pointerId)) {
+      contenedor.releasePointerCapture(event.pointerId);
+    }
+
+    this.cancelarDesplazamientoMatriz();
+  }
+  cancelarDesplazamientoMatriz(): void {
+    this.arrastrandoMatriz = false;
+
+    this.pointerMatrizId = null;
+
+    this.posicionInicialXMatriz = 0;
+
+    this.scrollInicialMatriz = 0;
+  }
+  manejarAutoScrollArrastre(event: DragEvent): void {
+    if (!this.movimientoArrastrado) {
+      return;
+    }
+
+    const contenedor = this.cashflowTableWrap?.nativeElement;
+
+    if (!contenedor) {
+      return;
+    }
+
+    event.preventDefault();
+
+    this.posicionXArrastre = event.clientX;
+
+    const rect = contenedor.getBoundingClientRect();
+
+    // Ancho real de la columna sticky "Concepto"
+    const anchoConcepto =
+      contenedor
+        .querySelector<HTMLElement>('.cashflow-concept')
+        ?.getBoundingClientRect().width ?? 0;
+
+    const zonaBorde = 100;
+
+    // La zona izquierda empieza DESPUÉS de la columna sticky
+    const limiteIzquierdo = rect.left + anchoConcepto + zonaBorde;
+    const limiteDerecho = rect.right - zonaBorde;
+
+    if (event.clientX < limiteIzquierdo) {
+      this.direccionAutoScroll = -1;
+      this.iniciarAutoScroll();
+      return;
+    }
+
+    if (event.clientX > limiteDerecho) {
+      this.direccionAutoScroll = 1;
+      this.iniciarAutoScroll();
+      return;
+    }
+
+    this.direccionAutoScroll = 0;
+    this.detenerAutoScroll();
+  }
+  private iniciarAutoScroll(): void {
+    if (this.autoScrollFrameId !== null) {
+      return;
+    }
+
+    const ejecutar = () => {
+      const contenedor = this.cashflowTableWrap?.nativeElement;
+
+      if (
+        !contenedor ||
+        !this.movimientoArrastrado ||
+        this.direccionAutoScroll === 0
+      ) {
+        this.detenerAutoScroll();
+
+        return;
+      }
+
+      /*
+       * Velocidad horizontal.
+       */
+      const velocidad = 14;
+
+      contenedor.scrollLeft += this.direccionAutoScroll * velocidad;
+
+      this.autoScrollFrameId = requestAnimationFrame(ejecutar);
+    };
+
+    this.autoScrollFrameId = requestAnimationFrame(ejecutar);
   }
 
+  private detenerAutoScroll(): void {
+    if (this.autoScrollFrameId !== null) {
+      cancelAnimationFrame(this.autoScrollFrameId);
 
-  const relacionado =
-    event.relatedTarget;
+      this.autoScrollFrameId = null;
+    }
 
+    this.direccionAutoScroll = 0;
+  }
+  detenerAutoScrollSiSale(event: DragEvent): void {
+    const contenedor = this.cashflowTableWrap?.nativeElement;
 
-  /*
-   * Si seguimos dentro de la matriz,
-   * no detenemos nada.
-   */
-  if (
-    relacionado instanceof Node
-    &&
-    contenedor.contains(
-      relacionado,
-    )
-  ) {
-    return;
+    if (!contenedor) {
+      return;
+    }
+
+    const relacionado = event.relatedTarget;
+
+    /*
+     * Si seguimos dentro de la matriz,
+     * no detenemos nada.
+     */
+    if (relacionado instanceof Node && contenedor.contains(relacionado)) {
+      return;
+    }
+
+    this.detenerAutoScroll();
   }
 
-
-  this.detenerAutoScroll();
+  get puedeGestionarMovimientos(): boolean {
+    return this.sesionUsuarioService.puedeGestionarMovimientos;
+  }
 }
-}
-

@@ -1,4 +1,4 @@
-# Flujo Claro — frontend Angular
+# Flujo de Caja para Gerentes — frontend Angular
 
 Frontend independiente para registrar ingresos y egresos, revisar el flujo de
 caja y preparar pagos proyectados. Está listo para ejecutarse en VS Code,

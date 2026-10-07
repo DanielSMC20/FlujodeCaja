@@ -257,24 +257,31 @@ export class RegistroComprasComponent {
      ========================================================= */
 
   obtenerTipoDocumento(movimiento: Movimiento): string {
-    switch (movimiento.tipoComprobante) {
-      /*
-       * Constante 300 actual.
-       *
-       * 1 = Factura
-       * 2 = Boleta
-       */
+  switch (movimiento.tipoComprobante) {
+    case 1:
+      // Factura
+      return '01';
 
-      case 1:
-        return '01';
+    case 2:
+      // Boleta de venta
+      return '03';
 
-      case 2:
-        return '03';
+    case 3:
+      // Recibo por honorarios
+      return '02';
 
-      default:
-        return '—';
-    }
+    case 4:
+      // Ticket o nota de venta
+      return '12';
+
+    case 5:
+      // Sin comprobante
+      return '—';
+
+    default:
+      return '—';
   }
+}
 
   /* =========================================================
      SERIE

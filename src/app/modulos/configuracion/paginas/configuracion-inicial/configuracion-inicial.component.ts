@@ -30,6 +30,9 @@ import { CategoriaService } from '../../../../nucleo/servicios/categoria.service
 import { ConfiguracionFinancieraService } from '../../../../nucleo/servicios/configuracion-financiera.service';
 import { SesionEmpresaService } from '../../../../nucleo/servicios/sesion-empresa.service';
 
+import { AuthService } from '../../../../core/auth/auth.service';
+import { SesionUsuarioService } from '../../../../nucleo/servicios/sesion-usuario.service';
+
 @Component({
   selector: 'app-configuracion-inicial',
   standalone: true,
@@ -47,6 +50,11 @@ export class ConfiguracionInicialComponent implements OnInit {
   private readonly categoriaService = inject(CategoriaService);
   private readonly sesionEmpresaService = inject(SesionEmpresaService);
   private readonly changeDetectorRef = inject(ChangeDetectorRef);
+
+  private readonly authService = inject(AuthService);
+
+private readonly sesionUsuarioService =
+  inject(SesionUsuarioService);
 
   readonly empresa = this.sesionEmpresaService.empresaActual;
   readonly fechaInicio = this.obtenerFechaLocalActual();
@@ -76,6 +84,13 @@ export class ConfiguracionInicialComponent implements OnInit {
   get egresos(): FormArray {
     return this.formulario.controls.egresos;
   }
+
+  get esAdministrador(): boolean {
+  return this.sesionUsuarioService.esAdministrador;
+}
+cerrarSesion(): void {
+  this.authService.logout(true);
+}
 
   ngOnInit(): void {
     forkJoin({
@@ -133,13 +148,20 @@ export class ConfiguracionInicialComponent implements OnInit {
     this.egresos.removeAt(indice);
   }
 
-  guardarConfiguracion(): void {
-    this.errorGuardado = '';
+guardarConfiguracion(): void {
+  this.errorGuardado = '';
 
-    if (this.formulario.invalid || this.guardando) {
-      this.formulario.markAllAsTouched();
-      return;
-    }
+  if (!this.esAdministrador) {
+    this.errorGuardado =
+      'La configuración inicial debe completarla un administrador de la empresa.';
+    return;
+  }
+
+  if (this.formulario.invalid || this.guardando) {
+    this.formulario.markAllAsTouched();
+    return;
+  }
+
 
     const datos = this.formulario.getRawValue();
     const nombresEgreso = this.normalizarClasificadores(datos.egresos);

@@ -1,40 +1,26 @@
 <section class="dashboard">
-
   <!-- =====================================================
        ENCABEZADO
        ===================================================== -->
 
   <header class="dashboard-header">
-
     <div class="dashboard-title">
-
       <span class="dashboard-eyebrow">
-        <lucide-icon
-          [img]="iconos.periodo"
-          [size]="15"
-          [strokeWidth]="2"
-        />
+        <lucide-icon [img]="iconos.periodo" [size]="15" [strokeWidth]="2" />
 
         Resumen financiero
       </span>
 
-      <h1>
-        Resumen del flujo de caja
-      </h1>
+      <h1>Resumen del flujo de caja</h1>
 
       <p>
-        Compara el comportamiento financiero de la empresa
-        durante los últimos tres años.
+        Compara el comportamiento financiero de la empresa durante los últimos
+        tres años.
       </p>
-
     </div>
 
-
     <div class="periodo-comparado">
-
-      <span>
-        Periodo comparado
-      </span>
+      <span> Periodo comparado </span>
 
       <strong>
         {{ anioDesde }}
@@ -42,59 +28,31 @@
         {{ anioActual }}
       </strong>
 
-      <small>
-        Últimos 3 años
-      </small>
-
+      <small> Últimos 3 años </small>
     </div>
-
   </header>
-
 
   <!-- =====================================================
        CONTENIDO
        ===================================================== -->
 
-  @if (
-    resumenAnual$ | async;
-    as resumen
-  ) {
-
-    @if (
-      resumen.length > 0
-    ) {
-
+  @if (resumenAnual$ | async; as resumen) {
+    @if (resumen.length > 0) {
       <section class="resumen-panel">
-
         <!-- ===============================================
              CABECERA DEL PANEL
              =============================================== -->
 
         <header class="resumen-panel__header">
-
           <div>
+            <span> Comparativo anual </span>
 
-            <span>
-              Comparativo anual
-            </span>
+            <h2>Situación del flujo de caja</h2>
 
-            <h2>
-              Situación del flujo de caja
-            </h2>
-
-            <p>
-              Ingresos, egresos y saldos agrupados
-              por ejercicio.
-            </p>
-
+            <p>Ingresos, egresos y saldos agrupados por ejercicio.</p>
           </div>
 
-
-          <a
-            routerLink="/flujo-caja"
-            class="enlace-flujo"
-          >
-
+          <a routerLink="/flujo-caja" class="enlace-flujo">
             Ver flujo de caja
 
             <lucide-icon
@@ -102,598 +60,269 @@
               [size]="16"
               [strokeWidth]="2"
             />
-
           </a>
-
         </header>
-
 
         <!-- ===============================================
              TABLA
              =============================================== -->
 
         <div class="tabla-contenedor">
-
           <table class="tabla-resumen">
-
             <thead>
-
               <tr>
+                <th class="columna-concepto">Concepto</th>
 
-                <th class="columna-concepto">
-                  Concepto
-                </th>
-
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
+                @for (fila of resumen; track fila.anio) {
                   <th>
-
                     <div class="encabezado-anio">
-
                       <strong>
                         {{ fila.anio }}
                       </strong>
 
-
-                      @if (
-                        fila.anio === anioActual
-                      ) {
-
-                        <span>
-                          Actual
-                        </span>
-
+                      @if (fila.anio === anioActual) {
+                        <span> Actual </span>
                       }
-
                     </div>
-
                   </th>
-
                 }
-
               </tr>
-
             </thead>
 
-
             <tbody>
-
               <!-- =========================================
                    SALDO INICIAL
                    ========================================= -->
 
               <tr class="fila-saldo-inicial">
+                <th>Saldo inicial</th>
 
-                <th>
-                  Saldo inicial
-                </th>
-
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
-                  <td
-                    [class.valor-negativo]="
-                      fila.saldoInicial < 0
-                    "
-                  >
-
-                    {{
-                      fila.saldoInicial
-                        | monedaSol
-                    }}
-
+                @for (fila of resumen; track fila.anio) {
+                  <td [class.valor-negativo]="fila.saldoInicial < 0">
+                    {{ fila.saldoInicial | monedaSol }}
                   </td>
-
                 }
-
               </tr>
-
 
               <tr class="fila-separador">
-                <td
-                  [attr.colspan]="
-                    resumen.length + 1
-                  "
-                ></td>
+                <td [attr.colspan]="resumen.length + 1"></td>
               </tr>
-
 
               <!-- =========================================
                    INGRESOS
                    ========================================= -->
 
               <tr class="fila-seccion fila-seccion--ingreso">
+                <th>Ingresos</th>
 
-                <th>
-                  Ingresos
-                </th>
-
-                <td
-                  [attr.colspan]="
-                    resumen.length
-                  "
-                >
-                  Entradas de efectivo registradas
-                  durante el ejercicio
+                <td [attr.colspan]="resumen.length">
+                  Entradas de efectivo registradas durante el ejercicio
                 </td>
-
               </tr>
-
 
               <tr class="fila-ingreso">
+                <th>Ingresos corrientes</th>
 
-                <th>
-                  Ingresos corrientes
-                </th>
-
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
+                @for (fila of resumen; track fila.anio) {
                   <td>
-                    {{
-                      fila.ingresosCorrientes
-                        | monedaSol
-                    }}
+                    {{ fila.ingresosCorrientes | monedaSol }}
                   </td>
-
                 }
-
               </tr>
-
 
               <tr class="fila-ingreso">
+                <th>Ingresos no corrientes</th>
 
-                <th>
-                  Ingresos no corrientes
-                </th>
-
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
+                @for (fila of resumen; track fila.anio) {
                   <td>
-                    {{
-                      fila.ingresosNoCorrientes
-                        | monedaSol
-                    }}
+                    {{ fila.ingresosNoCorrientes | monedaSol }}
                   </td>
-
                 }
-
               </tr>
-
 
               <tr class="fila-ingreso">
+                <th>Ingresos financieros</th>
 
-                <th>
-                  Ingresos financieros
-                </th>
-
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
+                @for (fila of resumen; track fila.anio) {
                   <td>
-                    {{
-                      fila.ingresosFinancieros
-                        | monedaSol
-                    }}
+                    {{ fila.ingresosFinancieros | monedaSol }}
                   </td>
-
                 }
-
               </tr>
-
 
               <tr class="fila-total fila-total--ingresos">
+                <th>Total ingresos</th>
 
-                <th>
-                  Total ingresos
-                </th>
-
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
+                @for (fila of resumen; track fila.anio) {
                   <td>
-                    {{
-                      fila.totalIngresos
-                        | monedaSol
-                    }}
+                    {{ fila.totalIngresos | monedaSol }}
                   </td>
-
                 }
-
               </tr>
-
 
               <tr class="fila-separador">
-                <td
-                  [attr.colspan]="
-                    resumen.length + 1
-                  "
-                ></td>
+                <td [attr.colspan]="resumen.length + 1"></td>
               </tr>
-
 
               <!-- =========================================
                    EGRESOS
                    ========================================= -->
 
               <tr class="fila-seccion fila-seccion--egreso">
+                <th>Egresos</th>
 
-                <th>
-                  Egresos
-                </th>
-
-                <td
-                  [attr.colspan]="
-                    resumen.length
-                  "
-                >
-                  Salidas efectivamente pagadas
-                  durante el ejercicio
+                <td [attr.colspan]="resumen.length">
+                  Salidas efectivamente pagadas durante el ejercicio
                 </td>
-
               </tr>
-
 
               <tr class="fila-egreso">
+                <th>Egresos corrientes</th>
 
-                <th>
-                  Egresos corrientes
-                </th>
-
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
+                @for (fila of resumen; track fila.anio) {
                   <td>
-                    {{
-                      fila.egresosCorrientes
-                        | monedaSol
-                    }}
+                    {{ fila.egresosCorrientes | monedaSol }}
                   </td>
-
                 }
-
               </tr>
-
 
               <tr class="fila-egreso">
+                <th>Egresos no corrientes</th>
 
-                <th>
-                  Egresos no corrientes
-                </th>
-
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
+                @for (fila of resumen; track fila.anio) {
                   <td>
-                    {{
-                      fila.egresosNoCorrientes
-                        | monedaSol
-                    }}
+                    {{ fila.egresosNoCorrientes | monedaSol }}
                   </td>
-
                 }
-
               </tr>
-
 
               <tr class="fila-egreso">
+                <th>Egresos financieros</th>
 
-                <th>
-                  Egresos financieros
-                </th>
-
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
+                @for (fila of resumen; track fila.anio) {
                   <td>
-                    {{
-                      fila.egresosFinancieros
-                        | monedaSol
-                    }}
+                    {{ fila.egresosFinancieros | monedaSol }}
                   </td>
-
                 }
-
               </tr>
-
 
               <tr class="fila-total fila-total--egresos">
+                <th>Total egresos</th>
 
-                <th>
-                  Total egresos
-                </th>
-
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
+                @for (fila of resumen; track fila.anio) {
                   <td>
-                    {{
-                      fila.totalEgresos
-                        | monedaSol
-                    }}
+                    {{ fila.totalEgresos | monedaSol }}
                   </td>
-
                 }
-
               </tr>
-
 
               <tr class="fila-separador">
-                <td
-                  [attr.colspan]="
-                    resumen.length + 1
-                  "
-                ></td>
+                <td [attr.colspan]="resumen.length + 1"></td>
               </tr>
-
 
               <!-- =========================================
                    RESULTADOS
                    ========================================= -->
 
               <tr class="fila-saldo-final">
-
                 <th>
-
-                  <strong>
-                    Saldo final
-                  </strong>
-
-                  <small>
-                    Saldo inicial + ingresos − egresos
-                  </small>
-
+                  <strong> Saldo final </strong>
                 </th>
 
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
-                  <td
-                    [class.valor-negativo]="
-                      fila.saldoFinal < 0
-                    "
-                  >
-
-                    {{
-                      fila.saldoFinal
-                        | monedaSol
-                    }}
-
+                @for (fila of resumen; track fila.anio) {
+                  <td [class.valor-negativo]="fila.saldoFinal < 0">
+                    {{ fila.saldoFinal | monedaSol }}
                   </td>
-
                 }
-
               </tr>
-
 
               <tr class="fila-saldo-operativo">
-
                 <th>
-
-                  <strong>
-                    Saldo operativo
-                  </strong>
-
-                  <small>
-                    Ingresos − egresos
-                  </small>
+                  <strong> Saldo operativo </strong>
 
                 </th>
 
-
-                @for (
-                  fila of resumen;
-                  track fila.anio
-                ) {
-
-                  <td
-                    [class.valor-negativo]="
-                      fila.saldoOperativo < 0
-                    "
-                  >
-
-                    {{
-                      fila.saldoOperativo
-                        | monedaSol
-                    }}
-
+                @for (fila of resumen; track fila.anio) {
+                  <td [class.valor-negativo]="fila.saldoOperativo < 0">
+                    {{ fila.saldoOperativo | monedaSol }}
                   </td>
-
                 }
-
               </tr>
-
             </tbody>
-
           </table>
-
         </div>
-
 
         <!-- ===============================================
              NOTA
              =============================================== -->
 
         <div class="nota-resumen">
-
           <div class="nota-resumen__icono">
-
-            <lucide-icon
-              [img]="iconos.periodo"
-              [size]="18"
-              [strokeWidth]="2"
-            />
-
+            <lucide-icon [img]="iconos.periodo" [size]="18" [strokeWidth]="2" />
           </div>
-
 
           <div>
-
-            <strong>
-              Cómo leer este resumen
-            </strong>
+            <strong> Cómo leer este resumen </strong>
 
             <p>
-              El saldo operativo representa la diferencia
-              entre ingresos y egresos del año. El saldo
-              final incorpora además el saldo inicial.
-              Los egresos proyectados pendientes no se
-              incluyen como egresos realizados.
+              El saldo operativo representa la diferencia entre ingresos y
+              egresos del año. El saldo final incorpora además el saldo inicial.
+              Los egresos proyectados pendientes no se incluyen como egresos
+              realizados.
             </p>
-
           </div>
-
         </div>
-
       </section>
-
 
       <!-- =================================================
            ACCESOS
            ================================================= -->
 
-      <section
-        class="accesos-secundarios"
-        aria-label="Accesos rápidos"
-      >
-
-        <a
-          routerLink="/flujo-caja"
-        >
-
+      <section class="accesos-secundarios" aria-label="Accesos rápidos">
+        <a routerLink="/flujo-caja">
           <span class="acceso-icono">
-
-            <lucide-icon
-              [img]="iconos.flujo"
-              [size]="19"
-              [strokeWidth]="2"
-            />
-
+            <lucide-icon [img]="iconos.flujo" [size]="19" [strokeWidth]="2" />
           </span>
-
 
           <span>
-
-            <strong>
-              Flujo de caja
-            </strong>
+            <strong> Flujo de caja </strong>
 
             <small>
-              Revisa el detalle diario,
-              movimientos y egresos proyectados.
+              Revisa el detalle diario, movimientos y egresos proyectados.
             </small>
-
           </span>
 
-
-          <lucide-icon
-            [img]="iconos.siguiente"
-            [size]="17"
-            [strokeWidth]="2"
-          />
-
+          <lucide-icon [img]="iconos.siguiente" [size]="17" [strokeWidth]="2" />
         </a>
 
-
-        <a
-          routerLink="/reportes"
-        >
-
+        <a routerLink="/reportes">
           <span class="acceso-icono">
-
-            <lucide-icon
-              [img]="iconos.periodo"
-              [size]="19"
-              [strokeWidth]="2"
-            />
-
+            <lucide-icon [img]="iconos.periodo" [size]="19" [strokeWidth]="2" />
           </span>
-
 
           <span>
-
-            <strong>
-              Reportes
-            </strong>
+            <strong> Reportes </strong>
 
             <small>
-              Consulta movimientos,
-              periodos y registro de compras.
+              Consulta movimientos, periodos y registro de compras.
             </small>
-
           </span>
 
-
-          <lucide-icon
-            [img]="iconos.siguiente"
-            [size]="17"
-            [strokeWidth]="2"
-          />
-
+          <lucide-icon [img]="iconos.siguiente" [size]="17" [strokeWidth]="2" />
         </a>
-
       </section>
 
-    }
-
-    @else {
-
+    } @else {
       <section class="estado-vacio">
+        <span> No hay información disponible </span>
 
-        <span>
-          No hay información disponible
-        </span>
-
-        <h2>
-          Aún no existen movimientos
-          para mostrar
-        </h2>
+        <h2>Aún no existen movimientos para mostrar</h2>
 
         <p>
-          Cuando la empresa registre sus movimientos,
-          aquí aparecerá el comparativo de los últimos
-          tres años.
+          Cuando la empresa registre sus movimientos, aquí aparecerá el
+          comparativo de los últimos tres años.
         </p>
-
       </section>
-
     }
-
   }
-
 </section>
