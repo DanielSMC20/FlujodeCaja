@@ -14,7 +14,7 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 
-import { finalize, shareReplay, startWith, switchMap, take, tap } from 'rxjs';
+import { finalize, shareReplay, startWith, switchMap, take, tap,of } from 'rxjs';
 import {
   ArrowDown,
   ArrowLeft,
@@ -127,8 +127,7 @@ export class FormularioMovimientoComponent {
 
   readonly fechaActual = this.obtenerFechaActual();
 
-  fechaApertura = this.fechaActual;
-
+  fechaApertura = '';
   movimientoId: number | null = null;
 
   tipoMovimientoOriginal: number | null = null;
@@ -156,25 +155,23 @@ export class FormularioMovimientoComponent {
 
   errorXml = '';
 
+  private fechaVencimientoXml?: string;
 
-private fechaVencimientoXml?: string;
+  private baseImponibleXml = 0;
 
-private baseImponibleXml = 0;
+  private igvXml = 0;
 
-private igvXml = 0;
+  private inafectoXml = 0;
 
-private inafectoXml = 0;
+  private iscXml = 0;
 
-private iscXml = 0;
+  private icbperXml = 0;
 
-private icbperXml = 0;
+  private exoneradoXml = 0;
 
-private exoneradoXml = 0;
+  private porcentajeIgvXml?: number;
 
-private porcentajeIgvXml?: number;
-
-private tipoCambioXml?: number;
-
+  private tipoCambioXml?: number;
 
   readonly formulario = this.formBuilder.nonNullable.group({
     tipoMovimiento: [1, [Validators.required]],
@@ -219,25 +216,15 @@ private tipoCambioXml?: number;
       startWith(this.formulario.controls.tipoMovimiento.value),
 
       switchMap((tipoMovimiento) =>
-        this.categoriaService.listarCategoriasPorTipo(tipoMovimiento).pipe(
-          tap((categorias) => {
-            if (tipoMovimiento !== 1) {
-              return;
-            }
-
-            const ventas = categorias.find(
-              (categoria) => categoria.nombre.trim().toLowerCase() === 'ventas',
-            );
-
-            if (ventas) {
-              this.formulario.controls.categoriaId.setValue(ventas.id, {
-                emitEvent: false,
-              });
-            }
-          }),
-        ),
+        tipoMovimiento === 2
+          ? this.categoriaService.listarCategoriasPorTipo(2)
+          : of([]),
       ),
-      shareReplay({ bufferSize: 1, refCount: true }),
+
+      shareReplay({
+        bufferSize: 1,
+        refCount: true,
+      }),
     );
 
   /* ======================================================
@@ -247,9 +234,11 @@ private tipoCambioXml?: number;
   constructor() {
     this.cargarFechaApertura();
 
+this.actualizarValidacionCategoria(
+  this.formulario.controls.tipoMovimiento.value
+);
     // Mantiene cargado el clasificador interno "Ventas" aunque el selector
     // permanezca oculto para los ingresos.
-    this.categorias$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe();
 
     /* ------------------------------------------------------
        CAMBIO INGRESO / EGRESO
@@ -264,7 +253,7 @@ private tipoCambioXml?: number;
           */
 
         this.formulario.controls.categoriaId.setValue(0);
-
+this.actualizarValidacionCategoria(tipoMovimiento);
         /*
             El XML pertenece únicamente
             al flujo de egresos.
@@ -645,35 +634,25 @@ private tipoCambioXml?: number;
           this.hashArchivoXml = resultado.hashXml;
 
           this.camposCompletadosXml = resultado.camposEncontrados;
-          this.hashArchivoXml =
-  resultado.hashXml;
+          this.hashArchivoXml = resultado.hashXml;
 
-this.fechaVencimientoXml =
-  resultado.fechaVencimiento;
+          this.fechaVencimientoXml = resultado.fechaVencimiento;
 
-this.baseImponibleXml =
-  resultado.baseImponible ?? 0;
+          this.baseImponibleXml = resultado.baseImponible ?? 0;
 
-this.igvXml =
-  resultado.igv ?? 0;
+          this.igvXml = resultado.igv ?? 0;
 
-this.inafectoXml =
-  resultado.inafecto ?? 0;
+          this.inafectoXml = resultado.inafecto ?? 0;
 
-this.iscXml =
-  resultado.isc ?? 0;
+          this.iscXml = resultado.isc ?? 0;
 
-this.icbperXml =
-  resultado.icbper ?? 0;
+          this.icbperXml = resultado.icbper ?? 0;
 
-this.exoneradoXml =
-  resultado.exonerado ?? 0;
+          this.exoneradoXml = resultado.exonerado ?? 0;
 
-this.porcentajeIgvXml =
-  resultado.porcentajeIgv;
+          this.porcentajeIgvXml = resultado.porcentajeIgv;
 
-this.tipoCambioXml =
-  resultado.tipoCambio;
+          this.tipoCambioXml = resultado.tipoCambio;
 
           /* ------------------------------------------
                FECHA DE EMISIÓN
@@ -801,83 +780,83 @@ this.tipoCambioXml =
      QUITAR XML
      ====================================================== */
 
-quitarXml(): void {
-  this.xmlProcesado = false;
+  quitarXml(): void {
+    this.xmlProcesado = false;
 
-  this.nombreArchivoXml = '';
+    this.nombreArchivoXml = '';
 
-  this.camposCompletadosXml = 0;
+    this.camposCompletadosXml = 0;
 
-  this.errorXml = '';
+    this.errorXml = '';
 
-  this.hashArchivoXml = '';
+    this.hashArchivoXml = '';
 
-  this.fechaVencimientoXml = undefined;
+    this.fechaVencimientoXml = undefined;
 
-  this.baseImponibleXml = 0;
+    this.baseImponibleXml = 0;
 
-  this.igvXml = 0;
+    this.igvXml = 0;
 
-  this.inafectoXml = 0;
+    this.inafectoXml = 0;
 
-  this.iscXml = 0;
+    this.iscXml = 0;
 
-  this.icbperXml = 0;
+    this.icbperXml = 0;
 
-  this.exoneradoXml = 0;
+    this.exoneradoXml = 0;
 
-  this.porcentajeIgvXml = undefined;
+    this.porcentajeIgvXml = undefined;
 
-  this.tipoCambioXml = undefined;
-}
+    this.tipoCambioXml = undefined;
+  }
 
   /* ======================================================
      LIMPIAR DATOS XML
      ====================================================== */
 
-private limpiarDatosXml(): void {
-  this.xmlProcesado = false;
+  private limpiarDatosXml(): void {
+    this.xmlProcesado = false;
 
-  this.nombreArchivoXml = '';
+    this.nombreArchivoXml = '';
 
-  this.camposCompletadosXml = 0;
+    this.camposCompletadosXml = 0;
 
-  this.errorXml = '';
+    this.errorXml = '';
 
-  this.hashArchivoXml = '';
+    this.hashArchivoXml = '';
 
-  this.fechaVencimientoXml = undefined;
+    this.fechaVencimientoXml = undefined;
 
-  this.baseImponibleXml = 0;
+    this.baseImponibleXml = 0;
 
-  this.igvXml = 0;
+    this.igvXml = 0;
 
-  this.inafectoXml = 0;
+    this.inafectoXml = 0;
 
-  this.iscXml = 0;
+    this.iscXml = 0;
 
-  this.icbperXml = 0;
+    this.icbperXml = 0;
 
-  this.exoneradoXml = 0;
+    this.exoneradoXml = 0;
 
-  this.porcentajeIgvXml = undefined;
+    this.porcentajeIgvXml = undefined;
 
-  this.tipoCambioXml = undefined;
+    this.tipoCambioXml = undefined;
 
-  this.formulario.patchValue({
-    tipoComprobante: 5,
+    this.formulario.patchValue({
+      tipoComprobante: 5,
 
-    fechaComprobante: '',
+      fechaComprobante: '',
 
-    serieComprobante: '',
+      serieComprobante: '',
 
-    numeroComprobante: '',
+      numeroComprobante: '',
 
-    documentoEmisor: '',
+      documentoEmisor: '',
 
-    razonSocialEmisor: '',
-  });
-}
+      razonSocialEmisor: '',
+    });
+  }
 
   /* ======================================================
      GUARDAR MOVIMIENTO
@@ -923,9 +902,18 @@ private limpiarDatosXml(): void {
       return;
     }
 
-    this.guardando = true;
+const datos = this.formulario.getRawValue();
 
-    const datos = this.formulario.getRawValue();
+if (
+  datos.tipoMovimiento === 1 &&
+  ![1, 2].includes(datos.medioPago)
+) {
+  this.errorGuardado =
+    'Para registrar un ingreso, elige Efectivo o POS.';
+  return;
+}
+
+this.guardando = true;
 
     const tipoMovimiento =
       this.modoEdicion && this.tipoMovimientoOriginal !== null
@@ -952,7 +940,7 @@ private limpiarDatosXml(): void {
           ? datos.fechaMovimiento
           : undefined,
 
-      categoriaId: datos.categoriaId,
+categoriaId: esEgreso ? datos.categoriaId : 0,
 
       descripcion: datos.descripcion.trim(),
 
@@ -986,50 +974,36 @@ private limpiarDatosXml(): void {
         ? datos.razonSocialEmisor.trim() || undefined
         : undefined,
 
-        fechaVencimiento:
-  tieneComprobante && this.xmlProcesado
-    ? this.fechaVencimientoXml
-    : undefined,
+      fechaVencimiento:
+        tieneComprobante && this.xmlProcesado
+          ? this.fechaVencimientoXml
+          : undefined,
 
-baseImponible:
-  tieneComprobante && this.xmlProcesado
-    ? this.baseImponibleXml
-    : undefined,
+      baseImponible:
+        tieneComprobante && this.xmlProcesado
+          ? this.baseImponibleXml
+          : undefined,
 
-igv:
-  tieneComprobante && this.xmlProcesado
-    ? this.igvXml
-    : undefined,
+      igv: tieneComprobante && this.xmlProcesado ? this.igvXml : undefined,
 
-inafecto:
-  tieneComprobante && this.xmlProcesado
-    ? this.inafectoXml
-    : undefined,
+      inafecto:
+        tieneComprobante && this.xmlProcesado ? this.inafectoXml : undefined,
 
-isc:
-  tieneComprobante && this.xmlProcesado
-    ? this.iscXml
-    : undefined,
+      isc: tieneComprobante && this.xmlProcesado ? this.iscXml : undefined,
 
-icbper:
-  tieneComprobante && this.xmlProcesado
-    ? this.icbperXml
-    : undefined,
+      icbper:
+        tieneComprobante && this.xmlProcesado ? this.icbperXml : undefined,
 
-exonerado:
-  tieneComprobante && this.xmlProcesado
-    ? this.exoneradoXml
-    : undefined,
+      exonerado:
+        tieneComprobante && this.xmlProcesado ? this.exoneradoXml : undefined,
 
-porcentajeIgv:
-  tieneComprobante && this.xmlProcesado
-    ? this.porcentajeIgvXml
-    : undefined,
+      porcentajeIgv:
+        tieneComprobante && this.xmlProcesado
+          ? this.porcentajeIgvXml
+          : undefined,
 
-tipoCambio:
-  tieneComprobante && this.xmlProcesado
-    ? this.tipoCambioXml
-    : undefined,
+      tipoCambio:
+        tieneComprobante && this.xmlProcesado ? this.tipoCambioXml : undefined,
 
       observacion: datos.observacion.trim() || undefined,
 
@@ -1038,10 +1012,8 @@ tipoCambio:
           ? this.nombreArchivoXml
           : undefined,
 
-hashXml:
-  tieneComprobante && this.xmlProcesado
-    ? this.hashArchivoXml
-    : undefined,
+      hashXml:
+        tieneComprobante && this.xmlProcesado ? this.hashArchivoXml : undefined,
 
       /*
           1 = Registro manual
@@ -1202,74 +1174,60 @@ hashXml:
               relacionada con XML.
             */
 
-if (
-  movimiento.origenRegistro === 2 ||
-  movimiento.archivoXmlNombre
-) {
-  this.xmlProcesado = true;
+          if (movimiento.origenRegistro === 2 || movimiento.archivoXmlNombre) {
+            this.xmlProcesado = true;
 
-  this.nombreArchivoXml =
-    movimiento.archivoXmlNombre ??
-    'Comprobante XML';
+            this.nombreArchivoXml =
+              movimiento.archivoXmlNombre ?? 'Comprobante XML';
 
-  this.hashArchivoXml =
-    movimiento.hashXml ?? '';
+            this.hashArchivoXml = movimiento.hashXml ?? '';
 
-  this.fechaVencimientoXml =
-    movimiento.fechaVencimiento ?? undefined;
+            this.fechaVencimientoXml = movimiento.fechaVencimiento ?? undefined;
 
-  this.baseImponibleXml =
-    movimiento.baseImponible ?? 0;
+            this.baseImponibleXml = movimiento.baseImponible ?? 0;
 
-  this.igvXml =
-    movimiento.igv ?? 0;
+            this.igvXml = movimiento.igv ?? 0;
 
-  this.inafectoXml =
-    movimiento.inafecto ?? 0;
+            this.inafectoXml = movimiento.inafecto ?? 0;
 
-  this.iscXml =
-    movimiento.isc ?? 0;
+            this.iscXml = movimiento.isc ?? 0;
 
-  this.icbperXml =
-    movimiento.icbper ?? 0;
+            this.icbperXml = movimiento.icbper ?? 0;
 
-  this.exoneradoXml =
-    movimiento.exonerado ?? 0;
+            this.exoneradoXml = movimiento.exonerado ?? 0;
 
-  this.porcentajeIgvXml =
-    movimiento.porcentajeIgv ?? undefined;
+            this.porcentajeIgvXml = movimiento.porcentajeIgv ?? undefined;
 
-  this.tipoCambioXml =
-    movimiento.tipoCambio ?? undefined;
+            this.tipoCambioXml = movimiento.tipoCambio ?? undefined;
 
-  this.camposCompletadosXml = 0;
-} else {
-  this.xmlProcesado = false;
+            this.camposCompletadosXml = 0;
+          } else {
+            this.xmlProcesado = false;
 
-  this.nombreArchivoXml = '';
+            this.nombreArchivoXml = '';
 
-  this.hashArchivoXml = '';
+            this.hashArchivoXml = '';
 
-  this.fechaVencimientoXml = undefined;
+            this.fechaVencimientoXml = undefined;
 
-  this.baseImponibleXml = 0;
+            this.baseImponibleXml = 0;
 
-  this.igvXml = 0;
+            this.igvXml = 0;
 
-  this.inafectoXml = 0;
+            this.inafectoXml = 0;
 
-  this.iscXml = 0;
+            this.iscXml = 0;
 
-  this.icbperXml = 0;
+            this.icbperXml = 0;
 
-  this.exoneradoXml = 0;
+            this.exoneradoXml = 0;
 
-  this.porcentajeIgvXml = undefined;
+            this.porcentajeIgvXml = undefined;
 
-  this.tipoCambioXml = undefined;
+            this.tipoCambioXml = undefined;
 
-  this.camposCompletadosXml = 0;
-}
+            this.camposCompletadosXml = 0;
+          }
 
           this.formulario.markAsPristine();
 
@@ -1371,4 +1329,27 @@ if (
     const [anio, mes, dia] = fecha.split('-');
     return anio && mes && dia ? `${dia}/${mes}/${anio}` : fecha;
   }
+
+  private actualizarValidacionCategoria(
+  tipoMovimiento: number
+): void {
+
+  const control = this.formulario.controls.categoriaId;
+
+  if (tipoMovimiento === 2) {
+    control.setValidators([
+      Validators.required,
+      Validators.min(1)
+    ]);
+  } else {
+    control.clearValidators();
+  }
+
+  control.updateValueAndValidity({
+    emitEvent: false
+  });
+}
+get puedeCrearClasificadores(): boolean {
+  return this.sesionUsuarioService.puedeGestionarClasificadores;
+}
 }

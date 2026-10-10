@@ -40,94 +40,232 @@
 
   
     </article>
-    @if (configuracionFinanciera$ | async; as configuracion) {
-      <article class="tarjeta saldo-apertura-consulta">
-        <header class="tarjeta-header">
-          <span class="tarjeta-icono tarjeta-icono-verde">
+    <!-- SALDO DE APERTURA -->
+<article class="tarjeta saldo-apertura-consulta">
+
+  <header class="tarjeta-header">
+    <span class="tarjeta-icono tarjeta-icono-verde">
+      <lucide-icon
+        [img]="iconos.saldoInicial"
+        [size]="20"
+      />
+    </span>
+
+    <div>
+      <h2>Saldo de apertura</h2>
+      <p>
+        Regístralo cuando conozcas el saldo contable.
+        Después podrás corregirlo.
+      </p>
+    </div>
+  </header>
+
+  @if (configuracionFinanciera$ | async; as configuracion) {
+
+    <!-- EDITAR SALDO -->
+    @if (editandoSaldo && esAdministrador) {
+
+      <form
+        class="formulario-saldo"
+        [formGroup]="saldoFormulario"
+        (ngSubmit)="guardarSaldo()"
+      >
+
+        <div class="campo-saldo">
+          <label for="saldoMonto">
+            Saldo inicial (S/)
+          </label>
+
+          <input
+            id="saldoMonto"
+            type="number"
+            min="0"
+            step="0.01"
+            formControlName="saldoInicial"
+          />
+        </div>
+
+        <div class="campo-saldo">
+          <label for="saldoFecha">
+            Fecha de apertura
+          </label>
+
+          <input
+            id="saldoFecha"
+            type="date"
+            [max]="fechaHoy"
+            formControlName="fechaSaldoInicial"
+          />
+        </div>
+
+        <div class="acciones-saldo">
+          <button
+            type="submit"
+            [disabled]="guardandoSaldo || saldoFormulario.invalid"
+          >
+            {{ guardandoSaldo ? 'Guardando...' : 'Guardar cambios' }}
+          </button>
+
+          <button
+            type="button"
+            class="boton-cancelar-saldo"
+            (click)="cancelarEdicionSaldo()"
+            [disabled]="guardandoSaldo"
+          >
+            Cancelar
+          </button>
+        </div>
+
+      </form>
+
+    } @else {
+
+      <!-- CONSULTAR SALDO REGISTRADO -->
+      <div class="saldo-apertura-grid">
+
+        <div class="saldo-apertura-item">
+          <span class="saldo-apertura-icono">
             <lucide-icon
               [img]="iconos.saldoInicial"
-              [size]="20"
-              [strokeWidth]="1.9"
+              [size]="19"
             />
           </span>
 
           <div>
-            <h2>Saldo de apertura</h2>
-
-            <p>
-              Punto de partida registrado para el flujo de caja de la empresa.
-            </p>
-          </div>
-
-
-        </header>
-
-        <div class="saldo-apertura-grid">
-          <div class="saldo-apertura-item">
-            <span class="saldo-apertura-icono">
-              <lucide-icon
-                [img]="iconos.saldoInicial"
-                [size]="19"
-                [strokeWidth]="1.9"
-              />
-            </span>
-
-            <div>
-              <small> Saldo inicial </small>
-
-<strong class="saldo-apertura-monto">
-  {{ configuracion.saldoInicial | monedaSol }}
-</strong>
-            </div>
-          </div>
-
-          <div class="saldo-apertura-item">
-            <span class="saldo-apertura-icono saldo-apertura-icono-azul">
-              <lucide-icon
-                [img]="iconos.fechaApertura"
-                [size]="19"
-                [strokeWidth]="1.9"
-              />
-            </span>
-
-            <div>
-              <small> Fecha de apertura </small>
-
-              <strong>
-                {{
-                  configuracion.fechaSaldoInicial | date: "dd/MM/yyyy" : "UTC"
-                }}
-              </strong>
-            </div>
-          </div>
-
-          <div class="saldo-apertura-item">
-            <span class="saldo-apertura-icono saldo-apertura-icono-neutro">
-              <lucide-icon
-                [img]="iconos.moneda"
-                [size]="19"
-                [strokeWidth]="1.9"
-              />
-            </span>
-
-            <div>
-              <small> Moneda </small>
-
-              <strong> Soles (PEN) </strong>
-            </div>
+            <small>Saldo inicial</small>
+            <strong class="saldo-apertura-monto">
+              {{ configuracion.saldoInicial | monedaSol }}
+            </strong>
           </div>
         </div>
 
-        <div class="saldo-apertura-nota">
-          <lucide-icon [img]="iconos.correcto" [size]="17" [strokeWidth]="2" />
+        <div class="saldo-apertura-item">
+          <span class="saldo-apertura-icono saldo-apertura-icono-azul">
+            <lucide-icon
+              [img]="iconos.fechaApertura"
+              [size]="19"
+            />
+          </span>
 
-          <p>
-            Este saldo se registró una sola vez y se utiliza como punto de
-            partida del flujo de caja. No se considera un ingreso.
-          </p>
+          <div>
+            <small>Fecha de apertura</small>
+            <strong>
+              {{
+                configuracion.fechaSaldoInicial
+                  | date: 'dd/MM/yyyy' : 'UTC'
+              }}
+            </strong>
+          </div>
         </div>
-      </article>
+
+        <div class="saldo-apertura-item">
+          <span class="saldo-apertura-icono saldo-apertura-icono-neutro">
+            <lucide-icon
+              [img]="iconos.moneda"
+              [size]="19"
+            />
+          </span>
+
+          <div>
+            <small>Moneda</small>
+            <strong>Soles (PEN)</strong>
+          </div>
+        </div>
+
+      </div>
+
+      @if (esAdministrador) {
+        <button
+          type="button"
+          class="boton-editar-saldo"
+          (click)="iniciarEdicionSaldo(configuracion)"
+        >
+          Editar saldo
+        </button>
+      }
+
     }
+
+    <p class="nota-saldo-pendiente">
+      El saldo de apertura no se considera un ingreso.
+      Al editarlo cambian los saldos calculados,
+      pero no los movimientos registrados.
+    </p>
+
+  } @else {
+
+    <!-- EMPRESA SIN SALDO REGISTRADO -->
+    <p class="nota-saldo-pendiente">
+      Saldo pendiente. Puedes seguir utilizando el sistema
+      y registrarlo cuando dispongas de la información.
+    </p>
+
+    @if (esAdministrador) {
+
+      <form
+        class="formulario-saldo"
+        [formGroup]="saldoFormulario"
+        (ngSubmit)="guardarSaldo()"
+      >
+
+        <div class="campo-saldo">
+          <label for="saldoMontoNuevo">
+            Saldo inicial (S/)
+          </label>
+
+          <input
+            id="saldoMontoNuevo"
+            type="number"
+            min="0"
+            step="0.01"
+            formControlName="saldoInicial"
+          />
+        </div>
+
+        <div class="campo-saldo">
+          <label for="saldoFechaNueva">
+            Fecha de apertura
+          </label>
+
+          <input
+            id="saldoFechaNueva"
+            type="date"
+            [max]="fechaHoy"
+            formControlName="fechaSaldoInicial"
+          />
+        </div>
+
+        <div class="acciones-saldo">
+          <button
+            type="submit"
+            [disabled]="guardandoSaldo || saldoFormulario.invalid"
+          >
+            {{
+              guardandoSaldo
+                ? 'Guardando...'
+                : 'Registrar saldo de apertura'
+            }}
+          </button>
+        </div>
+
+      </form>
+
+    }
+  }
+
+  @if (errorSaldo) {
+    <p class="mensaje-saldo-error" role="alert">
+      {{ errorSaldo }}
+    </p>
+  }
+
+  @if (exitoSaldo) {
+    <p class="mensaje-saldo-exito" role="status">
+      {{ exitoSaldo }}
+    </p>
+  }
+
+</article>
 
     <div class="configuracion-grid">
       <article class="tarjeta datos-generales">

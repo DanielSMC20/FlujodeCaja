@@ -88,55 +88,70 @@ export class ConfiguracionFinancieraService {
     return configuracion ? { ...configuracion } : null;
   }
 
-  actualizarConfiguracion(
-    request: ActualizarConfiguracionFinancieraRequest,
-  ): Observable<ConfiguracionFinanciera> {
-    const guardar$ = () =>
-      this.http
-        .post<SaldoAperturaBackendResponse>(
-          `${API_CONFIG.baseUrl}/saldo-apertura`,
-          {
-            saldoInicial: Number(request.saldoInicial),
-            fechaApertura: request.fechaSaldoInicial,
-          },
-        )
-        .pipe(
-          map((response) => {
-            const configuracion = this.mapearConfiguracion(response);
+actualizarConfiguracion(
+  request: ActualizarConfiguracionFinancieraRequest,
+): Observable<ConfiguracionFinanciera> {
+  return this.guardarSaldo(request, 'POST');
+}
 
-            if (!configuracion) {
-              throw new Error('El backend no confirmó el saldo inicial.');
-            }
+editarConfiguracion(
+  request: ActualizarConfiguracionFinancieraRequest,
+): Observable<ConfiguracionFinanciera> {
+  return this.guardarSaldo(request, 'PUT');
+}
 
-            return configuracion;
-          }),
-        );
+private guardarSaldo(
+  request: ActualizarConfiguracionFinancieraRequest,
+  metodo: 'POST' | 'PUT',
+): Observable<ConfiguracionFinanciera> {
 
-    return this.obtenerConfiguracion().pipe(
-      switchMap((actual) => {
-        if (actual?.configuracionInicialCompletada) {
-          return of(actual);
+  return this.http
+    .request<SaldoAperturaBackendResponse>(
+      metodo,
+      `${API_CONFIG.baseUrl}/saldo-apertura`,
+      {
+        body: {
+          saldoInicial: Number(request.saldoInicial),
+          fechaApertura: request.fechaSaldoInicial,
+        },
+      },
+    )
+    .pipe(
+      map((response) => {
+        const configuracion =
+          this.mapearConfiguracion(response);
+
+        if (!configuracion) {
+          throw new Error(
+            'El servidor no confirmó el saldo de apertura.'
+          );
         }
 
-        return guardar$();
+        return configuracion;
       }),
+
       tap((configuracion) => {
         this.empresaConfiguracionCacheId =
           this.sesionEmpresaService.empresaActualId;
 
         this.configuracionSubject.next(configuracion);
       }),
+
       catchError((error: unknown) => {
-        if (error instanceof Error) {
-          return throwError(() => error);
+        if (error instanceof HttpErrorResponse) {
+          return throwError(
+            () => new Error(this.obtenerMensajeError(error))
+          );
         }
 
         return throwError(
-          () => new Error('No se pudo registrar el saldo inicial.'),
+          () => error instanceof Error
+            ? error
+            : new Error('No se pudo guardar el saldo de apertura.')
         );
       }),
     );
-  }
+}
 
   limpiarCache(): void {
     this.empresaConfiguracionCacheId = null;

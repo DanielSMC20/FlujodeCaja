@@ -4,8 +4,8 @@ import { EstructuraPrincipalComponent } from './estructura/estructura-principal/
 import { LoginComponent } from './features/login/login.component';
 import { authGuard } from './core/guards/auth.guard';
 import { administradorGuard } from './core/guards/administrador.guard';
-import { configuracionInicialGuard } from './core/guards/configuracion-inicial.guard';
 import {  plataformaAuthGuard,} from '../app/core/guards/plataforma-auth.guard';
+import { cambioPasswordObligatorioGuard } from './core/guards/cambio-password-obligatorio.guard';
 
 export const routes: Routes = [
 
@@ -131,14 +131,7 @@ export const routes: Routes = [
         (component) => component.RestablecerPasswordComponent,
       ),
   },
-  {
-    path: 'configuracion-inicial',
-    canActivate: [authGuard],
-    loadComponent: () =>
-      import('./modulos/configuracion/paginas/configuracion-inicial/configuracion-inicial.component').then(
-        (component) => component.ConfiguracionInicialComponent,
-      ),
-  },
+
   {
     path: 'cuenta/cambiar-password',
     canActivate: [authGuard],
@@ -147,12 +140,18 @@ export const routes: Routes = [
         (component) => component.CambiarPasswordComponent,
       ),
   },
-  {
-    path: '',
-    component: EstructuraPrincipalComponent,
-    canActivate: [authGuard, configuracionInicialGuard],
-    canActivateChild: [authGuard],
-    children: [
+{
+  path: '',
+  component: EstructuraPrincipalComponent,
+  canActivate: [
+    authGuard,
+    cambioPasswordObligatorioGuard
+  ],
+  canActivateChild: [
+    authGuard,
+    cambioPasswordObligatorioGuard
+  ],
+  children: [
       {
         path: 'inicio',
         loadComponent: () =>

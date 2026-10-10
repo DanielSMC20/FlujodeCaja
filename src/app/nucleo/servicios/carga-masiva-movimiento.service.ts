@@ -33,7 +33,9 @@ import { ConfiguracionFinancieraService } from './configuracion-financiera.servi
 export class CargaMasivaMovimientoService {
   private readonly http = inject(HttpClient);
   private readonly categoriaService = inject(CategoriaService);
-  private readonly configuracionService = inject(ConfiguracionFinancieraService);
+  private readonly configuracionService = inject(
+    ConfiguracionFinancieraService,
+  );
 
   procesarArchivo(archivo: File): Observable<ResultadoCargaMasivaEgreso> {
     const extension = archivo.name.toLowerCase().split('.').pop();
@@ -59,17 +61,11 @@ export class CargaMasivaMovimientoService {
             .pipe(take(1)),
         }).pipe(
           map(({ categorias, configuracion }) => {
-            if (!configuracion?.fechaSaldoInicial) {
-              throw new Error(
-                'Primero debes registrar el saldo y la fecha de apertura.',
-              );
-            }
-
             return this.procesarLibro(
               buffer,
               archivo.name,
               categorias,
-              configuracion.fechaSaldoInicial,
+              configuracion?.fechaSaldoInicial ?? '',
             );
           }),
         ),
@@ -244,9 +240,7 @@ export class CargaMasivaMovimientoService {
       .map((valor) => this.normalizarTexto(String(valor ?? '')));
 
     const validos = encabezadosValidos.some((encabezados) =>
-      encabezados.every(
-        (esperado, indice) => recibidos[indice] === esperado,
-      ),
+      encabezados.every((esperado, indice) => recibidos[indice] === esperado),
     );
 
     if (!validos) {
@@ -275,7 +269,7 @@ export class CargaMasivaMovimientoService {
 
     if (!fecha) {
       errores.push('La fecha no es válida.');
-    } else if (fecha < fechaApertura) {
+    } else if (fechaApertura && fecha < fechaApertura) {
       errores.push(
         `La fecha es anterior a la apertura (${this.formatearFecha(fechaApertura)}).`,
       );
@@ -537,5 +531,4 @@ export class CargaMasivaMovimientoService {
     const [anio, mes, dia] = fecha.split('-');
     return anio && mes && dia ? `${dia}/${mes}/${anio}` : fecha;
   }
-
 }

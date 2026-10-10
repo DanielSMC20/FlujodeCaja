@@ -199,115 +199,6 @@
     }
 
     <!-- ================================================== -->
-    <!-- COMPROBANTE XML -->
-    <!-- SOLO PARA EGRESOS -->
-    <!-- ================================================== -->
-
-    @if (tipoMovimientoSeleccionado === 2) {
-      <section class="formulario-seccion">
-        <div class="xml-header">
-          <div>
-            <h2>Comprobante XML</h2>
-
-            <p>
-              Carga un XML para completar automáticamente la información
-              disponible del egreso.
-            </p>
-          </div>
-
-          <span class="xml-opcional"> Opcional </span>
-        </div>
-
-        <!-- ============================================ -->
-        <!-- XML NO PROCESADO -->
-        <!-- ============================================ -->
-
-        @if (!xmlProcesado) {
-          <label class="xml-cargador" for="archivoXml">
-            <div class="xml-icono">
-              <lucide-icon
-                [img]="procesandoXml ? iconos.cargando : iconos.xml"
-                [size]="20"
-                [strokeWidth]="1.9"
-                [class.animate-spin]="procesandoXml"
-              />
-            </div>
-
-            <div class="xml-texto">
-              @if (procesandoXml) {
-                <strong> Procesando XML... </strong>
-
-                <span> Estamos leyendo la información del comprobante. </span>
-              } @else {
-                <strong> Selecciona un archivo XML </strong>
-
-                <span>
-                  Factura, boleta, recibo por honorarios u otro comprobante
-                  compatible.
-                </span>
-              }
-            </div>
-
-            <span class="xml-boton"> Seleccionar XML </span>
-          </label>
-
-          <input
-            id="archivoXml"
-            class="input-archivo"
-            type="file"
-            accept=".xml,text/xml,application/xml"
-            [disabled]="procesandoXml"
-            (change)="seleccionarArchivoXml($event)"
-          />
-        }
-
-        <!-- ============================================ -->
-        <!-- XML PROCESADO -->
-        <!-- ============================================ -->
-
-        @else {
-          <div class="xml-procesado">
-            <div class="xml-estado-icono">
-              <lucide-icon
-                [img]="iconos.correcto"
-                [size]="18"
-                [strokeWidth]="2.2"
-              />
-            </div>
-
-            <div class="xml-resultado">
-              <strong> XML procesado correctamente </strong>
-
-              <span class="xml-nombre">
-                {{ nombreArchivoXml }}
-              </span>
-
-              <span class="xml-campos">
-                Se encontraron
-                {{ camposCompletadosXml }}
-                campos que pueden ayudar a completar el egreso.
-              </span>
-            </div>
-
-            <button type="button" class="xml-cambiar" (click)="quitarXml()">
-              Cambiar XML
-            </button>
-          </div>
-        }
-
-        <!-- ============================================ -->
-        <!-- ERROR XML -->
-        <!-- ============================================ -->
-
-        @if (errorXml) {
-          <div class="xml-error">
-            {{ errorXml }}
-          </div>
-        }
-      </section>
-    }
-
-    <!-- ================================================== -->
     <!-- INFORMACIÓN DEL MOVIMIENTO -->
     <!-- ================================================== -->
 
@@ -362,20 +253,25 @@
               <span> * </span>
             </label>
 
-            <select id="categoriaId" formControlName="categoriaId">
-              <option [ngValue]="0">Selecciona un clasificador</option>
-
-              @if (categorias$ | async; as categorias) {
-                @for (categoria of categorias; track categoria.id) {
-                  <option [ngValue]="categoria.id">
-                    {{ categoria.nombre }}
-                  </option>
+            @if (categorias$ | async; as categorias) {
+              @if (categorias.length > 0) {
+                <select id="categoriaId" formControlName="categoriaId">
+                  <option [ngValue]="0">Selecciona un clasificador</option>
+                  @for (categoria of categorias; track categoria.id) {
+                    <option [ngValue]="categoria.id">{{ categoria.nombre }}</option>
+                  }
+                </select>
+                @if (mostrarError("categoriaId")) {
+                  <small class="error">Selecciona un clasificador.</small>
+                }
+              } @else {
+                <small class="campo-ayuda">Todavía no hay clasificadores de egresos registrados.</small>
+                @if (puedeCrearClasificadores) {
+                  <a routerLink="/categorias">Crear un clasificador de egresos</a>
+                } @else {
+                  <small class="error">Solicita al administrador que registre un clasificador.</small>
                 }
               }
-            </select>
-
-            @if (mostrarError("categoriaId")) {
-              <small class="error"> Selecciona un clasificador. </small>
             }
           </div>
         }
@@ -465,7 +361,7 @@
 
             <select id="medioPago" formControlName="medioPago">
               @for (medio of mediosPago$ | async; track medio.nValor) {
-                @if (medio.nValor === 1 || medio.nValor === 2) {
+                @if (!esIngresoSeleccionado || medio.nValor === 1 || medio.nValor === 2) {
                   <option [ngValue]="medio.nValor">
                     {{ medio.cDescripcion }}
                   </option>

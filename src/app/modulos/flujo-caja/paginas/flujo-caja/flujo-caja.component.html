@@ -85,19 +85,24 @@
        INFORMACIÓN
        ======================================================= -->
   @if (vistaFlujo$ | async; as vista) {
+    @if (!fechaApertura) {
+      <p role="status" class="mensaje-saldo-provisional">
+        El saldo de apertura todavía no fue registrado. Los saldos mostrados son provisionales y se calculan a partir de los movimientos disponibles.
+      </p>
+    }
     <!-- =====================================================
          TARJETAS RESUMEN
          ===================================================== -->
     <div class="resumen-grid">
       <!-- SALDO INICIAL -->
       <article class="indicador">
-        <span class="indicador-label"> Saldo al iniciar el periodo </span>
+        <span class="indicador-label"> {{ fechaApertura ? "Saldo al iniciar el periodo" : "Saldo provisional al iniciar el periodo" }} </span>
 
         <strong class="valor-neutro">
           {{ vista.flujoCaja.resumen.saldoInicialReal | monedaSol }}
         </strong>
 
-        <small> Incluye el saldo de apertura y días anteriores </small>
+        <small>{{ fechaApertura ? "Incluye la apertura y movimientos anteriores" : "Calculado sin saldo contable de apertura" }}</small>
       </article>
 
       <!-- INGRESOS -->
