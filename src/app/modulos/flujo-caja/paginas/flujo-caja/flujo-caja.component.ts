@@ -21,7 +21,8 @@ import {
   switchMap,
   take,
 } from 'rxjs';
-import { ChartNoAxesCombined, LucideAngularModule } from 'lucide-angular';
+import { ChartNoAxesCombined, Download, LucideAngularModule } from 'lucide-angular';
+import * as XLSX from 'xlsx-js-style';
 
 import { MonedaSolPipe } from '../../../../compartido/pipes/moneda-sol.pipe';
 import { CategoriaMovimiento } from '../../../../nucleo/modelos/categoria-movimiento';
@@ -32,12 +33,20 @@ import { ConfiguracionFinancieraService } from '../../../../nucleo/servicios/con
 import { FlujoCajaService } from '../../../../nucleo/servicios/flujo-caja.service';
 import { MovimientoService } from '../../../../nucleo/servicios/movimiento.service';
 
+type AgrupacionFlujo = 'dia' | 'semana' | 'mes' | 'anio';
+
 interface FiltroFlujoCaja {
-  fechaDesde?: string;
-  fechaHasta?: string;
+  agrupacion: AgrupacionFlujo;
+  mes: number;
+  anio: number;
 }
 
-type TipoColumnaMatriz = 'dia' | 'mes' | 'anio';
+interface RangoFlujo {
+  fechaDesde: string;
+  fechaHasta: string;
+}
+
+type TipoColumnaMatriz = AgrupacionFlujo;
 type TipoFilaMatriz =
   | 'saldo-inicial'
   | 'seccion-ingreso'
@@ -80,6 +89,9 @@ interface VistaFlujoCaja {
   flujoCaja: ResultadoFlujoCaja;
   columnas: ColumnaMatriz[];
   filasMatriz: FilaMatriz[];
+  filtro: FiltroFlujoCaja;
+  rango: RangoFlujo;
+  saldoConfigurado: boolean;
 }
 
 interface MovimientoCeldaMatriz {
@@ -120,6 +132,7 @@ interface DetalleEgresoCelda {
 })
 export class FlujoCajaComponent {
   readonly ChartNoAxesCombined = ChartNoAxesCombined;
+  readonly Download = Download;
   @ViewChild('cashflowTableWrap')
   private cashflowTableWrap?: ElementRef<HTMLDivElement>;
   private readonly flujoCajaService = inject(FlujoCajaService);
@@ -138,7 +151,21 @@ export class FlujoCajaComponent {
 
   private direccionAutoScroll: -1 | 0 | 1 = 0;
 
-  private readonly fechasIniciales = this.obtenerFechasIniciales();
+  readonly mesesSeleccion = [
+    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
+    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+  ];
+
+  readonly aniosDisponibles = Array.from(
+    { length: 8 },
+    (_, indice) => new Date().getFullYear() - indice,
+  );
+
+  private readonly filtroInicial: FiltroFlujoCaja = {
+    agrupacion: 'mes',
+    mes: new Date().getMonth() + 1,
+    anio: new Date().getFullYear(),
+  };
 
   private readonly mesesCortos = [
     'ene',
@@ -199,51 +226,75 @@ export class FlujoCajaComponent {
   ];
 
   fechaApertura = '';
+  saldoAperturaContable = 0;
   errorFiltro = '';
   cargandoFlujo = false;
 
   readonly formulario = this.formBuilder.nonNullable.group({
-    fechaDesde: [this.fechasIniciales.fechaDesde],
-    fechaHasta: [this.fechasIniciales.fechaHasta],
+    agrupacion: [this.filtroInicial.agrupacion],
+    mes: [this.filtroInicial.mes],
+    anio: [this.filtroInicial.anio],
   });
 
-  private readonly filtroSubject = new BehaviorSubject<FiltroFlujoCaja>({
-    fechaDesde: this.fechasIniciales.fechaDesde,
-    fechaHasta: this.fechasIniciales.fechaHasta,
-  });
+  private readonly filtroSubject = new BehaviorSubject<FiltroFlujoCaja>(
+    this.filtroInicial,
+  );
 
+  /**
+   * El PA_FlujoCaja_Sel admite hasta un año por consulta. Para el resumen
+   * anual de tres años se consulta cada año individualmente y se combinan
+   * sus resultados; no se amplía el límite del procedimiento MySQL.
+   */
   readonly vistaFlujo$ = this.filtroSubject.pipe(
     switchMap((filtro) => {
       this.cargandoFlujo = true;
       this.changeDetectorRef.markForCheck();
+      return this.configuracionService.obtenerConfiguracion().pipe(
+        take(1),
+        switchMap((configuracion) => {
+          const apertura = configuracion?.fechaSaldoInicial ?? '';
+          this.fechaApertura = apertura;
+          this.saldoAperturaContable = Number(configuracion?.saldoInicial ?? 0);
+          const rango = this.obtenerRango(filtro);
+          const periodos = this.obtenerPeriodosConsulta(filtro);
 
-      return forkJoin({
-        flujoCaja: this.flujoCajaService.obtenerFlujoCaja(
-          filtro.fechaDesde,
-          filtro.fechaHasta,
-        ),
-        movimientos: this.movimientoService.listarMovimientos().pipe(take(1)),
-        categoriasEgreso: this.categoriaService
-          .listarCategoriasPorTipo(2)
-          .pipe(take(1)),
-      }).pipe(
-        map(({ flujoCaja, movimientos, categoriasEgreso }) =>
-          this.construirVistaMatriz(flujoCaja, movimientos, categoriasEgreso),
-        ),
+          return forkJoin({
+            flujoCaja: forkJoin(periodos.map((periodo) => {
+              // No existe saldo ni movimientos anteriores a la apertura.
+              if (apertura && periodo.fechaHasta < apertura) {
+                return this.crearFlujoSinMovimientos(periodo);
+              }
+              return this.flujoCajaService.obtenerFlujoCaja(
+                apertura && periodo.fechaDesde < apertura
+                  ? apertura : periodo.fechaDesde,
+                periodo.fechaHasta,
+              );
+            })).pipe(map((flujos) => this.combinarFlujos(flujos, rango))),
+            // Se mantiene la consulta completa para incluir egresos cuya
+            // fecha proyectada se reprogramó fuera de su fecha original.
+            movimientos: this.movimientoService.listarMovimientos().pipe(take(1)),
+            categoriasEgreso: this.categoriaService
+              .listarCategoriasPorTipo(2).pipe(take(1)),
+          }).pipe(
+            map(({ flujoCaja, movimientos, categoriasEgreso }) =>
+              this.construirVistaMatriz(
+                flujoCaja, movimientos, categoriasEgreso, filtro, rango,
+                Boolean(apertura),
+              ),
+            ),
+          );
+        }),
         catchError((error) => {
           void import('sweetalert2').then(({ default: Swal }) =>
             Swal.fire({
               icon: 'error',
               title: 'No se pudo cargar el flujo de caja',
-              text:
-                error instanceof Error
-                  ? error.message
-                  : 'Ocurrió un error al consultar el flujo de caja.',
+              text: error instanceof Error ? error.message
+                : 'Ocurrió un error al consultar el flujo de caja.',
               confirmButtonText: 'Aceptar',
               heightAuto: false,
             }),
           );
-
           return EMPTY;
         }),
         finalize(() => {
@@ -254,65 +305,124 @@ export class FlujoCajaComponent {
     }),
   );
 
-  constructor() {
-    this.configuracionService
-      .obtenerConfiguracion()
-      .pipe(take(1), takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (configuracion) => {
-          this.fechaApertura = configuracion?.fechaSaldoInicial ?? '';
-
-          if (
-            this.fechaApertura &&
-            this.formulario.controls.fechaDesde.value < this.fechaApertura
-          ) {
-            this.formulario.controls.fechaDesde.setValue(this.fechaApertura);
-            this.aplicarFiltros();
-          }
-
-          this.changeDetectorRef.markForCheck();
-        },
-      });
-  }
-
   aplicarFiltros(): void {
     const datos = this.formulario.getRawValue();
-
+    const agrupacion = datos.agrupacion as AgrupacionFlujo;
     this.errorFiltro = '';
 
-    if (
-      datos.fechaDesde &&
-      datos.fechaHasta &&
-      datos.fechaDesde > datos.fechaHasta
-    ) {
-      this.errorFiltro =
-        'La fecha inicial no puede ser mayor a la fecha final.';
+    if (!['dia', 'semana', 'mes', 'anio'].includes(agrupacion)) {
+      this.errorFiltro = 'Selecciona una agrupación válida.';
+      return;
+    }
+    if (!Number.isInteger(datos.mes) || datos.mes < 1 || datos.mes > 12
+      || !Number.isInteger(datos.anio) || datos.anio < 2000
+      || datos.anio > new Date().getFullYear()) {
+      this.errorFiltro = 'Selecciona un mes y año válidos.';
       return;
     }
 
-    if (
-      this.fechaApertura &&
-      datos.fechaDesde &&
-      datos.fechaDesde < this.fechaApertura
-    ) {
-      this.errorFiltro =
-        'El periodo no puede comenzar antes de la fecha de apertura.';
-      return;
-    }
-
-    this.filtroSubject.next({
-      fechaDesde: datos.fechaDesde || undefined,
-      fechaHasta: datos.fechaHasta || undefined,
-    });
+    const filtro: FiltroFlujoCaja = {
+      agrupacion,
+      mes: datos.mes,
+      anio: datos.anio,
+    };
+    this.filtroSubject.next(filtro);
   }
 
   limpiarFiltros(): void {
     this.formulario.setValue({
-      fechaDesde: '',
-      fechaHasta: '',
+      agrupacion: this.filtroInicial.agrupacion,
+      mes: this.filtroInicial.mes,
+      anio: this.filtroInicial.anio,
     });
+    this.aplicarFiltros();
+  }
 
-    this.filtroSubject.next({});
+  private obtenerRango(filtro: FiltroFlujoCaja): RangoFlujo {
+    if (filtro.agrupacion === 'anio') {
+      const ultimo = new Date().getFullYear();
+      return {
+        fechaDesde: `${ultimo - 2}-01-01`,
+        fechaHasta: `${ultimo}-12-31`,
+      };
+    }
+    if (filtro.agrupacion === 'mes') {
+      return {
+        fechaDesde: `${filtro.anio}-01-01`,
+        fechaHasta: `${filtro.anio}-12-31`,
+      };
+    }
+    const mes = String(filtro.mes).padStart(2, '0');
+    const ultimoDia = new Date(Date.UTC(filtro.anio, filtro.mes, 0))
+      .getUTCDate();
+    return {
+      fechaDesde: `${filtro.anio}-${mes}-01`,
+      fechaHasta: `${filtro.anio}-${mes}-${String(ultimoDia).padStart(2, '0')}`,
+    };
+  }
+
+  private obtenerPeriodosConsulta(filtro: FiltroFlujoCaja): RangoFlujo[] {
+    const rango = this.obtenerRango(filtro);
+    if (filtro.agrupacion !== 'anio') {
+      return [rango];
+    }
+    const ultimo = new Date().getFullYear();
+    return [ultimo - 2, ultimo - 1, ultimo].map((anio) => ({
+      fechaDesde: `${anio}-01-01`,
+      fechaHasta: `${anio}-12-31`,
+    }));
+  }
+
+  private crearFlujoSinMovimientos(rango: RangoFlujo) {
+    return new BehaviorSubject<ResultadoFlujoCaja>({
+      resumen: {
+        fechaDesde: rango.fechaDesde,
+        fechaHasta: rango.fechaHasta,
+        saldoInicialReal: 0,
+        saldoInicialProyectado: 0,
+        totalIngresos: 0,
+        totalEgresosPagados: 0,
+        totalEgresosProyectados: 0,
+        saldoFinalReal: 0,
+        saldoFinalProyectado: 0,
+      },
+      filas: [],
+    }).pipe(take(1));
+  }
+
+  private combinarFlujos(
+    flujos: ResultadoFlujoCaja[],
+    rango: RangoFlujo,
+  ): ResultadoFlujoCaja {
+    const primero = flujos[0]?.resumen;
+    const ultimo = flujos[flujos.length - 1]?.resumen;
+    return {
+      resumen: {
+        fechaDesde: rango.fechaDesde,
+        fechaHasta: rango.fechaHasta,
+        saldoInicialReal: primero?.saldoInicialReal ?? 0,
+        saldoInicialProyectado: primero?.saldoInicialProyectado ?? 0,
+        totalIngresos: flujos.reduce((s, f) => s + f.resumen.totalIngresos, 0),
+        totalEgresosPagados: flujos.reduce(
+          (s, f) => s + f.resumen.totalEgresosPagados, 0),
+        totalEgresosProyectados: flujos.reduce(
+          (s, f) => s + f.resumen.totalEgresosProyectados, 0),
+        saldoFinalReal: ultimo?.saldoFinalReal ?? 0,
+        saldoFinalProyectado: ultimo?.saldoFinalProyectado ?? 0,
+      },
+      filas: flujos.flatMap((flujo) => flujo.filas),
+    };
+  }
+
+  descripcionPeriodo(filtro: FiltroFlujoCaja): string {
+    if (filtro.agrupacion === 'anio') {
+      const anio = new Date().getFullYear();
+      return `${anio - 2} – ${anio}`;
+    }
+    if (filtro.agrupacion === 'mes') {
+      return `Enero – Diciembre ${filtro.anio}`;
+    }
+    return `${this.mesesSeleccion[filtro.mes - 1]} ${filtro.anio}`;
   }
 
   formatearFecha(fecha: string): string {
@@ -342,102 +452,80 @@ export class FlujoCajaComponent {
     flujoCaja: ResultadoFlujoCaja,
     movimientos: Movimiento[],
     categoriasEgreso: CategoriaMovimiento[],
+    filtro: FiltroFlujoCaja,
+    rango: RangoFlujo,
+    saldoConfigurado: boolean,
   ): VistaFlujoCaja {
-    const fechas = this.construirFechasPeriodo(flujoCaja);
-    const columnas = this.construirColumnas(fechas);
+    const fechas = this.construirFechasPeriodo(rango);
+    const columnas = this.construirColumnas(fechas, filtro);
     const filasMatriz = this.construirFilasMatriz(
-      flujoCaja,
-      movimientos,
-      categoriasEgreso,
-      fechas,
-      columnas,
+      flujoCaja, movimientos, categoriasEgreso, fechas, columnas,
     );
-
-    return {
-      flujoCaja,
-      columnas,
-      filasMatriz,
-    };
+    return { flujoCaja, columnas, filasMatriz, filtro, rango, saldoConfigurado };
   }
 
-  private construirFechasPeriodo(flujoCaja: ResultadoFlujoCaja): string[] {
-    const desde = flujoCaja.resumen.fechaDesde;
-    const hasta = flujoCaja.resumen.fechaHasta;
-
-    if (!desde || !hasta) {
-      return [...new Set(flujoCaja.filas.map((fila) => fila.fecha))].sort();
+  private construirFechasPeriodo(rango: RangoFlujo): string[] {
+    const inicio = this.parsearFechaIso(rango.fechaDesde);
+    const fin = this.parsearFechaIso(rango.fechaHasta);
+    if (!inicio || !fin || inicio > fin) {
+      return [];
     }
-
-    const fechaInicio = this.parsearFechaIso(desde);
-    const fechaFin = this.parsearFechaIso(hasta);
-
-    if (!fechaInicio || !fechaFin || fechaInicio > fechaFin) {
-      return [...new Set(flujoCaja.filas.map((fila) => fila.fecha))].sort();
-    }
-
     const fechas: string[] = [];
-    const cursor = new Date(fechaInicio.getTime());
-
-    while (cursor <= fechaFin) {
+    const cursor = new Date(inicio.getTime());
+    while (cursor <= fin) {
       fechas.push(this.fechaAIso(cursor));
       cursor.setUTCDate(cursor.getUTCDate() + 1);
     }
-
     return fechas;
   }
 
-  private construirColumnas(fechas: string[]): ColumnaMatriz[] {
-    const columnas: ColumnaMatriz[] = [];
-    const fechasPorMes = new Map<string, string[]>();
-    const fechasPorAnio = new Map<string, string[]>();
-
+  private construirColumnas(
+    fechas: string[], filtro: FiltroFlujoCaja,
+  ): ColumnaMatriz[] {
+    const grupos = new Map<string, ColumnaMatriz>();
     for (const fecha of fechas) {
-      const [anio, mes] = fecha.split('-');
-      const claveMes = `${anio}-${mes}`;
-
-      fechasPorMes.set(claveMes, [
-        ...(fechasPorMes.get(claveMes) ?? []),
-        fecha,
-      ]);
-      fechasPorAnio.set(anio, [...(fechasPorAnio.get(anio) ?? []), fecha]);
-    }
-
-    fechas.forEach((fecha, indice) => {
       const [anio, mes, dia] = fecha.split('-');
-      const numeroMes = Number(mes);
-      const claveMes = `${anio}-${mes}`;
-      const siguiente = fechas[indice + 1];
-      const siguienteMes = siguiente?.slice(0, 7);
+      const mesIndice = Number(mes) - 1;
+      let id = '';
+      let etiqueta = '';
 
-      columnas.push({
-        id: `dia_${fecha}`,
-        etiqueta: `${dia}-${this.mesesCortos[numeroMes - 1] ?? mes}`,
-        tipo: 'dia',
-        fechas: [fecha],
-      });
-
-      if (!siguiente || siguienteMes !== claveMes) {
-        columnas.push({
-          id: `mes_${claveMes}`,
-          etiqueta: this.mesesLargos[numeroMes - 1] ?? claveMes,
-          tipo: 'mes',
-          fechas: fechasPorMes.get(claveMes) ?? [fecha],
-        });
-
-        const cambiaAnio = siguiente ? siguiente.slice(0, 4) !== anio : false;
-        const terminaDiciembre = numeroMes === 12;
-
-        if (cambiaAnio || terminaDiciembre) {
-          columnas.push({
-            id: `anio_${anio}`,
-            etiqueta: anio,
-            tipo: 'anio',
-            fechas: fechasPorAnio.get(anio) ?? [fecha],
-          });
+      switch (filtro.agrupacion) {
+        case 'dia':
+          id = `dia_${fecha}`;
+          etiqueta = `${dia} ${this.mesesCortos[mesIndice]}`;
+          break;
+        case 'semana': {
+          // Lunes = 0. Una semana que atraviesa dos meses se
+          // presenta únicamente con las fechas del mes consultado.
+          const fechaUtc = this.parsearFechaIso(fecha)!;
+          const lunes = new Date(fechaUtc.getTime());
+          lunes.setUTCDate(lunes.getUTCDate() - ((lunes.getUTCDay() + 6) % 7));
+          id = `semana_${this.fechaAIso(lunes)}`;
+          etiqueta = ''; // Se asigna al completar cada grupo.
+          break;
         }
+        case 'mes':
+          id = `mes_${anio}-${mes}`;
+          etiqueta = this.mesesLargos[mesIndice];
+          break;
+        case 'anio':
+          id = `anio_${anio}`;
+          etiqueta = anio;
+          break;
       }
-    });
-
+      if (!grupos.has(id)) {
+        grupos.set(id, { id, etiqueta, tipo: filtro.agrupacion, fechas: [] });
+      }
+      grupos.get(id)!.fechas.push(fecha);
+    }
+    const columnas = [...grupos.values()];
+    if (filtro.agrupacion === 'semana') {
+      columnas.forEach((columna, indice) => {
+        const primero = columna.fechas[0];
+        const ultimo = columna.fechas[columna.fechas.length - 1];
+        columna.etiqueta = `SEM. ${indice + 1} (${primero.slice(8)}–${ultimo.slice(8)} ${this.mesesCortos[filtro.mes - 1]})`;
+      });
+    }
     return columnas;
   }
 
@@ -586,7 +674,16 @@ export class FlujoCajaComponent {
         0,
     );
 
+    if (this.fechaApertura && fechas[0] < this.fechaApertura) {
+      // Los períodos anteriores a la apertura no heredan saldo contable.
+      saldoAcumulado = 0;
+    }
+
     for (const fecha of fechas) {
+      if (this.fechaApertura && fecha === this.fechaApertura) {
+        // El primer día de apertura incorpora el saldo registrado una sola vez.
+        saldoAcumulado = this.saldoAperturaContable;
+      }
       saldoInicialDia.set(fecha, saldoAcumulado);
       saldoAcumulado += saldoOperativo.get(fecha) ?? 0;
       saldoFinalDia.set(fecha, saldoAcumulado);
@@ -1049,21 +1146,6 @@ export class FlujoCajaComponent {
     const dia = String(fecha.getUTCDate()).padStart(2, '0');
 
     return `${anio}-${mes}-${dia}`;
-  }
-
-  private obtenerFechasIniciales(): {
-    fechaDesde: string;
-    fechaHasta: string;
-  } {
-    const hoy = new Date();
-    const anio = hoy.getFullYear();
-    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
-    const dia = String(hoy.getDate()).padStart(2, '0');
-
-    return {
-      fechaDesde: `${anio}-${mes}-01`,
-      fechaHasta: `${anio}-${mes}-${dia}`,
-    };
   }
 
   private crearDetalleEgresoPorColumnas(
@@ -1531,6 +1613,75 @@ async soltarProyectado(
     }
 
     this.detenerAutoScroll();
+  }
+
+  /** Exporta exactamente las columnas y filas de la agrupación visible. */
+  exportarExcel(vista: VistaFlujoCaja): void {
+    if (!vista.columnas.length) {
+      return;
+    }
+    const numeroColumnas = vista.columnas.length + 1;
+    const matriz: (string | number)[][] = [
+      ['FLUJO DE CAJA PARA GERENTES · SOLES (PEN)'],
+      [`${vista.filtro.agrupacion.toUpperCase()} · ${this.descripcionPeriodo(vista.filtro)}`],
+      [vista.saldoConfigurado ? 'Saldo de apertura registrado'
+        : 'Saldo de apertura pendiente · importes provisionales'],
+      ['CONCEPTO', ...vista.columnas.map((columna) => columna.etiqueta)],
+      ...vista.filasMatriz.map((fila) => [
+        fila.concepto,
+        ...vista.columnas.map((columna) =>
+          fila.tipo.startsWith('seccion-') ? '' : (fila.valores[columna.id] ?? 0)),
+      ]),
+    ];
+
+    const hoja = XLSX.utils.aoa_to_sheet(matriz);
+    hoja['!merges'] = [0, 1, 2].map((r) => ({
+      s: { r, c: 0 }, e: { r, c: numeroColumnas - 1 },
+    }));
+    hoja['!cols'] = [
+      { wch: 38 },
+      ...vista.columnas.map((columna) => ({
+        wch: columna.tipo === 'semana' ? 23 : 17,
+      })),
+    ];
+    hoja['!freeze'] = { xSplit: 1, ySplit: 4 } as never;
+
+    for (let filaIndice = 0; filaIndice < matriz.length; filaIndice++) {
+      const fila = filaIndice >= 4 ? vista.filasMatriz[filaIndice - 4] : null;
+      const esEncabezado = filaIndice <= 3;
+      const esSeccion = Boolean(fila?.tipo.startsWith('seccion-'));
+      const esTotal = Boolean(fila && [
+        'subtotal', 'total', 'saldo-inicial', 'saldo-final', 'saldo-operativo',
+      ].includes(fila.tipo));
+      const fondo = esEncabezado ? (filaIndice === 3 ? '123047' : '17324D')
+        : esSeccion ? (fila?.tipo === 'seccion-ingreso' ? 'DCEFE9' : 'FBE8DF')
+        : esTotal ? 'E8EFF7' : (filaIndice % 2 === 0 ? 'FFFFFF' : 'F7F9FC');
+      for (let columnaIndice = 0; columnaIndice < numeroColumnas; columnaIndice++) {
+        const direccion = XLSX.utils.encode_cell({ r: filaIndice, c: columnaIndice });
+        const celda = hoja[direccion];
+        if (!celda) continue;
+        celda.s = {
+          font: {
+            name: 'Aptos', sz: filaIndice === 0 ? 15 : 10,
+            bold: esEncabezado || esSeccion || esTotal,
+            color: { rgb: esEncabezado ? 'FFFFFF' : '243347' },
+          },
+          fill: { fgColor: { rgb: fondo } },
+          alignment: {
+            vertical: 'center',
+            horizontal: columnaIndice === 0 ? 'left' : 'right',
+          },
+          border: { bottom: { style: 'hair', color: { rgb: 'D9E1EA' } } },
+        };
+        if (filaIndice >= 4 && columnaIndice > 0 && typeof celda.v === 'number') {
+          celda.z = '"S/ "#,##0.00;[Red]("S/ "#,##0.00);"-"';
+        }
+      }
+    }
+    const libro = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(libro, hoja, 'Flujo de caja');
+    XLSX.writeFile(libro,
+      `flujo-caja-${vista.filtro.agrupacion}-${vista.rango.fechaDesde}-${vista.rango.fechaHasta}.xlsx`);
   }
 
   get puedeGestionarMovimientos(): boolean {

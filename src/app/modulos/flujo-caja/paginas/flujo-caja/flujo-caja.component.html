@@ -15,54 +15,55 @@
     </div>
   </header>
 
-  <!-- =======================================================
-       FILTROS
-       ======================================================= -->
+  <!-- Filtros según agrupación: no se usan fechas Desde/Hasta globales. -->
   <article class="tarjeta filtros">
-    <form
-      class="filtros-formulario"
-      [formGroup]="formulario"
-      (ngSubmit)="aplicarFiltros()"
-    >
-      <div class="campo">
-        <label for="fechaDesde"> Desde </label>
-
-        <input
-          id="fechaDesde"
-          type="date"
-          formControlName="fechaDesde"
-          [min]="fechaApertura"
-        />
+    <form class="filtros-formulario" [formGroup]="formulario" (ngSubmit)="aplicarFiltros()">
+      <div class="campo campo-agrupacion">
+        <label for="agrupacionFlujo">Visualización</label>
+        <select id="agrupacionFlujo" formControlName="agrupacion">
+          <option value="dia">Diaria</option>
+          <option value="semana">Semanal</option>
+          <option value="mes">Mensual</option>
+          <option value="anio">Anual</option>
+        </select>
       </div>
 
-      <div class="campo">
-        <label for="fechaHasta"> Hasta </label>
+      @if (formulario.controls.agrupacion.value === 'dia' ||
+           formulario.controls.agrupacion.value === 'semana') {
+        <div class="campo">
+          <label for="mesFlujo">Mes</label>
+          <select id="mesFlujo" formControlName="mes">
+            @for (mes of mesesSeleccion; track $index) {
+              <option [ngValue]="$index + 1">{{ mes }}</option>
+            }
+          </select>
+        </div>
+      }
 
-        <input
-          id="fechaHasta"
-          type="date"
-          formControlName="fechaHasta"
-          [min]="fechaApertura"
-        />
-      </div>
+      @if (formulario.controls.agrupacion.value !== 'anio') {
+        <div class="campo campo-anio">
+          <label for="anioFlujo">Año</label>
+          <select id="anioFlujo" formControlName="anio">
+            @for (anio of aniosDisponibles; track anio) {
+              <option [ngValue]="anio">{{ anio }}</option>
+            }
+          </select>
+        </div>
+      } @else {
+        <div class="nota-periodo">
+          Resumen automático de los últimos tres años.
+        </div>
+      }
 
       <div class="acciones-filtro">
-        <button
-          type="button"
-          class="boton-secundario"
-          (click)="limpiarFiltros()"
-        >
-          Limpiar
+        <button type="button" class="boton-secundario" (click)="limpiarFiltros()">
+          Restablecer
         </button>
-
-        <button type="submit" class="boton-principal">Aplicar filtros</button>
+        <button type="submit" class="boton-principal">Consultar flujo</button>
       </div>
     </form>
-
     @if (errorFiltro) {
-      <p class="mensaje-error">
-        {{ errorFiltro }}
-      </p>
+      <p class="mensaje-error">{{ errorFiltro }}</p>
     }
   </article>
 
@@ -85,9 +86,10 @@
        INFORMACIÓN
        ======================================================= -->
   @if (vistaFlujo$ | async; as vista) {
-    @if (!fechaApertura) {
-      <p role="status" class="mensaje-saldo-provisional">
-        El saldo de apertura todavía no fue registrado. Los saldos mostrados son provisionales y se calculan a partir de los movimientos disponibles.
+    @if (!vista.saldoConfigurado) {
+      <p class="aviso-saldo-pendiente">
+        Saldo de apertura pendiente. Puedes consultar ingresos y egresos;
+        los saldos mostrados son provisionales hasta registrar el saldo contable en Configuración.
       </p>
     }
     <!-- =====================================================
@@ -96,13 +98,17 @@
     <div class="resumen-grid">
       <!-- SALDO INICIAL -->
       <article class="indicador">
-        <span class="indicador-label"> {{ fechaApertura ? "Saldo al iniciar el periodo" : "Saldo provisional al iniciar el periodo" }} </span>
+        <span class="indicador-label"> Saldo al iniciar el periodo </span>
 
         <strong class="valor-neutro">
           {{ vista.flujoCaja.resumen.saldoInicialReal | monedaSol }}
         </strong>
 
-        <small>{{ fechaApertura ? "Incluye la apertura y movimientos anteriores" : "Calculado sin saldo contable de apertura" }}</small>
+        <small>
+          {{ vista.saldoConfigurado
+            ? 'Incluye la apertura y los movimientos anteriores'
+            : 'Cálculo provisional: apertura pendiente' }}
+        </small>
       </article>
 
       <!-- INGRESOS -->
@@ -191,15 +197,8 @@
         </div>
 
         <div class="cashflow-period">
-          <span> Periodo </span>
-
-          <strong>
-            {{ formulario.controls.fechaDesde.value || "Inicio" }}
-
-            <i> → </i>
-
-            {{ formulario.controls.fechaHasta.value || "Actualidad" }}
-          </strong>
+          <span>Período consultado</span>
+          <strong>{{ descripcionPeriodo(vista.filtro) }}</strong>
         </div>
       </header>
 
@@ -207,6 +206,15 @@
            LEYENDA
            =============================================== -->
       <div class="cashflow-panel__toolbar">
+        <button
+          type="button"
+          class="boton-exportar-flujo"
+          (click)="exportarExcel(vista)"
+          [disabled]="cargandoFlujo || !vista.columnas.length"
+        >
+          <lucide-icon [img]="Download" [size]="17" />
+          Exportar Excel
+        </button>
         <div class="cashflow-legend">
           <span class="cashflow-legend__item">
             <i class="legend-dot legend-dot--income"></i>
@@ -283,6 +291,7 @@
                     scope="col"
                     [class.cashflow-date--month]="columna.tipo === 'mes'"
                     [class.cashflow-date--year]="columna.tipo === 'anio'"
+                    [class.cashflow-date--week]="columna.tipo === 'semana'"
                   >
                     <span class="cashflow-date__label">
                       {{ columna.etiqueta }}
@@ -292,6 +301,8 @@
                       <small> Cierre mensual </small>
                     } @else if (columna.tipo === "anio") {
                       <small> Cierre anual </small>
+                    } @else if (columna.tipo === "semana") {
+                      <small> Total semanal </small>
                     } @else {
                       <small> Día </small>
                     }
@@ -357,6 +368,25 @@
                            CELDA DE EGRESO
                            ================================= -->
                       @if (fila.detalleEgresos?.[columna.id]; as detalle) {
+                        @if (columna.tipo !== 'dia') {
+                          <div class="resumen-egreso-agrupado">
+                            @if (detalle.montoPagado !== 0) {
+                              <span class="importe-egreso importe-egreso--pagado">
+                                <strong>{{ formatearMontoMatriz(detalle.montoPagado) }}</strong>
+                                <small>Pagado ({{ detalle.pagados.length }})</small>
+                              </span>
+                            }
+                            @if (detalle.montoProyectado !== 0) {
+                              <span class="importe-egreso importe-egreso--proyectado">
+                                <strong>{{ formatearMontoMatriz(detalle.montoProyectado) }}</strong>
+                                <small>Proyectado ({{ detalle.proyectados.length }})</small>
+                              </span>
+                            }
+                            @if (detalle.pagados.length === 0 && detalle.proyectados.length === 0) {
+                              <span class="cashflow-empty">—</span>
+                            }
+                          </div>
+                        } @else {
                         <div class="estado-egreso-celda">
                           <!-- =============================
                                PAGADOS
@@ -428,6 +458,7 @@
                             <span class="cashflow-empty"> — </span>
                           }
                         </div>
+                        }
                       } @else {
                         <!-- ===============================
                              FILAS NORMALES
@@ -459,7 +490,7 @@
 
           <strong> No existe información para mostrar </strong>
 
-          <p>Selecciona un periodo válido y vuelve a aplicar los filtros.</p>
+          <p>Selecciona un mes o año válido y vuelve a consultar.</p>
         </div>
       }
     </article>
@@ -468,6 +499,7 @@
          RESUMEN DIARIO
          SE CONSERVA PLEGADO
          ===================================================== -->
+    @if (vista.filtro.agrupacion === 'dia') {
     <details class="tarjeta detalle-diario">
       <summary>
         <div>
@@ -574,12 +606,12 @@
             <strong> Sin movimientos en el periodo </strong>
 
             <p>
-              El saldo de apertura seguirá disponible aunque todavía no existan
-              movimientos.
+              Puedes registrar movimientos aunque el saldo de apertura esté pendiente.
             </p>
           </div>
         }
       </div>
     </details>
+    }
   }
 </section>
