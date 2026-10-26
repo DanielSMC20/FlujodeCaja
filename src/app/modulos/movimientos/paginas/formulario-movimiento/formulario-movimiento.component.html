@@ -267,7 +267,7 @@
               } @else {
                 <small class="campo-ayuda">Todavía no hay clasificadores de egresos registrados.</small>
                 @if (puedeCrearClasificadores) {
-                  <a routerLink="/categorias">Crear un clasificador de egresos</a>
+                  <a class="enlace-accion" routerLink="/categorias">Crear un clasificador de egresos</a>
                 } @else {
                   <small class="error">Solicita al administrador que registre un clasificador.</small>
                 }
@@ -329,7 +329,13 @@
           />
 
           @if (mostrarError("descripcion")) {
-            <small class="error"> La descripción es obligatoria. </small>
+            <small class="error">
+              {{
+                formulario.controls.descripcion.hasError("maxlength")
+                  ? "La descripción no puede superar los 150 caracteres."
+                  : "Escribe una descripción (no puede quedar solo con espacios)."
+              }}
+            </small>
           }
         </div>
       </div>

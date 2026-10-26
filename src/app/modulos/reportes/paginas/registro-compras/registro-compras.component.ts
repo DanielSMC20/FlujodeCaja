@@ -9,7 +9,14 @@ import {
 
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 
-import { BehaviorSubject, catchError, EMPTY, finalize, switchMap } from 'rxjs';
+import {
+  BehaviorSubject,
+  catchError,
+  EMPTY,
+  finalize,
+  map,
+  switchMap,
+} from 'rxjs';
 
 import {
   FileSpreadsheet,
@@ -125,6 +132,11 @@ export class RegistroComprasComponent {
       this.changeDetectorRef.markForCheck();
 
       return this.movimientoService.listarMovimientosFiltrados(filtro).pipe(
+        // El Registro de Compras solo lleva comprobantes reales.
+        map((movimientos) =>
+          movimientos.filter((movimiento) => this.tieneComprobante(movimiento)),
+        ),
+
         catchError((error) => {
           void import('sweetalert2').then(({ default: Swal }) =>
             Swal.fire({
@@ -154,6 +166,45 @@ export class RegistroComprasComponent {
       );
     }),
   );
+
+  /* =========================================================
+     COMPROBANTE / % IGV
+     ========================================================= */
+
+  /**
+   * Un egreso entra al registro solo si tiene un tipo de comprobante
+   * válido (factura, boleta, recibo, ticket) y serie o número.
+   * Así se excluyen los "sin comprobante", aunque en la base de datos
+   * hayan quedado con tipo 1 (factura) por defecto.
+   */
+  private tieneComprobante(movimiento: Movimiento): boolean {
+    const tipoValido = [1, 2, 3, 4].includes(
+      Number(movimiento.tipoComprobante),
+    );
+    const tieneSerieONumero = !!(
+      movimiento.serieComprobante?.trim() ||
+      movimiento.numeroComprobante?.trim()
+    );
+
+    return tipoValido && tieneSerieONumero;
+  }
+
+  /**
+   * % de IGV del comprobante. Si el XML no lo traía a nivel de documento
+   * (muchos emisores solo lo ponen por línea), se calcula IGV / base.
+   */
+  obtenerPorcentajeIgv(movimiento: Movimiento): number {
+    const registrado = this.valorNumerico(movimiento.porcentajeIgv);
+
+    if (registrado > 0) {
+      return registrado;
+    }
+
+    const base = this.valorNumerico(movimiento.baseImponible);
+    const igv = this.valorNumerico(movimiento.igv);
+
+    return base > 0 && igv > 0 ? Math.round((igv / base) * 10000) / 100 : 0;
+  }
 
   /* =========================================================
      EMPRESA
@@ -257,31 +308,31 @@ export class RegistroComprasComponent {
      ========================================================= */
 
   obtenerTipoDocumento(movimiento: Movimiento): string {
-  switch (movimiento.tipoComprobante) {
-    case 1:
-      // Factura
-      return '01';
+    switch (movimiento.tipoComprobante) {
+      case 1:
+        // Factura
+        return '01';
 
-    case 2:
-      // Boleta de venta
-      return '03';
+      case 2:
+        // Boleta de venta
+        return '03';
 
-    case 3:
-      // Recibo por honorarios
-      return '02';
+      case 3:
+        // Recibo por honorarios
+        return '02';
 
-    case 4:
-      // Ticket o nota de venta
-      return '12';
+      case 4:
+        // Ticket o nota de venta
+        return '12';
 
-    case 5:
-      // Sin comprobante
-      return '—';
+      case 5:
+        // Sin comprobante
+        return '—';
 
-    default:
-      return '—';
+      default:
+        return '—';
+    }
   }
-}
 
   /* =========================================================
      SERIE
@@ -635,7 +686,7 @@ export class RegistroComprasComponent {
 
         this.obtenerMoneda(movimiento),
 
-        this.valorNumerico(movimiento.porcentajeIgv),
+        this.obtenerPorcentajeIgv(movimiento),
 
         this.obtenerTipoCambio(movimiento),
 
@@ -1016,10 +1067,6 @@ export class RegistroComprasComponent {
       }
     }
   }
-
-  /* =========================================================
-     FECHAS INICIALES
-     ========================================================= */
 
   private obtenerFechasIniciales(): {
     fechaDesde: string;

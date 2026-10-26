@@ -291,6 +291,22 @@
   line-height: 1.4;
 }
 
+.campo .enlace-accion {
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  margin-top: 0.15rem;
+  color: #2563eb;
+  font-size: 0.6rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.campo .enlace-accion:hover,
+.campo .enlace-accion:focus-visible {
+  text-decoration: underline;
+}
+
 .tipo-icono {
   flex: 0 0 auto;
 

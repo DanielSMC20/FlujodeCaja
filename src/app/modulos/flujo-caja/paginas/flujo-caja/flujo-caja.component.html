@@ -109,6 +109,17 @@
             ? 'Incluye la apertura y los movimientos anteriores'
             : 'Cálculo provisional: apertura pendiente' }}
         </small>
+
+        @if (
+          vista.flujoCaja.resumen.saldoInicialProyectado !==
+          vista.flujoCaja.resumen.saldoInicialReal
+        ) {
+          <small>
+            Con egresos proyectados anteriores:
+            {{ vista.flujoCaja.resumen.saldoInicialProyectado | monedaSol }}
+            (punto de partida de la matriz)
+          </small>
+        }
       </article>
 
       <!-- INGRESOS -->
@@ -192,7 +203,9 @@
 
           <p>
             Consulta cómo evolucionan los ingresos, egresos y saldos a través
-            del periodo seleccionado.
+            del periodo seleccionado. La matriz incluye los egresos
+            proyectados, por eso su saldo final coincide con el
+            «Saldo proyectado» y no con el saldo disponible.
           </p>
         </div>
 

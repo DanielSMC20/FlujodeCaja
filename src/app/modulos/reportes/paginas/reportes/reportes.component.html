@@ -72,10 +72,16 @@
           <select id="categoriaId" formControlName="categoriaId">
             <option [ngValue]="0">Todas</option>
 
-            @for (categoria of categorias$ | async; track categoria.id) {
-              <option [ngValue]="categoria.id">
-                {{ categoria.nombre }}
-              </option>
+            @if (categorias$ | async; as categorias) {
+              @for (grupo of agruparCategorias(categorias); track grupo.tipo) {
+                <optgroup [label]="grupo.etiqueta">
+                  @for (categoria of grupo.categorias; track categoria.id) {
+                    <option [ngValue]="categoria.id">
+                      {{ categoria.nombre }}
+                    </option>
+                  }
+                </optgroup>
+              }
             }
           </select>
         </div>
@@ -119,6 +125,13 @@
             Limpiar
           </button>
         </div>
+
+        @if (rangoFechasInvertido) {
+          <p class="aviso-rango" role="alert">
+            La fecha «Desde» es posterior a «Hasta». Corrige el rango para
+            generar el reporte.
+          </p>
+        }
       </form>
     </article>
 

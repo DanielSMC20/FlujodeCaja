@@ -119,6 +119,13 @@
         Limpiar
       </button>
     </div>
+
+    @if (rangoFechasInvertido) {
+      <p class="aviso-rango" role="alert">
+        La fecha «Desde» es posterior a «Hasta». Corrige el rango para
+        filtrar; mientras tanto se muestran todos los movimientos.
+      </p>
+    }
   </form>
 
   <!-- ================================================== -->
@@ -226,8 +233,10 @@
                       class="badge-estado"
                       [class.estado-proyectado]="
                         movimiento.tipoMovimiento === 2 &&
-                        movimiento.bCancelado === 0
+                        movimiento.bCancelado === 0 &&
+                        !estaVencido(movimiento)
                       "
+                      [class.estado-vencido]="estaVencido(movimiento)"
                       [class.estado-pagado]="
                         movimiento.tipoMovimiento === 2 &&
                         movimiento.bCancelado !== 0

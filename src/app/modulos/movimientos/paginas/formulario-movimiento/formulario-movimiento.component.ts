@@ -136,6 +136,11 @@ export class FormularioMovimientoComponent {
 
   guardando = false;
 
+  /** Se activa cuando el usuario confirma que no es un duplicado. */
+  private duplicadoRevisado = false;
+
+  verificandoDuplicado = false;
+
   cargandoMovimiento = false;
 
   errorGuardado = '';
@@ -184,7 +189,15 @@ export class FormularioMovimientoComponent {
 
     categoriaId: [0, [Validators.required, Validators.min(1)]],
 
-    descripcion: ['', [Validators.required, Validators.maxLength(150)]],
+    descripcion: [
+      '',
+      [
+        Validators.required,
+        // Rechaza textos formados solo por espacios.
+        Validators.pattern(/\S/),
+        Validators.maxLength(150),
+      ],
+    ],
 
     monto: [0, [Validators.required, Validators.min(0.01)]],
 
@@ -211,16 +224,16 @@ export class FormularioMovimientoComponent {
      CATEGORÍAS SEGÚN TIPO
      ====================================================== */
 
-  readonly categorias$ =
-    this.formulario.controls.tipoMovimiento.valueChanges.pipe(
-      startWith(this.formulario.controls.tipoMovimiento.value),
-
-      switchMap((tipoMovimiento) =>
-        tipoMovimiento === 2
-          ? this.categoriaService.listarCategoriasPorTipo(2)
-          : of([]),
-      ),
-
+  /*
+   * El selector de clasificadores solo se muestra para egresos, así que
+   * siempre consultamos los de egreso. Antes el flujo dependía de
+   * valueChanges + startWith(valor inicial = 1): cuando el bloque de egresos
+   * se pintaba y se suscribía, el cambio a "2" ya había ocurrido y el
+   * startWith devolvía la lista vacía de ingresos, sin llamar a la API.
+   */
+  readonly categorias$ = this.categoriaService
+    .listarCategoriasPorTipo(2)
+    .pipe(
       shareReplay({
         bufferSize: 1,
         refCount: true,
@@ -859,6 +872,106 @@ this.actualizarValidacionCategoria(tipoMovimiento);
   }
 
   /* ======================================================
+     AVISO DE POSIBLE DUPLICADO
+     ====================================================== */
+
+  /*
+   * Antes de registrar, busca en la misma fecha un movimiento del mismo tipo
+   * con el mismo monto y una descripción equivalente, o con el mismo
+   * comprobante (serie + número + RUC). Si lo encuentra, pide confirmación.
+   */
+  private revisarPosibleDuplicado(
+    datos: ReturnType<FormularioMovimientoComponent['formulario']['getRawValue']>,
+  ): void {
+    if (this.verificandoDuplicado) {
+      return;
+    }
+
+    this.verificandoDuplicado = true;
+    this.changeDetectorRef.markForCheck();
+
+    const normalizar = (texto: string | null | undefined): string =>
+      (texto ?? '')
+        .normalize('NFD')
+        .replace(/[\u0300-\u036f]/g, '')
+        .replace(/\s+/g, ' ')
+        .trim()
+        .toUpperCase();
+
+    const descripcion = normalizar(datos.descripcion);
+    const monto = Number(datos.monto);
+    const serie = normalizar(datos.serieComprobante);
+    const numero = normalizar(datos.numeroComprobante);
+    const ruc = normalizar(datos.documentoEmisor);
+
+    this.movimientoService
+      .listarMovimientosFiltrados({
+        tipoMovimiento: datos.tipoMovimiento,
+        fechaDesde: datos.fechaMovimiento,
+        fechaHasta: datos.fechaMovimiento,
+        soloActivos: true,
+      })
+      .pipe(
+        take(1),
+        finalize(() => {
+          this.verificandoDuplicado = false;
+          this.changeDetectorRef.markForCheck();
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (movimientos) => {
+          const similar = movimientos.find((movimiento) => {
+            const mismoComprobante =
+              serie !== '' &&
+              numero !== '' &&
+              normalizar(movimiento.serieComprobante) === serie &&
+              normalizar(movimiento.numeroComprobante) === numero &&
+              (ruc === '' || normalizar(movimiento.documentoEmisor) === ruc);
+
+            const mismoMontoYDescripcion =
+              Math.abs(Number(movimiento.monto) - monto) < 0.005 &&
+              normalizar(movimiento.descripcion) === descripcion;
+
+            return mismoComprobante || mismoMontoYDescripcion;
+          });
+
+          if (!similar) {
+            this.duplicadoRevisado = true;
+            this.guardar();
+            return;
+          }
+
+          void import('sweetalert2').then(({ default: Swal }) =>
+            Swal.fire({
+              icon: 'warning',
+              title: 'Posible movimiento duplicado',
+              text: `Ya existe un registro del ${this.formatearFechaCorta(
+                datos.fechaMovimiento,
+              )} por S/ ${monto.toFixed(2)} («${similar.descripcion}»). ¿Quieres registrarlo de todas formas?`,
+              showCancelButton: true,
+              confirmButtonText: 'Sí, registrar',
+              cancelButtonText: 'Revisar',
+              reverseButtons: true,
+              focusCancel: true,
+              heightAuto: false,
+            }).then((resultado) => {
+              if (resultado.isConfirmed) {
+                this.duplicadoRevisado = true;
+                this.guardar();
+              }
+            }),
+          );
+        },
+        error: () => {
+          // Si la verificación falla, no bloqueamos el registro.
+          this.duplicadoRevisado = true;
+          this.guardar();
+        },
+      });
+  }
+
+  /* ======================================================
      GUARDAR MOVIMIENTO
      ====================================================== */
 
@@ -912,6 +1025,13 @@ if (
     'Para registrar un ingreso, elige Efectivo o POS.';
   return;
 }
+
+if (!this.modoEdicion && !this.duplicadoRevisado) {
+  this.revisarPosibleDuplicado(datos);
+  return;
+}
+
+this.duplicadoRevisado = false;
 
 this.guardando = true;
 

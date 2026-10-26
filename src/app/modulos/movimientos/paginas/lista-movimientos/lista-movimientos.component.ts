@@ -319,7 +319,13 @@ cargandoMovimientos = false;
     ),
   ]).pipe(
     map(([movimientos, tipoSeleccionado, filtros]) => {
-      const busqueda = (filtros.busqueda ?? '').trim().toLowerCase();
+      const busqueda = this.normalizarBusqueda(filtros.busqueda);
+
+      // Rango invertido: no filtramos y el template muestra el aviso.
+      const rangoInvertido = this.esRangoInvertido(
+        filtros.fechaDesde,
+        filtros.fechaHasta,
+      );
 
       return movimientos.filter((movimiento) => {
         /* Tipo */
@@ -334,6 +340,7 @@ cargandoMovimientos = false;
         /* Fecha desde */
 
         if (
+          !rangoInvertido &&
           filtros.fechaDesde &&
           movimiento.fechaMovimiento < filtros.fechaDesde
         ) {
@@ -343,6 +350,7 @@ cargandoMovimientos = false;
         /* Fecha hasta */
 
         if (
+          !rangoInvertido &&
           filtros.fechaHasta &&
           movimiento.fechaMovimiento > filtros.fechaHasta
         ) {
@@ -361,10 +369,9 @@ cargandoMovimientos = false;
         /* Búsqueda */
 
         if (busqueda) {
-          const textoMovimiento = `
-                    ${movimiento.descripcion}
-                    ${movimiento.categoria}
-                  `.toLowerCase();
+          const textoMovimiento = this.normalizarBusqueda(
+            `${movimiento.descripcion} ${movimiento.categoria}`,
+          );
 
           if (!textoMovimiento.includes(busqueda)) {
             return false;
@@ -439,7 +446,53 @@ cargandoMovimientos = false;
       return 'Confirmado';
     }
 
+    if (this.estaVencido(movimiento)) {
+      return 'Vencido';
+    }
+
     return movimiento.bCancelado === 0 ? 'Proyectado' : 'Pagado';
+  }
+
+  /** Egreso proyectado cuya fecha prevista ya pasó y sigue sin pagarse. */
+  estaVencido(movimiento: Movimiento): boolean {
+    if (movimiento.tipoMovimiento !== 2 || movimiento.bCancelado !== 0) {
+      return false;
+    }
+
+    const fechaPrevista =
+      movimiento.fechaProyectada ?? movimiento.fechaMovimiento;
+
+    return !!fechaPrevista && fechaPrevista < this.fechaHoyIso();
+  }
+
+  private fechaHoyIso(): string {
+    const hoy = new Date();
+    const mes = String(hoy.getMonth() + 1).padStart(2, '0');
+    const dia = String(hoy.getDate()).padStart(2, '0');
+    return `${hoy.getFullYear()}-${mes}-${dia}`;
+  }
+
+  /** Minúsculas y sin tildes: "locacion" encuentra "LOCACIÓN". */
+  private normalizarBusqueda(texto: string | null | undefined): string {
+    return (texto ?? '')
+      .normalize('NFD')
+      .replace(/[\u0300-\u036f]/g, '')
+      .replace(/\s+/g, ' ')
+      .trim()
+      .toLowerCase();
+  }
+
+  /** true cuando "Desde" es posterior a "Hasta". */
+  get rangoFechasInvertido(): boolean {
+    const { fechaDesde, fechaHasta } = this.filtroForm.getRawValue();
+    return this.esRangoInvertido(fechaDesde, fechaHasta);
+  }
+
+  private esRangoInvertido(
+    fechaDesde: string | null | undefined,
+    fechaHasta: string | null | undefined,
+  ): boolean {
+    return !!fechaDesde && !!fechaHasta && fechaDesde > fechaHasta;
   }
 
   /* ======================================================

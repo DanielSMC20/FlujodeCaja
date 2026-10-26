@@ -352,10 +352,7 @@
                     </td>
 
                     <td class="numero">
-                      {{
-                        valorNumerico(movimiento.porcentajeIgv)
-                          | number: "1.0-2"
-                      }}
+                      {{ obtenerPorcentajeIgv(movimiento) | number: "1.0-2" }}
                     </td>
 
                     <td class="numero">

@@ -280,14 +280,20 @@
                   tieneMinimo(formulario.controls.password.value)
                 "
               >
-                <lucide-icon [img]="iconos.correcto" [size]="14" /> 8 caracteres
+                <lucide-icon
+                  [img]="tieneMinimo(formulario.controls.password.value) ? iconos.correcto : iconos.pendiente"
+                  [size]="14"
+                /> 8 caracteres
               </span>
               <span
                 [class.cumplido]="
                   tieneMayuscula(formulario.controls.password.value)
                 "
               >
-                <lucide-icon [img]="iconos.correcto" [size]="14" /> Una
+                <lucide-icon
+                  [img]="tieneMayuscula(formulario.controls.password.value) ? iconos.correcto : iconos.pendiente"
+                  [size]="14"
+                /> Una
                 mayúscula
               </span>
               <span
@@ -295,7 +301,10 @@
                   tieneMinuscula(formulario.controls.password.value)
                 "
               >
-                <lucide-icon [img]="iconos.correcto" [size]="14" /> Una
+                <lucide-icon
+                  [img]="tieneMinuscula(formulario.controls.password.value) ? iconos.correcto : iconos.pendiente"
+                  [size]="14"
+                /> Una
                 minúscula
               </span>
               <span
@@ -303,7 +312,10 @@
                   tieneNumero(formulario.controls.password.value)
                 "
               >
-                <lucide-icon [img]="iconos.correcto" [size]="14" /> Un número
+                <lucide-icon
+                  [img]="tieneNumero(formulario.controls.password.value) ? iconos.correcto : iconos.pendiente"
+                  [size]="14"
+                /> Un número
               </span>
             </div>
           </section>
@@ -346,6 +358,13 @@
                   </label>
                 }
               </div>
+            }
+
+            @if (
+              formulario.controls.rolId.touched &&
+              formulario.controls.rolId.invalid
+            ) {
+              <small class="campo-error">Elige un rol para la nueva cuenta.</small>
             }
           </section>
 

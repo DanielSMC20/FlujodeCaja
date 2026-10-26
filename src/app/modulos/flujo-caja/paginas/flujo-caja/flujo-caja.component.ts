@@ -442,7 +442,8 @@ export class FlujoCajaComponent {
       return '-';
     }
 
-    return new Intl.NumberFormat('es-ES', {
+    // Mismo formato que el resto de la app (pipe monedaSol): 1,800.00
+    return new Intl.NumberFormat('es-PE', {
       minimumFractionDigits: 2,
       maximumFractionDigits: 2,
     }).format(monto);
@@ -1058,7 +1059,17 @@ export class FlujoCajaComponent {
       }
 
       if (agregacion === 'primero') {
-        valores[columna.id] = serie.get(fechas[0]) ?? 0;
+        // Si la apertura cae dentro de la columna (por ejemplo, el mes o el
+        // año de apertura), el saldo inicial es el del día de apertura y no
+        // el del primer día del periodo, que todavía no tiene saldo.
+        const fechaInicio =
+          this.fechaApertura &&
+          fechas[0] < this.fechaApertura &&
+          fechas.includes(this.fechaApertura)
+            ? this.fechaApertura
+            : fechas[0];
+
+        valores[columna.id] = serie.get(fechaInicio) ?? 0;
         continue;
       }
 
