@@ -122,8 +122,8 @@
 
     @if (rangoFechasInvertido) {
       <p class="aviso-rango" role="alert">
-        La fecha «Desde» es posterior a «Hasta». Corrige el rango para
-        filtrar; mientras tanto se muestran todos los movimientos.
+        La fecha «Desde» es posterior a «Hasta». Corrige el rango para filtrar;
+        mientras tanto se muestran todos los movimientos.
       </p>
     }
   </form>
@@ -159,7 +159,7 @@
         <!-- TABLA -->
         <!-- ========================================== -->
 
-        <div class="tabla-contenedor">
+        <div class="tabla-contenedor" (scroll)="cerrarMenuPorDesplazamiento()">
           <table>
             <thead>
               <tr>
@@ -184,21 +184,15 @@
                 <tr>
                   <!-- Fecha -->
 
-<td class="columna-fecha">
+                  <td class="columna-fecha">
+                    <strong>
+                      {{ formatearFecha(fechaVisible(movimiento)) }}
+                    </strong>
 
-  <strong>
-    {{
-      formatearFecha(
-        fechaVisible(movimiento)
-      )
-    }}
-  </strong>
-
-  <small>
-    {{ etiquetaFecha(movimiento) }}
-  </small>
-
-</td>
+                    <small>
+                      {{ etiquetaFecha(movimiento) }}
+                    </small>
+                  </td>
 
                   <!-- Movimiento -->
 
@@ -316,7 +310,9 @@
                             [attr.aria-expanded]="
                               menuAccionesAbiertoId === movimiento.id
                             "
-                            (click)="alternarMenuAcciones(movimiento.id)"
+                            (click)="
+                              alternarMenuAcciones(movimiento.id, $event)
+                            "
                           >
                             <lucide-icon
                               [img]="iconos.mas"
@@ -326,7 +322,11 @@
                           </button>
 
                           @if (menuAccionesAbiertoId === movimiento.id) {
-                            <div class="menu-acciones">
+                            <div
+                              class="menu-acciones"
+                              [style.top.px]="menuPosicion.top"
+                              [style.left.px]="menuPosicion.left"
+                            >
                               <button
                                 type="button"
                                 class="menu-accion menu-accion-peligro"

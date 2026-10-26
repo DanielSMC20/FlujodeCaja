@@ -224,6 +224,12 @@
                     />
                   </button>
                 </div>
+                @if (
+                  formulario.controls.password.touched &&
+                  formulario.controls.password.invalid
+                ) {
+                  <small class="campo-error">{{ mensajePassword() }}</small>
+                }
               </div>
 
               <div class="campo">

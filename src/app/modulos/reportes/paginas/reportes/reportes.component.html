@@ -140,232 +140,243 @@
     }
 
     @if (reporte$ | async; as reporte) {
-      <section class="cabecera-impresion">
-        <div class="cabecera-empresa">
-          <span> Reporte financiero </span>
+      <!-- Con el rango invertido no se muestran resultados anteriores
+           ni se puede exportar: se ve solo el aviso del filtro. -->
+      @if (!rangoFechasInvertido) {
+        <section class="cabecera-impresion">
+          <div class="cabecera-empresa">
+            <span> Reporte financiero </span>
 
-          <h1>Reporte de movimientos</h1>
-
-          <p>
-            {{ empresaActual.razonSocial || empresaActual.nombreComercial }}
-          </p>
-
-          <p>
-            RUC:
-            {{ empresaActual.ruc || "No registrado" }}
-          </p>
-        </div>
-
-        <div class="cabecera-periodo">
-          <span> Periodo consultado </span>
-
-          <strong>
-            {{ obtenerPeriodoActual() }}
-          </strong>
-
-          <small>
-            Generado:
-            {{ obtenerFechaHoraActual() }}
-          </small>
-        </div>
-      </section>
-
-      <div class="resumen-grid">
-        <article class="indicador">
-          <span> Ingresos </span>
-
-          <strong class="ingreso">
-            {{ reporte.resumen.totalIngresos | monedaSol }}
-          </strong>
-        </article>
-
-        <article class="indicador">
-          <span> Egresos pagados </span>
-
-          <strong class="egreso">
-            {{ reporte.resumen.totalEgresosPagados | monedaSol }}
-          </strong>
-        </article>
-
-        <article class="indicador">
-          <span> Egresos proyectados </span>
-
-          <strong class="proyectado">
-            {{ reporte.resumen.totalEgresosProyectados | monedaSol }}
-          </strong>
-        </article>
-
-        <article class="indicador">
-          <span> Neto real </span>
-
-          <strong
-            [class.ingreso]="calcularNetoReal(reporte) >= 0"
-            [class.egreso]="calcularNetoReal(reporte) < 0"
-          >
-            {{ calcularNetoReal(reporte) | monedaSol }}
-          </strong>
-
-          <small> Ingresos menos egresos pagados </small>
-        </article>
-
-        <article class="indicador">
-          <span> Neto proyectado </span>
-
-          <strong
-            [class.ingreso]="calcularNetoProyectado(reporte) >= 0"
-            [class.egreso]="calcularNetoProyectado(reporte) < 0"
-            [class.proyectado]="calcularNetoProyectado(reporte) >= 0"
-          >
-            {{ calcularNetoProyectado(reporte) | monedaSol }}
-          </strong>
-
-          <small> Incluye los egresos pendientes </small>
-        </article>
-      </div>
-
-      <article class="tarjeta reporte-tabla">
-        <header class="tabla-header">
-          <div>
-            <h2>Detalle de movimientos</h2>
+            <h1>Reporte de movimientos</h1>
 
             <p>
-              {{ reporte.resumen.cantidadRegistros }}
-              movimientos encontrados.
+              {{ empresaActual.razonSocial || empresaActual.nombreComercial }}
+            </p>
+
+            <p>
+              RUC:
+              {{ empresaActual.ruc || "No registrado" }}
             </p>
           </div>
 
-          <div class="exportaciones">
-            <button
-              type="button"
-              [disabled]="cargandoReporte"
-              (click)="exportarExcel(reporte)"
-            >
-              Exportar Excel
-            </button>
+          <div class="cabecera-periodo">
+            <span> Periodo consultado </span>
 
-            <button
-              type="button"
-              [disabled]="cargandoReporte"
-              (click)="exportarPdf(reporte)"
-            >
-              Descargar PDF
-            </button>
+            <strong>
+              {{ obtenerPeriodoActual() }}
+            </strong>
+
+            <small>
+              Generado:
+              {{ obtenerFechaHoraActual() }}
+            </small>
           </div>
-        </header>
+        </section>
 
-        @if (reporte.movimientos.length > 0) {
-          <div class="tabla-contenedor">
-            <table>
-              <thead>
-                <tr>
-                  <th>Fecha</th>
+        <div class="resumen-grid">
+          <article class="indicador">
+            <span> Ingresos </span>
 
-                  <th>Tipo</th>
+            <strong class="ingreso">
+              {{ reporte.resumen.totalIngresos | monedaSol }}
+            </strong>
+          </article>
 
-                  <th>Clasificador</th>
+          <article class="indicador">
+            <span> Egresos pagados </span>
 
-                  <th>Descripción</th>
+            <strong class="egreso">
+              {{ reporte.resumen.totalEgresosPagados | monedaSol }}
+            </strong>
+          </article>
 
-                  <th>Estado</th>
+          <article class="indicador">
+            <span> Egresos proyectados </span>
 
-                  <th>Medio de pago</th>
+            <strong class="proyectado">
+              {{ reporte.resumen.totalEgresosProyectados | monedaSol }}
+            </strong>
+          </article>
 
-                  @if (formulario.controls.incluirAnulados.value) {
-                    <th>Anulación</th>
-                  }
+          <article class="indicador">
+            <span> Neto real </span>
 
-                  <th class="texto-derecha">Monto</th>
-                </tr>
-              </thead>
+            <strong
+              [class.ingreso]="calcularNetoReal(reporte) >= 0"
+              [class.egreso]="calcularNetoReal(reporte) < 0"
+            >
+              {{ calcularNetoReal(reporte) | monedaSol }}
+            </strong>
 
-              <tbody>
-                @for (movimiento of reporte.movimientos; track movimiento.id) {
-                  <tr>
-                    <td>
-                      <strong>
-                        {{ formatearFecha(movimiento.fechaMovimiento) }}
-                      </strong>
-                    </td>
+            <small> Ingresos menos egresos pagados </small>
+          </article>
 
-                    <td>
-                      <span
-                        class="badge"
-                        [class.badge-ingreso]="movimiento.tipoMovimiento === 1"
-                        [class.badge-egreso]="movimiento.tipoMovimiento === 2"
-                      >
-                        {{ etiquetaTipoMovimiento(movimiento.tipoMovimiento) }}
-                      </span>
-                    </td>
+          <article class="indicador">
+            <span> Neto proyectado </span>
 
-                    <td>
-                      {{ movimiento.categoria }}
-                    </td>
+            <strong
+              [class.ingreso]="calcularNetoProyectado(reporte) >= 0"
+              [class.egreso]="calcularNetoProyectado(reporte) < 0"
+              [class.proyectado]="calcularNetoProyectado(reporte) >= 0"
+            >
+              {{ calcularNetoProyectado(reporte) | monedaSol }}
+            </strong>
 
-                    <td class="descripcion">
-                      {{ movimiento.descripcion }}
-                    </td>
+            <small> Incluye los egresos pendientes </small>
+          </article>
+        </div>
 
-                    <td>
-                      <span
-                        class="badge"
-                        [class.badge-proyectado]="
-                          movimiento.estado === 'Proyectado'
-                        "
-                      >
-                        {{ movimiento.estado }}
-                      </span>
-                    </td>
+        <article class="tarjeta reporte-tabla">
+          <header class="tabla-header">
+            <div>
+              <h2>Detalle de movimientos</h2>
 
-                    <td>
-                      {{ movimiento.medioPagoDescripcion }}
-                    </td>
-
-                    @if (formulario.controls.incluirAnulados.value) {
-                      <td>
-                        @if (!movimiento.activo) {
-                          <strong> Anulado </strong>
-
-                          <small class="motivo-anulacion">
-                            {{
-                              movimiento.motivoAnulacion ||
-                                "Sin motivo registrado"
-                            }}
-                          </small>
-                        } @else {
-                          <span> — </span>
-                        }
-                      </td>
-                    }
-
-                    <td
-                      class="texto-derecha monto"
-                      [class.ingreso]="movimiento.tipoMovimiento === 1"
-                      [class.egreso]="movimiento.tipoMovimiento === 2"
-                    >
-                      {{ movimiento.tipoMovimiento === 1 ? "+" : "-" }}
-
-                      {{ movimiento.monto | monedaSol }}
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
-          </div>
-        } @else {
-          <div class="estado-vacio">
-            <div class="estado-vacio-icono">
-              <lucide-icon
-                [img]="ChartNoAxesCombined"
-                aria-hidden="true"
-              ></lucide-icon>
+              <p>
+                {{ reporte.resumen.cantidadRegistros }}
+                movimientos encontrados.
+              </p>
             </div>
 
-            <strong> No encontramos movimientos </strong>
+            <div class="exportaciones">
+              <button
+                type="button"
+                [disabled]="cargandoReporte"
+                (click)="exportarExcel(reporte)"
+              >
+                Exportar Excel
+              </button>
 
-            <p>Modifica los filtros para consultar otro periodo.</p>
-          </div>
-        }
-      </article>
+              <button
+                type="button"
+                [disabled]="cargandoReporte"
+                (click)="exportarPdf(reporte)"
+              >
+                Descargar PDF
+              </button>
+            </div>
+          </header>
+
+          @if (reporte.movimientos.length > 0) {
+            <div class="tabla-contenedor">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+
+                    <th>Tipo</th>
+
+                    <th>Clasificador</th>
+
+                    <th>Descripción</th>
+
+                    <th>Estado</th>
+
+                    <th>Medio de pago</th>
+
+                    @if (formulario.controls.incluirAnulados.value) {
+                      <th>Anulación</th>
+                    }
+
+                    <th class="texto-derecha">Monto</th>
+                  </tr>
+                </thead>
+
+                <tbody>
+                  @for (
+                    movimiento of reporte.movimientos;
+                    track movimiento.id
+                  ) {
+                    <tr>
+                      <td>
+                        <strong>
+                          {{ formatearFecha(movimiento.fechaMovimiento) }}
+                        </strong>
+                      </td>
+
+                      <td>
+                        <span
+                          class="badge"
+                          [class.badge-ingreso]="
+                            movimiento.tipoMovimiento === 1
+                          "
+                          [class.badge-egreso]="movimiento.tipoMovimiento === 2"
+                        >
+                          {{
+                            etiquetaTipoMovimiento(movimiento.tipoMovimiento)
+                          }}
+                        </span>
+                      </td>
+
+                      <td>
+                        {{ movimiento.categoria }}
+                      </td>
+
+                      <td class="descripcion">
+                        {{ movimiento.descripcion }}
+                      </td>
+
+                      <td>
+                        <span
+                          class="badge"
+                          [class.badge-proyectado]="
+                            movimiento.estado === 'Proyectado'
+                          "
+                        >
+                          {{ movimiento.estado }}
+                        </span>
+                      </td>
+
+                      <td>
+                        {{ movimiento.medioPagoDescripcion }}
+                      </td>
+
+                      @if (formulario.controls.incluirAnulados.value) {
+                        <td>
+                          @if (!movimiento.activo) {
+                            <strong> Anulado </strong>
+
+                            <small class="motivo-anulacion">
+                              {{
+                                movimiento.motivoAnulacion ||
+                                  "Sin motivo registrado"
+                              }}
+                            </small>
+                          } @else {
+                            <span> — </span>
+                          }
+                        </td>
+                      }
+
+                      <td
+                        class="texto-derecha monto"
+                        [class.ingreso]="movimiento.tipoMovimiento === 1"
+                        [class.egreso]="movimiento.tipoMovimiento === 2"
+                      >
+                        {{ movimiento.tipoMovimiento === 1 ? "+" : "-" }}
+
+                        {{ movimiento.monto | monedaSol }}
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          } @else {
+            <div class="estado-vacio">
+              <div class="estado-vacio-icono">
+                <lucide-icon
+                  [img]="ChartNoAxesCombined"
+                  aria-hidden="true"
+                ></lucide-icon>
+              </div>
+
+              <strong> No encontramos movimientos </strong>
+
+              <p>Modifica los filtros para consultar otro periodo.</p>
+            </div>
+          }
+        </article>
+      }
     }
   } @else {
     <app-registro-compras> </app-registro-compras>

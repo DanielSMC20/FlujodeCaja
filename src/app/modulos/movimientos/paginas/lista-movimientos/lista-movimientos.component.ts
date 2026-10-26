@@ -5,7 +5,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   DestroyRef,
-  inject,ChangeDetectorRef,
+  HostListener,
+  inject,
+  ChangeDetectorRef,
 } from '@angular/core';
 
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -22,8 +24,8 @@ import {
   startWith,
   switchMap,
   catchError,
-finalize,
-EMPTY,
+  finalize,
+  EMPTY,
 } from 'rxjs';
 
 import {
@@ -81,17 +83,16 @@ export class ListaMovimientosComponent {
   private readonly movimientoService = inject(MovimientoService);
 
   readonly constanteService = inject(ConstanteService);
-  readonly mediosPago$ =
-  this.constanteService.obtenerConstante(200);
+  readonly mediosPago$ = this.constanteService.obtenerConstante(200);
 
   private readonly route = inject(ActivatedRoute);
 
   private readonly router = inject(Router);
 
   private readonly destroyRef = inject(DestroyRef);
-  private readonly changeDetectorRef =   inject(ChangeDetectorRef);
+  private readonly changeDetectorRef = inject(ChangeDetectorRef);
 
-cargandoMovimientos = false;
+  cargandoMovimientos = false;
 
   private readonly formBuilder = inject(FormBuilder);
 
@@ -155,13 +156,67 @@ cargandoMovimientos = false;
   }
   menuAccionesAbiertoId: number | null = null;
 
-  alternarMenuAcciones(movimientoId: number): void {
-    this.menuAccionesAbiertoId =
-      this.menuAccionesAbiertoId === movimientoId ? null : movimientoId;
+  /*
+   * Posición del menú ⋮ en pantalla. Se usa position: fixed porque la
+   * tabla tiene overflow (scroll horizontal) y un menú absolute quedaba
+   * recortado cuando había pocas filas.
+   */
+  menuPosicion = { top: 0, left: 0 };
+
+  alternarMenuAcciones(movimientoId: number, evento?: MouseEvent): void {
+    if (this.menuAccionesAbiertoId === movimientoId) {
+      this.cerrarMenuAcciones();
+      return;
+    }
+
+    const boton = evento?.currentTarget as HTMLElement | null;
+
+    if (boton) {
+      const rect = boton.getBoundingClientRect();
+      const anchoMenu = 190;
+      const altoMenu = 56;
+      const margen = 6;
+
+      // Si no cabe debajo del botón, se abre hacia arriba.
+      const abrirArriba = rect.bottom + margen + altoMenu > window.innerHeight;
+
+      this.menuPosicion = {
+        top: abrirArriba
+          ? Math.max(margen, rect.top - margen - altoMenu)
+          : rect.bottom + margen,
+        left: Math.max(margen, rect.right - anchoMenu),
+      };
+    }
+
+    this.menuAccionesAbiertoId = movimientoId;
   }
 
   cerrarMenuAcciones(): void {
     this.menuAccionesAbiertoId = null;
+  }
+
+  // Clic fuera del menú: se cierra.
+  @HostListener('document:click', ['$event'])
+  cerrarMenuAlHacerClicFuera(evento: MouseEvent): void {
+    const destino = evento.target as HTMLElement | null;
+
+    if (
+      this.menuAccionesAbiertoId !== null &&
+      !destino?.closest('.menu-acciones-contenedor')
+    ) {
+      this.cerrarMenuAcciones();
+      this.changeDetectorRef.markForCheck();
+    }
+  }
+
+  // El menú está fijo en la pantalla: se cierra si la página se mueve.
+  @HostListener('window:scroll')
+  @HostListener('window:resize')
+  cerrarMenuPorDesplazamiento(): void {
+    if (this.menuAccionesAbiertoId !== null) {
+      this.cerrarMenuAcciones();
+      this.changeDetectorRef.markForCheck();
+    }
   }
   async anularMovimiento(movimiento: Movimiento): Promise<void> {
     this.cerrarMenuAcciones();
@@ -270,41 +325,36 @@ cargandoMovimientos = false;
     undefined,
   );
 
-  private readonly movimientosBase$ =
-  this.recargarMovimientosSubject.pipe(
+  private readonly movimientosBase$ = this.recargarMovimientosSubject.pipe(
     switchMap(() => {
       this.cargandoMovimientos = true;
 
       this.changeDetectorRef.markForCheck();
 
-      return this.movimientoService
-        .listarMovimientos()
-        .pipe(
-          catchError((error) => {
-            void import('sweetalert2').then(
-              ({ default: Swal }) =>
-                Swal.fire({
-                  icon: 'error',
-                  title:
-                    'No se pudieron cargar los movimientos',
-                  text:
-                    error instanceof Error
-                      ? error.message
-                      : 'Ocurrió un error al consultar los movimientos.',
-                  confirmButtonText: 'Aceptar',
-                  heightAuto: false,
-                }),
-            );
+      return this.movimientoService.listarMovimientos().pipe(
+        catchError((error) => {
+          void import('sweetalert2').then(({ default: Swal }) =>
+            Swal.fire({
+              icon: 'error',
+              title: 'No se pudieron cargar los movimientos',
+              text:
+                error instanceof Error
+                  ? error.message
+                  : 'Ocurrió un error al consultar los movimientos.',
+              confirmButtonText: 'Aceptar',
+              heightAuto: false,
+            }),
+          );
 
-            return EMPTY;
-          }),
+          return EMPTY;
+        }),
 
-          finalize(() => {
-            this.cargandoMovimientos = false;
+        finalize(() => {
+          this.cargandoMovimientos = false;
 
-            this.changeDetectorRef.markForCheck();
-          }),
-        );
+          this.changeDetectorRef.markForCheck();
+        }),
+      );
     }),
   );
 
@@ -499,37 +549,27 @@ cargandoMovimientos = false;
      FECHA
      ====================================================== */
 
-  fechaVisible(
-  movimiento: Movimiento,
-): string {
-  if (movimiento.tipoMovimiento === 1) {
-    return movimiento.fechaMovimiento;
+  fechaVisible(movimiento: Movimiento): string {
+    if (movimiento.tipoMovimiento === 1) {
+      return movimiento.fechaMovimiento;
+    }
+
+    if (movimiento.bCancelado === 0) {
+      return movimiento.fechaProyectada ?? movimiento.fechaMovimiento;
+    }
+
+    return movimiento.fechaPago ?? movimiento.fechaMovimiento;
   }
 
-  if (movimiento.bCancelado === 0) {
-    return (
-      movimiento.fechaProyectada ??
-      movimiento.fechaMovimiento
-    );
+  etiquetaFecha(movimiento: Movimiento): string {
+    if (movimiento.tipoMovimiento === 1) {
+      return 'Ingreso';
+    }
+
+    return movimiento.bCancelado === 0
+      ? 'Vencimiento / proyectada'
+      : 'Pago real';
   }
-
-  return (
-    movimiento.fechaPago ??
-    movimiento.fechaMovimiento
-  );
-}
-
-etiquetaFecha(
-  movimiento: Movimiento,
-): string {
-  if (movimiento.tipoMovimiento === 1) {
-    return 'Ingreso';
-  }
-
-  return movimiento.bCancelado === 0
-    ? 'Vencimiento / proyectada'
-    : 'Pago real';
-}
 
   formatearFecha(fecha: string): string {
     const partes = fecha.split('-');

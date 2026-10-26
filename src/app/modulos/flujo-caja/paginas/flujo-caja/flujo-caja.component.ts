@@ -21,7 +21,11 @@ import {
   switchMap,
   take,
 } from 'rxjs';
-import { ChartNoAxesCombined, Download, LucideAngularModule } from 'lucide-angular';
+import {
+  ChartNoAxesCombined,
+  Download,
+  LucideAngularModule,
+} from 'lucide-angular';
 import * as XLSX from 'xlsx-js-style';
 
 import { MonedaSolPipe } from '../../../../compartido/pipes/moneda-sol.pipe';
@@ -92,6 +96,15 @@ interface VistaFlujoCaja {
   filtro: FiltroFlujoCaja;
   rango: RangoFlujo;
   saldoConfigurado: boolean;
+  /** Indicador "Saldo al iniciar": siempre el mismo punto de partida que la matriz. */
+  saldoInicial: SaldoInicialIndicador;
+}
+
+interface SaldoInicialIndicador {
+  valor: number;
+  nota: string;
+  /** Saldo real sin proyectados, solo cuando es distinto del valor mostrado. */
+  disponibleReal: number | null;
 }
 
 interface MovimientoCeldaMatriz {
@@ -152,8 +165,18 @@ export class FlujoCajaComponent {
   private direccionAutoScroll: -1 | 0 | 1 = 0;
 
   readonly mesesSeleccion = [
-    'Enero', 'Febrero', 'Marzo', 'Abril', 'Mayo', 'Junio',
-    'Julio', 'Agosto', 'Septiembre', 'Octubre', 'Noviembre', 'Diciembre',
+    'Enero',
+    'Febrero',
+    'Marzo',
+    'Abril',
+    'Mayo',
+    'Junio',
+    'Julio',
+    'Agosto',
+    'Septiembre',
+    'Octubre',
+    'Noviembre',
+    'Diciembre',
   ];
 
   readonly aniosDisponibles = Array.from(
@@ -259,26 +282,36 @@ export class FlujoCajaComponent {
           const periodos = this.obtenerPeriodosConsulta(filtro);
 
           return forkJoin({
-            flujoCaja: forkJoin(periodos.map((periodo) => {
-              // No existe saldo ni movimientos anteriores a la apertura.
-              if (apertura && periodo.fechaHasta < apertura) {
-                return this.crearFlujoSinMovimientos(periodo);
-              }
-              return this.flujoCajaService.obtenerFlujoCaja(
-                apertura && periodo.fechaDesde < apertura
-                  ? apertura : periodo.fechaDesde,
-                periodo.fechaHasta,
-              );
-            })).pipe(map((flujos) => this.combinarFlujos(flujos, rango))),
+            flujoCaja: forkJoin(
+              periodos.map((periodo) => {
+                // No existe saldo ni movimientos anteriores a la apertura.
+                if (apertura && periodo.fechaHasta < apertura) {
+                  return this.crearFlujoSinMovimientos(periodo);
+                }
+                return this.flujoCajaService.obtenerFlujoCaja(
+                  apertura && periodo.fechaDesde < apertura
+                    ? apertura
+                    : periodo.fechaDesde,
+                  periodo.fechaHasta,
+                );
+              }),
+            ).pipe(map((flujos) => this.combinarFlujos(flujos, rango))),
             // Se mantiene la consulta completa para incluir egresos cuya
             // fecha proyectada se reprogramó fuera de su fecha original.
-            movimientos: this.movimientoService.listarMovimientos().pipe(take(1)),
+            movimientos: this.movimientoService
+              .listarMovimientos()
+              .pipe(take(1)),
             categoriasEgreso: this.categoriaService
-              .listarCategoriasPorTipo(2).pipe(take(1)),
+              .listarCategoriasPorTipo(2)
+              .pipe(take(1)),
           }).pipe(
             map(({ flujoCaja, movimientos, categoriasEgreso }) =>
               this.construirVistaMatriz(
-                flujoCaja, movimientos, categoriasEgreso, filtro, rango,
+                flujoCaja,
+                movimientos,
+                categoriasEgreso,
+                filtro,
+                rango,
                 Boolean(apertura),
               ),
             ),
@@ -289,8 +322,10 @@ export class FlujoCajaComponent {
             Swal.fire({
               icon: 'error',
               title: 'No se pudo cargar el flujo de caja',
-              text: error instanceof Error ? error.message
-                : 'Ocurrió un error al consultar el flujo de caja.',
+              text:
+                error instanceof Error
+                  ? error.message
+                  : 'Ocurrió un error al consultar el flujo de caja.',
               confirmButtonText: 'Aceptar',
               heightAuto: false,
             }),
@@ -314,9 +349,14 @@ export class FlujoCajaComponent {
       this.errorFiltro = 'Selecciona una agrupación válida.';
       return;
     }
-    if (!Number.isInteger(datos.mes) || datos.mes < 1 || datos.mes > 12
-      || !Number.isInteger(datos.anio) || datos.anio < 2000
-      || datos.anio > new Date().getFullYear()) {
+    if (
+      !Number.isInteger(datos.mes) ||
+      datos.mes < 1 ||
+      datos.mes > 12 ||
+      !Number.isInteger(datos.anio) ||
+      datos.anio < 2000 ||
+      datos.anio > new Date().getFullYear()
+    ) {
       this.errorFiltro = 'Selecciona un mes y año válidos.';
       return;
     }
@@ -353,8 +393,9 @@ export class FlujoCajaComponent {
       };
     }
     const mes = String(filtro.mes).padStart(2, '0');
-    const ultimoDia = new Date(Date.UTC(filtro.anio, filtro.mes, 0))
-      .getUTCDate();
+    const ultimoDia = new Date(
+      Date.UTC(filtro.anio, filtro.mes, 0),
+    ).getUTCDate();
     return {
       fechaDesde: `${filtro.anio}-${mes}-01`,
       fechaHasta: `${filtro.anio}-${mes}-${String(ultimoDia).padStart(2, '0')}`,
@@ -404,9 +445,13 @@ export class FlujoCajaComponent {
         saldoInicialProyectado: primero?.saldoInicialProyectado ?? 0,
         totalIngresos: flujos.reduce((s, f) => s + f.resumen.totalIngresos, 0),
         totalEgresosPagados: flujos.reduce(
-          (s, f) => s + f.resumen.totalEgresosPagados, 0),
+          (s, f) => s + f.resumen.totalEgresosPagados,
+          0,
+        ),
         totalEgresosProyectados: flujos.reduce(
-          (s, f) => s + f.resumen.totalEgresosProyectados, 0),
+          (s, f) => s + f.resumen.totalEgresosProyectados,
+          0,
+        ),
         saldoFinalReal: ultimo?.saldoFinalReal ?? 0,
         saldoFinalProyectado: ultimo?.saldoFinalProyectado ?? 0,
       },
@@ -460,9 +505,77 @@ export class FlujoCajaComponent {
     const fechas = this.construirFechasPeriodo(rango);
     const columnas = this.construirColumnas(fechas, filtro);
     const filasMatriz = this.construirFilasMatriz(
-      flujoCaja, movimientos, categoriasEgreso, fechas, columnas,
+      flujoCaja,
+      movimientos,
+      categoriasEgreso,
+      fechas,
+      columnas,
     );
-    return { flujoCaja, columnas, filasMatriz, filtro, rango, saldoConfigurado };
+    const saldoInicial = this.calcularSaldoInicialIndicador(
+      flujoCaja,
+      rango,
+      saldoConfigurado,
+    );
+    return {
+      flujoCaja,
+      columnas,
+      filasMatriz,
+      filtro,
+      rango,
+      saldoConfigurado,
+      saldoInicial,
+    };
+  }
+
+  /*
+   * Usa la misma regla que la fila SALDO INICIAL de la matriz:
+   * - Si el periodo empieza antes de la apertura y la contiene, el punto de
+   *   partida es el saldo de apertura (antes se mostraba S/ 0.00).
+   * - Si no, es el saldo inicial proyectado (descuenta egresos proyectados
+   *   pendientes de periodos anteriores), que es con el que arranca la matriz.
+   */
+  private calcularSaldoInicialIndicador(
+    flujoCaja: ResultadoFlujoCaja,
+    rango: RangoFlujo,
+    saldoConfigurado: boolean,
+  ): SaldoInicialIndicador {
+    const real = Number(flujoCaja.resumen.saldoInicialReal ?? 0);
+    const proyectado = Number(flujoCaja.resumen.saldoInicialProyectado ?? real);
+    const apertura = this.fechaApertura;
+
+    if (!saldoConfigurado) {
+      return {
+        valor: proyectado,
+        nota: 'Cálculo provisional: apertura pendiente',
+        disponibleReal: null,
+      };
+    }
+
+    if (apertura && rango.fechaHasta < apertura) {
+      return {
+        valor: 0,
+        nota: 'El periodo es anterior a la apertura de la caja',
+        disponibleReal: null,
+      };
+    }
+
+    if (apertura && rango.fechaDesde < apertura) {
+      return {
+        valor: this.saldoAperturaContable,
+        nota: `Saldo de apertura del ${this.formatearFecha(apertura)}`,
+        disponibleReal: null,
+      };
+    }
+
+    const hayProyectadosPendientes = Math.abs(real - proyectado) >= 0.005;
+
+    return {
+      valor: proyectado,
+      nota: hayProyectadosPendientes
+        ? 'Descuenta egresos proyectados pendientes de periodos anteriores'
+        : 'Incluye la apertura y los movimientos anteriores',
+      disponibleReal: hayProyectadosPendientes ? real : null,
+    };
   }
 
   private construirFechasPeriodo(rango: RangoFlujo): string[] {
@@ -481,7 +594,8 @@ export class FlujoCajaComponent {
   }
 
   private construirColumnas(
-    fechas: string[], filtro: FiltroFlujoCaja,
+    fechas: string[],
+    filtro: FiltroFlujoCaja,
   ): ColumnaMatriz[] {
     const grupos = new Map<string, ColumnaMatriz>();
     for (const fecha of fechas) {
@@ -840,14 +954,14 @@ export class FlujoCajaComponent {
       ),
       this.crearFila(
         'total-egresos',
-        'TOTAL EGRESOS',
+        'TOTAL EGRESOS (INCLUYE PROYECTADOS)',
         'total',
         columnas,
         totalEgresos,
       ),
       this.crearFila(
         'saldo-final',
-        'SALDO FINAL',
+        'SALDO FINAL PROYECTADO',
         'saldo-final',
         columnas,
         saldoFinalDia,
@@ -1248,28 +1362,28 @@ export class FlujoCajaComponent {
     }
   }
 
-permitirSoltarProyectado(
-  event: DragEvent,
-  columna: ColumnaMatriz,
-  filaId: string,
-): void {
-  if (
-    !this.puedeGestionarMovimientos ||
-    !this.movimientoArrastrado ||
-    columna.tipo !== 'dia' ||
-    filaId !== this.filaArrastradaId
-  ) {
-    return;
+  permitirSoltarProyectado(
+    event: DragEvent,
+    columna: ColumnaMatriz,
+    filaId: string,
+  ): void {
+    if (
+      !this.puedeGestionarMovimientos ||
+      !this.movimientoArrastrado ||
+      columna.tipo !== 'dia' ||
+      filaId !== this.filaArrastradaId
+    ) {
+      return;
+    }
+
+    event.preventDefault();
+
+    if (event.dataTransfer) {
+      event.dataTransfer.dropEffect = 'move';
+    }
+
+    this.celdaDestinoArrastre = `${filaId}_${columna.id}`;
   }
-
-  event.preventDefault();
-
-  if (event.dataTransfer) {
-    event.dataTransfer.dropEffect = 'move';
-  }
-
-  this.celdaDestinoArrastre = `${filaId}_${columna.id}`;
-}
   salirDestinoArrastre(filaId: string, columnaId: string): void {
     const clave = `${filaId}_${columnaId}`;
 
@@ -1277,19 +1391,19 @@ permitirSoltarProyectado(
       this.celdaDestinoArrastre = null;
     }
   }
-async soltarProyectado(
-  event: DragEvent,
-  columna: ColumnaMatriz,
-  filaId: string,
-): Promise<void> {
-  event.preventDefault();
+  async soltarProyectado(
+    event: DragEvent,
+    columna: ColumnaMatriz,
+    filaId: string,
+  ): Promise<void> {
+    event.preventDefault();
 
-  if (!this.puedeGestionarMovimientos) {
-    this.finalizarArrastre();
-    return;
-  }
+    if (!this.puedeGestionarMovimientos) {
+      this.finalizarArrastre();
+      return;
+    }
 
-  const movimiento = this.movimientoArrastrado;
+    const movimiento = this.movimientoArrastrado;
 
     this.celdaDestinoArrastre = null;
 
@@ -1634,20 +1748,29 @@ async soltarProyectado(
     const numeroColumnas = vista.columnas.length + 1;
     const matriz: (string | number)[][] = [
       ['FLUJO DE CAJA PARA GERENTES · SOLES (PEN)'],
-      [`${vista.filtro.agrupacion.toUpperCase()} · ${this.descripcionPeriodo(vista.filtro)}`],
-      [vista.saldoConfigurado ? 'Saldo de apertura registrado'
-        : 'Saldo de apertura pendiente · importes provisionales'],
+      [
+        `${vista.filtro.agrupacion.toUpperCase()} · ${this.descripcionPeriodo(vista.filtro)}`,
+      ],
+      [
+        vista.saldoConfigurado
+          ? 'Saldo de apertura registrado'
+          : 'Saldo de apertura pendiente · importes provisionales',
+      ],
       ['CONCEPTO', ...vista.columnas.map((columna) => columna.etiqueta)],
       ...vista.filasMatriz.map((fila) => [
         fila.concepto,
         ...vista.columnas.map((columna) =>
-          fila.tipo.startsWith('seccion-') ? '' : (fila.valores[columna.id] ?? 0)),
+          fila.tipo.startsWith('seccion-')
+            ? ''
+            : (fila.valores[columna.id] ?? 0),
+        ),
       ]),
     ];
 
     const hoja = XLSX.utils.aoa_to_sheet(matriz);
     hoja['!merges'] = [0, 1, 2].map((r) => ({
-      s: { r, c: 0 }, e: { r, c: numeroColumnas - 1 },
+      s: { r, c: 0 },
+      e: { r, c: numeroColumnas - 1 },
     }));
     hoja['!cols'] = [
       { wch: 38 },
@@ -1661,19 +1784,44 @@ async soltarProyectado(
       const fila = filaIndice >= 4 ? vista.filasMatriz[filaIndice - 4] : null;
       const esEncabezado = filaIndice <= 3;
       const esSeccion = Boolean(fila?.tipo.startsWith('seccion-'));
-      const esTotal = Boolean(fila && [
-        'subtotal', 'total', 'saldo-inicial', 'saldo-final', 'saldo-operativo',
-      ].includes(fila.tipo));
-      const fondo = esEncabezado ? (filaIndice === 3 ? '123047' : '17324D')
-        : esSeccion ? (fila?.tipo === 'seccion-ingreso' ? 'DCEFE9' : 'FBE8DF')
-        : esTotal ? 'E8EFF7' : (filaIndice % 2 === 0 ? 'FFFFFF' : 'F7F9FC');
-      for (let columnaIndice = 0; columnaIndice < numeroColumnas; columnaIndice++) {
-        const direccion = XLSX.utils.encode_cell({ r: filaIndice, c: columnaIndice });
+      const esTotal = Boolean(
+        fila &&
+        [
+          'subtotal',
+          'total',
+          'saldo-inicial',
+          'saldo-final',
+          'saldo-operativo',
+        ].includes(fila.tipo),
+      );
+      const fondo = esEncabezado
+        ? filaIndice === 3
+          ? '123047'
+          : '17324D'
+        : esSeccion
+          ? fila?.tipo === 'seccion-ingreso'
+            ? 'DCEFE9'
+            : 'FBE8DF'
+          : esTotal
+            ? 'E8EFF7'
+            : filaIndice % 2 === 0
+              ? 'FFFFFF'
+              : 'F7F9FC';
+      for (
+        let columnaIndice = 0;
+        columnaIndice < numeroColumnas;
+        columnaIndice++
+      ) {
+        const direccion = XLSX.utils.encode_cell({
+          r: filaIndice,
+          c: columnaIndice,
+        });
         const celda = hoja[direccion];
         if (!celda) continue;
         celda.s = {
           font: {
-            name: 'Aptos', sz: filaIndice === 0 ? 15 : 10,
+            name: 'Aptos',
+            sz: filaIndice === 0 ? 15 : 10,
             bold: esEncabezado || esSeccion || esTotal,
             color: { rgb: esEncabezado ? 'FFFFFF' : '243347' },
           },
@@ -1684,15 +1832,21 @@ async soltarProyectado(
           },
           border: { bottom: { style: 'hair', color: { rgb: 'D9E1EA' } } },
         };
-        if (filaIndice >= 4 && columnaIndice > 0 && typeof celda.v === 'number') {
+        if (
+          filaIndice >= 4 &&
+          columnaIndice > 0 &&
+          typeof celda.v === 'number'
+        ) {
           celda.z = '"S/ "#,##0.00;[Red]("S/ "#,##0.00);"-"';
         }
       }
     }
     const libro = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(libro, hoja, 'Flujo de caja');
-    XLSX.writeFile(libro,
-      `flujo-caja-${vista.filtro.agrupacion}-${vista.rango.fechaDesde}-${vista.rango.fechaHasta}.xlsx`);
+    XLSX.writeFile(
+      libro,
+      `flujo-caja-${vista.filtro.agrupacion}-${vista.rango.fechaDesde}-${vista.rango.fechaHasta}.xlsx`,
+    );
   }
 
   get puedeGestionarMovimientos(): boolean {

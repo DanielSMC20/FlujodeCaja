@@ -180,6 +180,28 @@ export class CrearCuentaEmpresaComponent {
     void this.router.navigateByUrl('/configuracion');
   }
 
+  /** Texto que explica qué le falta a la contraseña. */
+  mensajePassword(): string {
+    const password = this.formulario.controls.password.value;
+
+    if (!password) {
+      return 'Escribe una contraseña.';
+    }
+
+    const faltantes = [
+      !this.tieneMinimo(password) ? '8 caracteres como mínimo' : '',
+      !this.tieneMayuscula(password) ? 'una mayúscula' : '',
+      !this.tieneMinuscula(password) ? 'una minúscula' : '',
+      !this.tieneNumero(password) ? 'un número' : '',
+    ].filter(Boolean);
+
+    if (faltantes.length === 0) {
+      return 'La contraseña no puede superar los 72 caracteres.';
+    }
+
+    return `Le falta: ${faltantes.join(', ')}.`;
+  }
+
   tieneMinimo(password: string): boolean {
     return password.length >= 8;
   }

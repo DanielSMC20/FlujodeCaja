@@ -598,12 +598,10 @@ tbody tr:hover {
 
 
 .menu-acciones {
-  position: absolute;
+  /* fixed: así no lo recorta el overflow de .tabla-contenedor */
+  position: fixed;
 
-  top: calc(100% + 0.4rem);
-  right: 0;
-
-  z-index: 50;
+  z-index: 1000;
 
   min-width: 190px;
 
