@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 
@@ -16,12 +16,11 @@ import { PlataformaAuthService } from '../../servicios/plataforma-auth.service';
 @Component({
     selector: 'app-administracion-layout',
     imports: [
-        CommonModule,
-        RouterOutlet,
-        RouterLink,
-        RouterLinkActive,
-        LucideAngularModule,
-    ],
+    RouterOutlet,
+    RouterLink,
+    RouterLinkActive,
+    LucideAngularModule
+],
     templateUrl: './administracion-layout.component.html',
     styleUrl: './administracion-layout.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

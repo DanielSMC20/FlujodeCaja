@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { ChangeDetectionStrategy, ChangeDetectorRef, Component, DestroyRef, inject } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AbstractControl, FormBuilder, ReactiveFormsModule, ValidationErrors, ValidatorFn, Validators } from '@angular/forms';
@@ -20,7 +20,7 @@ const passwordsCoinciden: ValidatorFn = (
 
 @Component({
     selector: 'app-cambiar-password',
-    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+    imports: [ReactiveFormsModule, LucideAngularModule],
     templateUrl: './cambiar-password.component.html',
     styleUrl: './cambiar-password.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

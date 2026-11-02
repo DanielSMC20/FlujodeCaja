@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 
 import { Component, OnInit, inject } from '@angular/core';
 
@@ -40,7 +40,7 @@ const passwordsCoinciden: ValidatorFn = (
 
 @Component({
     selector: 'app-restablecer-password',
-    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink],
+    imports: [ReactiveFormsModule, LucideAngularModule, RouterLink],
     templateUrl: './restablecer-password.component.html',
     styleUrl: './restablecer-password.component.scss'
 })

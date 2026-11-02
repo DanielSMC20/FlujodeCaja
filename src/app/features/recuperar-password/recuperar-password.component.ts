@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { Component, inject } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 
@@ -18,7 +18,7 @@ import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
     selector: 'app-recuperar-password',
-    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink],
+    imports: [ReactiveFormsModule, LucideAngularModule, RouterLink],
     templateUrl: './recuperar-password.component.html',
     styleUrl: './recuperar-password.component.scss'
 })

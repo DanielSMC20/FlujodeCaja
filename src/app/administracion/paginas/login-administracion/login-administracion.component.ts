@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 
 import {
   ChangeDetectionStrategy,
@@ -30,7 +30,7 @@ import { PlataformaAuthService } from '../../servicios/plataforma-auth.service';
 
 @Component({
     selector: 'app-login-administracion',
-    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+    imports: [ReactiveFormsModule, LucideAngularModule],
     templateUrl: './login-administracion.component.html',
     styleUrl: './login-administracion.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

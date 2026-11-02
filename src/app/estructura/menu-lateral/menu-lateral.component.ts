@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 import { SesionUsuarioService } from '../../nucleo/servicios/sesion-usuario.service';
 import {
   ChangeDetectionStrategy,
@@ -35,7 +35,7 @@ interface OpcionMenu {
 
 @Component({
     selector: 'app-menu-lateral',
-    imports: [CommonModule, RouterLink, RouterLinkActive, LucideAngularModule],
+    imports: [RouterLink, RouterLinkActive, LucideAngularModule],
     templateUrl: './menu-lateral.component.html',
     styleUrl: './menu-lateral.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

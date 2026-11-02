@@ -1,6 +1,4 @@
-import {
-  CommonModule,
-} from '@angular/common';
+
 
 import {
   ChangeDetectionStrategy,
@@ -57,11 +55,10 @@ import {
 @Component({
     selector: 'app-lista-empresas',
     imports: [
-        CommonModule,
-        ReactiveFormsModule,
-        RouterLink,
-        LucideAngularModule,
-    ],
+    ReactiveFormsModule,
+    RouterLink,
+    LucideAngularModule
+],
     templateUrl: './lista-empresas.component.html',
     styleUrl: './lista-empresas.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush

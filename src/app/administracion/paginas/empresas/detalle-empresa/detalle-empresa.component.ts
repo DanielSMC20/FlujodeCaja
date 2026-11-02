@@ -1,4 +1,4 @@
-import { CommonModule } from '@angular/common';
+
 
 import {
   ChangeDetectionStrategy,
@@ -38,7 +38,7 @@ import { PlataformaEmpresaService } from '../../../servicios/plataforma-empresa.
 
 @Component({
     selector: 'app-detalle-empresa',
-    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+    imports: [ReactiveFormsModule, LucideAngularModule],
     templateUrl: './detalle-empresa.component.html',
     styleUrl: './detalle-empresa.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
