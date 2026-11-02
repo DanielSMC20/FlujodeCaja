@@ -18,11 +18,10 @@ import {
 import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
-  selector: 'app-login',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink],
-  templateUrl: './login.component.html',
-  styleUrl: './login.component.scss',
+    selector: 'app-login',
+    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink],
+    templateUrl: './login.component.html',
+    styleUrl: './login.component.scss'
 })
 export class LoginComponent implements OnInit {
   readonly iconos = {

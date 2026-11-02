@@ -21,17 +21,11 @@ import { CategoriaService } from '../../../../nucleo/servicios/categoria.service
 import { LucideAngularModule, Plus } from 'lucide-angular';
 
 @Component({
-  selector: 'app-lista-categorias',
-
-  standalone: true,
-
-  imports: [CommonModule, AsyncPipe, ReactiveFormsModule, LucideAngularModule],
-
-  templateUrl: './lista-categorias.component.html',
-
-  styleUrl: './lista-categorias.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-lista-categorias',
+    imports: [CommonModule, AsyncPipe, ReactiveFormsModule, LucideAngularModule],
+    templateUrl: './lista-categorias.component.html',
+    styleUrl: './lista-categorias.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListaCategoriasComponent {
   readonly Plus = Plus;

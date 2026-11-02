@@ -34,15 +34,11 @@ interface OpcionMenu {
 }
 
 @Component({
-  selector: 'app-menu-lateral',
-  standalone: true,
-
-  imports: [CommonModule, RouterLink, RouterLinkActive, LucideAngularModule],
-
-  templateUrl: './menu-lateral.component.html',
-  styleUrl: './menu-lateral.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-menu-lateral',
+    imports: [CommonModule, RouterLink, RouterLinkActive, LucideAngularModule],
+    templateUrl: './menu-lateral.component.html',
+    styleUrl: './menu-lateral.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class MenuLateralComponent {
   private readonly sesionUsuarioService = inject(SesionUsuarioService);

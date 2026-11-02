@@ -58,23 +58,17 @@ type CampoMovimiento =
   | 'observacion';
 
 @Component({
-  selector: 'app-formulario-movimiento',
-
-  standalone: true,
-
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    ReactiveFormsModule,
-    RouterLink,
-    LucideAngularModule,
-  ],
-
-  templateUrl: './formulario-movimiento.component.html',
-
-  styleUrl: './formulario-movimiento.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-formulario-movimiento',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        ReactiveFormsModule,
+        RouterLink,
+        LucideAngularModule,
+    ],
+    templateUrl: './formulario-movimiento.component.html',
+    styleUrl: './formulario-movimiento.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FormularioMovimientoComponent {
   readonly iconos = {

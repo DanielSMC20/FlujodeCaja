@@ -39,11 +39,10 @@ const passwordsCoinciden: ValidatorFn = (
 };
 
 @Component({
-  selector: 'app-restablecer-password',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink],
-  templateUrl: './restablecer-password.component.html',
-  styleUrl: './restablecer-password.component.scss',
+    selector: 'app-restablecer-password',
+    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink],
+    templateUrl: './restablecer-password.component.html',
+    styleUrl: './restablecer-password.component.scss'
 })
 export class RestablecerPasswordComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);

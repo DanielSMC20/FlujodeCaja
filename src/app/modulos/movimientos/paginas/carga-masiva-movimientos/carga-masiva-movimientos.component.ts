@@ -56,12 +56,11 @@ import { CargaMasivaMovimientoService } from '../../../../nucleo/servicios/carga
 import { SelectFloatingFilterComponent } from './select-floating-filter.component';
 
 @Component({
-  selector: 'app-carga-masiva-movimientos',
-  standalone: true,
-  imports: [CommonModule, AgGridAngular, LucideAngularModule],
-  templateUrl: './carga-masiva-movimientos.component.html',
-  styleUrl: './carga-masiva-movimientos.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-carga-masiva-movimientos',
+    imports: [CommonModule, AgGridAngular, LucideAngularModule],
+    templateUrl: './carga-masiva-movimientos.component.html',
+    styleUrl: './carga-masiva-movimientos.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CargaMasivaMovimientosComponent {
   private readonly cargaMasivaService = inject(CargaMasivaMovimientoService);

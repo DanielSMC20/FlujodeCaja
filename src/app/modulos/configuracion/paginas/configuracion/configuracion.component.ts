@@ -52,24 +52,18 @@ import { ConfiguracionFinancieraService } from '../../../../nucleo/servicios/con
 import { MonedaSolPipe } from '../../../../compartido/pipes/moneda-sol.pipe';
 
 @Component({
-  selector: 'app-configuracion',
-
-  standalone: true,
-
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    RouterLink,
-    LucideAngularModule,
-    MonedaSolPipe,
-    ReactiveFormsModule
-  ],
-
-  templateUrl: './configuracion.component.html',
-
-  styleUrl: './configuracion.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-configuracion',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        RouterLink,
+        LucideAngularModule,
+        MonedaSolPipe,
+        ReactiveFormsModule
+    ],
+    templateUrl: './configuracion.component.html',
+    styleUrl: './configuracion.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ConfiguracionComponent {
 

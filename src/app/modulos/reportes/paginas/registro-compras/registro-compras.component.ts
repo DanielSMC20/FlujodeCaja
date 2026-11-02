@@ -42,23 +42,17 @@ import { MonedaSolPipe } from '../../../../compartido/pipes/moneda-sol.pipe';
 type EstadoCompra = 'todos' | 'pagado' | 'proyectado';
 
 @Component({
-  selector: 'app-registro-compras',
-
-  standalone: true,
-
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    ReactiveFormsModule,
-    LucideAngularModule,
-    MonedaSolPipe,
-  ],
-
-  templateUrl: './registro-compras.component.html',
-
-  styleUrl: './registro-compras.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-registro-compras',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        ReactiveFormsModule,
+        LucideAngularModule,
+        MonedaSolPipe,
+    ],
+    templateUrl: './registro-compras.component.html',
+    styleUrl: './registro-compras.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class RegistroComprasComponent {
   /* =========================================================

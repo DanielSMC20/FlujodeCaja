@@ -52,24 +52,18 @@ import { MonedaSolPipe } from '../../../../compartido/pipes/moneda-sol.pipe';
 import { RegistroComprasComponent } from '../registro-compras/registro-compras.component';
 
 @Component({
-  selector: 'app-reportes',
-
-  standalone: true,
-
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    ReactiveFormsModule,
-    MonedaSolPipe,
-    LucideAngularModule,
-    RegistroComprasComponent,
-  ],
-
-  templateUrl: './reportes.component.html',
-
-  styleUrl: './reportes.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-reportes',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        ReactiveFormsModule,
+        MonedaSolPipe,
+        LucideAngularModule,
+        RegistroComprasComponent,
+    ],
+    templateUrl: './reportes.component.html',
+    styleUrl: './reportes.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ReportesComponent {
   private readonly sesionEmpresaService = inject(SesionEmpresaService);

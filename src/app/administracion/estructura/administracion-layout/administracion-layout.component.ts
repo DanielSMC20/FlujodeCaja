@@ -14,23 +14,17 @@ import {
 import { PlataformaAuthService } from '../../servicios/plataforma-auth.service';
 
 @Component({
-  selector: 'app-administracion-layout',
-
-  standalone: true,
-
-  imports: [
-    CommonModule,
-    RouterOutlet,
-    RouterLink,
-    RouterLinkActive,
-    LucideAngularModule,
-  ],
-
-  templateUrl: './administracion-layout.component.html',
-
-  styleUrl: './administracion-layout.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-administracion-layout',
+    imports: [
+        CommonModule,
+        RouterOutlet,
+        RouterLink,
+        RouterLinkActive,
+        LucideAngularModule,
+    ],
+    templateUrl: './administracion-layout.component.html',
+    styleUrl: './administracion-layout.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class AdministracionLayoutComponent {
   private readonly authService = inject(PlataformaAuthService);

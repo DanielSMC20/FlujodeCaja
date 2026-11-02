@@ -19,12 +19,11 @@ const passwordsCoinciden: ValidatorFn = (
 };
 
 @Component({
-  selector: 'app-cambiar-password',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
-  templateUrl: './cambiar-password.component.html',
-  styleUrl: './cambiar-password.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-cambiar-password',
+    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+    templateUrl: './cambiar-password.component.html',
+    styleUrl: './cambiar-password.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CambiarPasswordComponent {
   private readonly formBuilder = inject(FormBuilder);

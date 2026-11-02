@@ -25,23 +25,17 @@ import { MonedaSolPipe } from '../../../../compartido/pipes/moneda-sol.pipe';
 import { DashboardService } from '../../../../nucleo/servicios/dashboard.service';
 
 @Component({
-  selector: 'app-panel-principal',
-
-  standalone: true,
-
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    RouterLink,
-    LucideAngularModule,
-    MonedaSolPipe,
-  ],
-
-  templateUrl: './panel-principal.component.html',
-
-  styleUrl: './panel-principal.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-panel-principal',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        RouterLink,
+        LucideAngularModule,
+        MonedaSolPipe,
+    ],
+    templateUrl: './panel-principal.component.html',
+    styleUrl: './panel-principal.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class PanelPrincipalComponent implements OnDestroy {
   private readonly dashboardService = inject(DashboardService);

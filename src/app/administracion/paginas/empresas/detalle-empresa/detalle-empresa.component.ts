@@ -37,17 +37,11 @@ import {
 import { PlataformaEmpresaService } from '../../../servicios/plataforma-empresa.service';
 
 @Component({
-  selector: 'app-detalle-empresa',
-
-  standalone: true,
-
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
-
-  templateUrl: './detalle-empresa.component.html',
-
-  styleUrl: './detalle-empresa.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-detalle-empresa',
+    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+    templateUrl: './detalle-empresa.component.html',
+    styleUrl: './detalle-empresa.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class DetalleEmpresaComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

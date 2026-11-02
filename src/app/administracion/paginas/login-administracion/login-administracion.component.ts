@@ -29,17 +29,11 @@ import {
 import { PlataformaAuthService } from '../../servicios/plataforma-auth.service';
 
 @Component({
-  selector: 'app-login-administracion',
-
-  standalone: true,
-
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
-
-  templateUrl: './login-administracion.component.html',
-
-  styleUrl: './login-administracion.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-login-administracion',
+    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule],
+    templateUrl: './login-administracion.component.html',
+    styleUrl: './login-administracion.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class LoginAdministracionComponent implements OnInit {
   private readonly formBuilder = inject(FormBuilder);

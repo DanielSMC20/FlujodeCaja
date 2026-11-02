@@ -130,18 +130,17 @@ interface DetalleEgresoCelda {
 }
 
 @Component({
-  selector: 'app-flujo-caja',
-  standalone: true,
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    ReactiveFormsModule,
-    MonedaSolPipe,
-    LucideAngularModule,
-  ],
-  templateUrl: './flujo-caja.component.html',
-  styleUrl: './flujo-caja.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-flujo-caja',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        ReactiveFormsModule,
+        MonedaSolPipe,
+        LucideAngularModule,
+    ],
+    templateUrl: './flujo-caja.component.html',
+    styleUrl: './flujo-caja.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class FlujoCajaComponent {
   readonly ChartNoAxesCombined = ChartNoAxesCombined;

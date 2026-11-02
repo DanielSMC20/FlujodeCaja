@@ -52,18 +52,17 @@ const passwordsCoincidenValidator: ValidatorFn = (
 };
 
 @Component({
-  selector: 'app-crear-cuenta-empresa',
-  standalone: true,
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    ReactiveFormsModule,
-    RouterLink,
-    LucideAngularModule,
-  ],
-  templateUrl: './crear-cuenta-empresa.component.html',
-  styleUrl: './crear-cuenta-empresa.component.scss',
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-crear-cuenta-empresa',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        ReactiveFormsModule,
+        RouterLink,
+        LucideAngularModule,
+    ],
+    templateUrl: './crear-cuenta-empresa.component.html',
+    styleUrl: './crear-cuenta-empresa.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class CrearCuentaEmpresaComponent {
   private readonly formBuilder = inject(FormBuilder);

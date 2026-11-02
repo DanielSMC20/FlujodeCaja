@@ -5,11 +5,10 @@ import { BarraSuperiorComponent } from '../barra-superior/barra-superior.compone
 import { MenuLateralComponent } from '../menu-lateral/menu-lateral.component';
 
 @Component({
-  selector: 'app-estructura-principal',
-  standalone: true,
-  imports: [RouterOutlet, BarraSuperiorComponent, MenuLateralComponent],
-  templateUrl: './estructura-principal.component.html',
-  styleUrl: './estructura-principal.component.scss'
+    selector: 'app-estructura-principal',
+    imports: [RouterOutlet, BarraSuperiorComponent, MenuLateralComponent],
+    templateUrl: './estructura-principal.component.html',
+    styleUrl: './estructura-principal.component.scss'
 })
 export class EstructuraPrincipalComponent {
   menuAbierto = false;

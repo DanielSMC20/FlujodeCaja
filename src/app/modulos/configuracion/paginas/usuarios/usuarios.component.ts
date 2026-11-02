@@ -51,23 +51,17 @@ import {
 
 
 @Component({
-  selector: 'app-usuarios',
-
-  standalone: true,
-
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    ReactiveFormsModule,
-    RouterLink,
-    LucideAngularModule,
-  ],
-
-  templateUrl: './usuarios.component.html',
-
-  styleUrl: './usuarios.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-usuarios',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        ReactiveFormsModule,
+        RouterLink,
+        LucideAngularModule,
+    ],
+    templateUrl: './usuarios.component.html',
+    styleUrl: './usuarios.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class UsuariosComponent {
 

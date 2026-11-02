@@ -17,11 +17,10 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../core/auth/auth.service';
 
 @Component({
-  selector: 'app-recuperar-password',
-  standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink],
-  templateUrl: './recuperar-password.component.html',
-  styleUrl: './recuperar-password.component.scss',
+    selector: 'app-recuperar-password',
+    imports: [CommonModule, ReactiveFormsModule, LucideAngularModule, RouterLink],
+    templateUrl: './recuperar-password.component.html',
+    styleUrl: './recuperar-password.component.scss'
 })
 export class RecuperarPasswordComponent {
   private readonly formBuilder = inject(FormBuilder);

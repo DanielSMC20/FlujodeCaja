@@ -55,29 +55,16 @@ import {
 
 
 @Component({
-
-  selector:
-    'app-lista-empresas',
-
-  standalone:
-    true,
-
-  imports: [
-    CommonModule,
-    ReactiveFormsModule,
-    RouterLink,
-    LucideAngularModule,
-  ],
-
-  templateUrl:
-    './lista-empresas.component.html',
-
-  styleUrl:
-    './lista-empresas.component.scss',
-
-  changeDetection:
-    ChangeDetectionStrategy.OnPush,
-
+    selector: 'app-lista-empresas',
+    imports: [
+        CommonModule,
+        ReactiveFormsModule,
+        RouterLink,
+        LucideAngularModule,
+    ],
+    templateUrl: './lista-empresas.component.html',
+    styleUrl: './lista-empresas.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListaEmpresasComponent
   implements OnInit {

@@ -40,17 +40,11 @@ import { CrearEmpresaPlataformaRequest } from '../../../modelos/empresa-platafor
 import { PlataformaEmpresaService } from '../../../servicios/plataforma-empresa.service';
 
 @Component({
-  selector: 'app-nueva-empresa',
-
-  standalone: true,
-
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, LucideAngularModule],
-
-  templateUrl: './nueva-empresa.component.html',
-
-  styleUrl: './nueva-empresa.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-nueva-empresa',
+    imports: [CommonModule, ReactiveFormsModule, RouterLink, LucideAngularModule],
+    templateUrl: './nueva-empresa.component.html',
+    styleUrl: './nueva-empresa.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class NuevaEmpresaComponent {
   private readonly formBuilder = inject(FormBuilder);

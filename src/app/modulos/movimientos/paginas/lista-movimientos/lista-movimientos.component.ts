@@ -48,24 +48,18 @@ import { MovimientoService } from '../../../../nucleo/servicios/movimiento.servi
 import { MonedaSolPipe } from '../../../../compartido/pipes/moneda-sol.pipe';
 
 @Component({
-  selector: 'app-lista-movimientos',
-
-  standalone: true,
-
-  imports: [
-    CommonModule,
-    AsyncPipe,
-    RouterLink,
-    ReactiveFormsModule,
-    MonedaSolPipe,
-    LucideAngularModule,
-  ],
-
-  templateUrl: './lista-movimientos.component.html',
-
-  styleUrl: './lista-movimientos.component.scss',
-
-  changeDetection: ChangeDetectionStrategy.OnPush,
+    selector: 'app-lista-movimientos',
+    imports: [
+        CommonModule,
+        AsyncPipe,
+        RouterLink,
+        ReactiveFormsModule,
+        MonedaSolPipe,
+        LucideAngularModule,
+    ],
+    templateUrl: './lista-movimientos.component.html',
+    styleUrl: './lista-movimientos.component.scss',
+    changeDetection: ChangeDetectionStrategy.OnPush
 })
 export class ListaMovimientosComponent {
   readonly iconos = {
