@@ -16,7 +16,7 @@ import { RouterLink } from '@angular/router';
 
 @Component({
     selector: 'app-barra-superior',
-    imports: [AsyncPipe, LucideAngularModule, RouterLink],
+    imports: [AsyncPipe, LucideAngularModule],
     templateUrl: './barra-superior.component.html',
     styleUrl: './barra-superior.component.scss',
     changeDetection: ChangeDetectionStrategy.OnPush
