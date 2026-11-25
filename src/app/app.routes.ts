@@ -131,6 +131,11 @@ export const routes: Routes = [
         (component) => component.RestablecerPasswordComponent,
       ),
   },
+  {
+    // El correo de recuperación usa /reset-password; redirige a la pantalla real.
+    path: 'reset-password',
+    redirectTo: 'restablecer-password',
+  },
 
   {
     path: 'cuenta/cambiar-password',
