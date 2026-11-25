@@ -1190,17 +1190,55 @@ categoriaId: esEgreso ? datos.categoriaId : 0,
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: () => {
-          void this.router.navigate(['/movimientos']);
+        next: async () => {
+          const entidad = tipoMovimiento === 1 ? 'ingreso' : 'egreso';
+
+          const { default: Swal } = await import('sweetalert2');
+
+          await Swal.fire({
+            icon: 'success',
+
+            title: this.modoEdicion
+              ? 'Movimiento actualizado'
+              : `${entidad.charAt(0).toUpperCase()}${entidad.slice(1)} registrado`,
+
+            text: this.modoEdicion
+              ? `El ${entidad} se actualizó correctamente.`
+              : `El ${entidad} se registró correctamente.`,
+
+            confirmButtonText: 'Aceptar',
+
+            confirmButtonColor: '#17648a',
+
+            heightAuto: false,
+          });
+
+          await this.router.navigate(['/movimientos']);
         },
 
-        error: (error) => {
-          this.errorGuardado =
+        error: async (error) => {
+          const mensaje =
             error instanceof Error
               ? error.message
               : 'No se pudo guardar el movimiento.';
 
+          this.errorGuardado = mensaje;
+
           this.changeDetectorRef.markForCheck();
+
+          const { default: Swal } = await import('sweetalert2');
+
+          await Swal.fire({
+            icon: 'error',
+
+            title: 'No se pudo guardar',
+
+            text: mensaje,
+
+            confirmButtonText: 'Aceptar',
+
+            heightAuto: false,
+          });
         },
       });
   }

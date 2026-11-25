@@ -19,7 +19,7 @@ import { RouterLink } from '@angular/router';
 
   standalone: true,
 
-  imports: [AsyncPipe, LucideAngularModule, RouterLink],
+  imports: [AsyncPipe, LucideAngularModule],
 
   templateUrl: './barra-superior.component.html',
 

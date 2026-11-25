@@ -177,6 +177,22 @@ export class ComprobanteXmlService {
       );
 
 
+    /*
+      Se admiten facturas (1), boletas (2) y recibos por honorarios (3).
+      Notas de crédito/débito y otros comprobantes quedan fuera.
+    */
+
+    const tiposAdmitidos = [1, 2, 3];
+
+    if (
+      tipoComprobante.valor === undefined ||
+      !tiposAdmitidos.includes(tipoComprobante.valor)
+    ) {
+      throw new Error(
+        `Solo se admiten facturas y boletas.`,
+      );
+    }
+
     const resultado:
       ComprobanteXmlProcesado = {
 
